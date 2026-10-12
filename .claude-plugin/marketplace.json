@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jaykop",
+  "description": "jaykop 의 Claude Code 플러그인 모음",
+  "owner": {
+    "name": "jaykop"
+  },
+  "plugins": [
+    {
+      "name": "advisors",
+      "source": "./plugins/advisors",
+      "description": "게임 프로젝트 고문 4종 — 기획, 신기술, 시장 동향, 최적화. 근거 등급을 붙인 리포트를 남기고 지난 리포트와 비교한다."
+    }
+  ]
+}

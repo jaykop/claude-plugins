@@ -1,0 +1,11 @@
+{
+  "name": "advisors",
+  "description": "게임 프로젝트 고문 4종 — 기획(design), 신기술(newtech), 시장 동향(market), 최적화(perf). 프로젝트 값은 각 프로젝트의 .claude/advisors/profile.md 에서 읽는다.",
+  "author": {
+    "name": "jaykop"
+  },
+  "homepage": "https://github.com/jaykop/claude-plugins",
+  "repository": "https://github.com/jaykop/claude-plugins",
+  "license": "MIT",
+  "keywords": ["game-design", "unreal-engine", "market-research", "performance", "advisor", "korean"]
+}

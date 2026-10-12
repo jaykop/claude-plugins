@@ -1,0 +1,2 @@
+# 훅 스크립트는 bash 가 읽는다. CRLF 가 섞이면 shebang 과 heredoc 이 깨지므로 LF 로 고정한다.
+* text=auto eol=lf
