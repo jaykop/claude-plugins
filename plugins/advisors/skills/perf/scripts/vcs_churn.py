@@ -70,6 +70,8 @@ def run(cmd, kind, sub, cwd, budget, allow_fail=False):
         proc = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=left)
     except FileNotFoundError:
         raise VcsError("'{0}' 명령을 찾지 못함".format(cmd[0]))
+    except OSError as e:  # 작업 폴더가 없거나 경로 형식이 잘못된 경우 등
+        raise VcsError("'{0}' 를 실행하지 못함(작업 폴더: {1}): {2}".format(cmd[0], cwd or "현재 폴더", e))
     if proc.returncode != 0 and not allow_fail:
         err = "\n".join(decode_lines(proc.stderr)).strip() or "(오류 문구 없음)"
         raise VcsError("{0} 실패(종료 코드 {1}): {2}".format(" ".join(cmd[:3]), proc.returncode, err[:500]))
@@ -483,6 +485,10 @@ def main(argv):
     if not args.vcs:
         parser.print_help()
         return 2
+    if args.vcs == "p4" and not args.cwd:
+        args.cwd = None  # 빈 문자열이 오면 현재 폴더에서 실행한다
+    if args.vcs == "p4" and args.cwd and not os.path.isdir(args.cwd):
+        parser.error("--cwd 폴더가 없다: {0}".format(args.cwd))
     if not valid_date(args.since) or (args.until and not valid_date(args.until)):
         parser.error("날짜는 YYYY-MM-DD 형식이어야 한다")
     if args.max_changes < 1:

@@ -28,7 +28,9 @@ MAX_FILE_BYTES = 5 * 1024 * 1024
 EXIT_OK = 0
 EXIT_USAGE = 3
 
-_STRIP = re.compile(r"[,\s$€£¥₩%]")
+_STRIP = re.compile(r"[\s$€£¥₩%]")
+# 쉼표는 천 단위 구분일 때만 지운다. 29,99 처럼 소수점으로 쓴 쉼표를 지우면 2999 가 된다.
+_THOUSANDS = re.compile(r"^[+-]?[1-9]\d{0,2}(,\d{3})+(\.\d+)?$")
 
 
 def _reconfigure_stdout():
@@ -45,9 +47,14 @@ def _fail(msg):
 
 
 def _num(text):
-    """'12,340' '$29.99' '87.2%' 같은 값을 숫자로 읽는다. 단위 추측(k, 만 등)은 하지 않는다."""
+    """'12,340' '$29.99' '87.2%' 같은 값을 숫자로 읽는다. 단위 추측(k, 만 등)은 하지 않는다.
+    쉼표는 천 단위 구분(1,234 · 12,340.5)일 때만 지운다. '29,99' 처럼 소수점 자리의 쉼표는 읽지 않는다."""
     raw = str(text).strip()
     cleaned = _STRIP.sub("", raw)
+    if "," in cleaned:
+        if not _THOUSANDS.match(cleaned):
+            return None
+        cleaned = cleaned.replace(",", "")
     try:
         return float(cleaned)
     except ValueError:
@@ -59,7 +66,7 @@ def _nums(values):
     for v in values:
         x = _num(v)
         if x is None:
-            _fail("숫자로 읽을 수 없는 값: {} (천 단위 쉼표, 통화 기호, % 만 지울 수 있다)".format(v))
+            _fail("숫자로 읽을 수 없는 값: {} (통화 기호와 % 는 지운다. 쉼표는 1,234,567 같은 천 단위 구분만 받는다. 소수점이면 . 으로, 다른 구분이면 쉼표를 빼고 넣는다)".format(v))
         out.append(x)
     return out
 

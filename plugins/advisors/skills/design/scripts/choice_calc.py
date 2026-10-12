@@ -16,6 +16,7 @@ Python 3.8 이상, 표준 라이브러리만 쓴다.
 import argparse
 import csv
 import json
+import re
 import sys
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -28,10 +29,18 @@ class InputError(Exception):
     pass
 
 
+# 쉼표는 천 단위 구분일 때만 지운다. 29,99 처럼 소수점으로 쓴 쉼표를 지우면 2999 가 된다.
+THOUSANDS = re.compile(r"^[+-]?[1-9]\d{0,2}(,\d{3})+(\.\d+)?$")
+
+
 def to_num(text, where):
-    t = (text or "").strip().replace(",", "")
+    t = (text or "").strip()
     if t == "":
         raise InputError("빈 값: %s" % where)
+    if "," in t:
+        if not THOUSANDS.match(t):
+            raise InputError("숫자로 읽을 수 없는 값 '%s' — 쉼표는 1,234,567 같은 천 단위 구분만 받는다. 소수점이면 . 으로, 다른 구분이면 쉼표를 빼고 넣는다: %s" % (text, where))
+        t = t.replace(",", "")
     try:
         return float(t)
     except ValueError:

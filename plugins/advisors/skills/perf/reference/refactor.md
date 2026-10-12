@@ -20,8 +20,8 @@
 4. **실행** (`python` 이 없으면 `python3`):
 
    ```
-   python "${CLAUDE_SKILL_DIR}/scripts/vcs_churn.py" git --repo "${CLAUDE_PROJECT_DIR}" --since <시작일> --path <비교 범위> --sizes
-   python "${CLAUDE_SKILL_DIR}/scripts/vcs_churn.py" p4 --cwd "${CLAUDE_PROJECT_DIR}" --path <비교 범위 depot 경로>/... --since <시작일> --sizes
+   python "<스킬 폴더>/scripts/vcs_churn.py" git --repo "<프로젝트 루트>" --since <시작일> --path <비교 범위> --sizes
+   python "<스킬 폴더>/scripts/vcs_churn.py" p4 --cwd "<프로젝트 루트>" --path <비교 범위 depot 경로>/... --since <시작일> --sizes
    ```
 
    - 대상 파일이 파일 표(기본 상위 30개)에 없으면 `--top` 을 늘려 다시 돌린다. 그래도 없으면 "상위 N위 밖"으로 적는다.

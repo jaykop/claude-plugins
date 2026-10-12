@@ -406,7 +406,7 @@ def md_cell(text):
 def main():
     ap = argparse.ArgumentParser(
         description="언리얼 프로젝트의 기술 목록(newtech-inventory.md)을 만든다. 프로젝트·엔진 파일은 읽기만 한다.")
-    ap.add_argument("project_root", help="프로젝트 루트 폴더 (근거 위치를 이 폴더 기준 상대 경로로 적는다)")
+    ap.add_argument("project_root", nargs="?", default="", help="프로젝트 루트 폴더 (근거 위치를 이 폴더 기준 상대 경로로 적는다). 없거나 빈 값이면 현재 폴더")
     ap.add_argument("--project-file", help="프로젝트 파일(.uproject) 경로. 상대 경로면 프로젝트 루트 기준. 없으면 깊이 3 까지 찾는다")
     ap.add_argument("--engine-root", help="엔진 폴더(안에 Build/Build.version 이 있는 폴더). 없으면 프로젝트 파일 위쪽에서 찾는다")
     ap.add_argument("--mod-marker", help="엔진 수정 블록의 시작 줄을 찾는 정규식 (예: 'MYGAME_BEGIN')")
@@ -428,7 +428,7 @@ def main():
     ap.add_argument("--out", help="결과를 쓸 파일. 없으면 표준 출력")
     args = ap.parse_args()
 
-    root = norm(args.project_root)
+    root = norm(args.project_root or os.getcwd())
     if not os.path.isdir(root):
         print("오류: 프로젝트 루트 폴더가 없다 — " + root)
         return 2

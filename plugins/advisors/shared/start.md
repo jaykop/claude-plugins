@@ -2,17 +2,20 @@
 
 각 고문 스킬의 Step 0 과 Step Final 은 이 파일을 따른다. 아래에서 `<고문>` 은 design · newtech · market · perf 중 하나다.
 
+이 파일은 Read 로 읽으므로 경로 변수가 바뀌지 않는다. `<플러그인 폴더>`, `<프로젝트 루트>` 는 SKILL.md '경로와 인자'에 적힌 실제 경로로 바꿔 쓴다.
+
 ## Step 0 — 시작
 
 ### 0-A. 실행 방식 판별
-- 요청 문장에 "무인" 또는 "unattended" 가 있으면 무인 실행이다. 이후 모든 단계에서 `rules.md` §10 을 따른다(질문 금지, 리포트 저장까지만).
+- SKILL.md '경로와 인자'에 적힌 이번 호출의 인자에 `--unattended` 가 있으면 무인 실행이다. 이후 모든 단계에서 `rules.md` §10 을 따른다(질문 금지, 리포트 저장까지만).
+- 요청 문장의 낱말로는 판별하지 않는다. "무인도 생존 게임 시장성 봐 줘"처럼 '무인'이 들어간 요청도 대화 실행이다.
 - 그 밖에는 대화 실행이다.
 
 ### 0-B. 공통 규칙 읽기
-`${CLAUDE_PLUGIN_ROOT}/shared/rules.md` 를 읽는다. 이 규칙은 고문별 지침보다 우선한다.
+`<플러그인 폴더>/shared/rules.md` 를 읽는다. 이 규칙은 고문별 지침보다 우선한다.
 
 ### 0-C. 프로필 확인
-프로필 위치는 `${CLAUDE_PROJECT_DIR}/.claude/advisors/profile.md` 하나다.
+프로필 위치는 `<프로젝트 루트>/.claude/advisors/profile.md` 하나다.
 
 **있으면** 읽는다. 이 고문에 필요한 칸(각 SKILL.md 의 "필요한 프로필 값". 다른 고문 섹션의 칸이 적혀 있어도 포함한다)이 비어 있으면:
 - 대화 실행: 그 칸만 한 번에 묻는다. 단, 다음 칸은 묻지 않는다.
@@ -28,15 +31,15 @@
 - 무인 실행: `report_dir` 를 알 수 없으므로 아무것도 쓰지 않고, 최종 응답에 "프로필 없음 — 대화 세션에서 먼저 프로필을 만들어 주세요"만 남기고 멈춘다.
 
 ### 0-D. 프로필 만들기
-1. 양식 `${CLAUDE_PLUGIN_ROOT}/shared/profile-template.md` 를 읽는다.
+1. 양식 `<플러그인 폴더>/shared/profile-template.md` 를 읽는다.
 2. 파일에서 알 수 있는 값을 스크립트로 모은다.
    ```
-   python "${CLAUDE_PLUGIN_ROOT}/scripts/profile_scan.py" "${CLAUDE_PROJECT_DIR}"
+   python "<플러그인 폴더>/scripts/profile_scan.py" "<프로젝트 루트>"
    ```
    `python` 이 없으면 `python3` 로 실행한다. 결과(버전 관리 종류, 프로젝트 파일, 엔진 버전, 문서가 많은 폴더 등)는 `[파일]` 출처로 채운다.
 3. 남은 칸 중 **공통 칸과, 지금 부른 고문의 "필요한 프로필 값"에 적힌 칸만** 묻는다(0-C 의 "Step 0 에서 묻지 않음" 예외는 같다). 나머지 칸은 그 칸이 필요한 고문을 처음 부를 때 묻는다. 한 번에 다 묻고, 모르는 값은 비워 둬도 된다고 알려 준다.
 4. 특히 다음은 추측으로 채우지 않는다: `decision_owners`, `user_role`, `team_size`, `search_banned_terms`, `search_banned_combos`, `design.principles_status`, `perf.budgets`.
-5. 저장 위치는 `${CLAUDE_PROJECT_DIR}/.claude/advisors/profile.md`. 버전 관리에 올릴지는 사용자에게 맡긴다. git 프로젝트이고 `share_scope` 가 personal 이면 `.gitignore` 에 넣을지 묻는다.
+5. 저장 위치는 `<프로젝트 루트>/.claude/advisors/profile.md`. 버전 관리에 올릴지는 사용자에게 맡긴다. git 프로젝트이고 `share_scope` 가 personal 이면 `.gitignore` 에 넣을지 묻는다.
 
 ### 0-E. 리포트 폴더와 지난 기록
 모드가 정해져 있어야 직전 리포트를 고를 수 있다. 요청 문장으로 모드가 정해지지 않았으면 SKILL.md 의 모드 판별을 먼저 하고 0-E 로 온다.
@@ -51,9 +54,9 @@
 
 ## Step Final — 마무리
 
-1. 리포트를 `<report_dir>/<고문>/<YYYY-MM-DD>-<모드>.md` 로 저장한다. 양식은 `${CLAUDE_PLUGIN_ROOT}/shared/report-base.md`.
-2. 이 고문의 `_state` 파일을 갱신한다. 머리의 `다음 점검:` 줄도 갱신한다.
-3. 다른 고문에게 넘길 질문이 있으면 `_state/inbox.md` 에 추가한다(형식: `${CLAUDE_PLUGIN_ROOT}/shared/inbox-format.md`). 이번에 답한 질문은 상태를 "답함"으로 바꾼다.
+1. 리포트를 `<report_dir>/<고문>/<YYYY-MM-DD>-<모드>.md` 로 저장한다. 양식은 `<플러그인 폴더>/shared/report-base.md`.
+2. 이 고문의 `_state` 파일을 갱신한다. 머리의 `마지막 갱신` 은 오늘 날짜로 바꾸고, `다음 점검:` 줄도 갱신한다. 세션 시작 알림은 이 두 값을 보고 알릴지 정한다.
+3. 다른 고문에게 넘길 질문이 있으면 `_state/inbox.md` 에 추가한다(형식: `<플러그인 폴더>/shared/inbox-format.md`). 이번에 답한 질문은 상태를 "답함"으로 바꾼다.
 4. 대화 실행이면 대화에 다음만 낸다.
    - 요약 세 줄
    - 결정이 필요한 것
@@ -73,9 +76,9 @@
 
 - 세션에 예약 작업 도구(Claude Desktop 의 scheduled-tasks `create_scheduled_task`)가 있으면 그것으로 만든다.
   - 예약 실행은 이 대화를 기억하지 못한다. 지시문에 다음을 모두 넣는다.
+    - 첫 줄: 부를 스킬과 모드, 그리고 `--unattended` 인자. 예: `/advisors:newtech 정기 점검 --unattended`. 무인 실행은 이 인자로만 판별된다(0-A). 슬래시 명령으로 읽히도록 이 줄을 맨 앞에 둔다
     - 프로젝트 루트의 절대 경로, 그리고 그 폴더에서 작업하라는 지시
-    - 부를 스킬과 모드. 예: `/advisors:newtech 정기 점검`
-    - "무인 실행. 질문하지 말고 리포트 저장까지만 할 것"
+    - "질문하지 말고 리포트 저장까지만 할 것". 사람이 읽는 설명이고, 판별은 첫 줄의 인자로 한다
     - `report_dir` 의 절대 경로. 예약 작업의 권한 설정에서 이 폴더 쓰기를 허용해 달라고 사용자에게 알린다. 각 SKILL.md 의 allowed-tools 는 `.claude/advisors/` 아래 쓰기와 git·p4 읽기 명령 몇 개만 미리 허용한다. `report_dir` 가 다른 곳이거나 `vcs_read_commands` 에 다른 명령이 있으면 그것도 허용해 달라고 알린다
   - 주기는 각 SKILL.md 의 "기본 주기"를 제안하고 사용자가 정한 값을 쓴다.
   - Claude Desktop 앱이 켜져 있을 때 돌고, 꺼져 있었으면 다음에 앱을 켤 때 돈다는 점을 알려 준다.

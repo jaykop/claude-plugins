@@ -17,11 +17,12 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-ADVISOR_NAMES = {"design": "기획 고문", "newtech": "신기술 고문", "market": "시장 동향 고문", "perf": "최적화 고문"}
+# 고문 목록은 이 플러그인의 skills/ 아래 폴더 이름이다. 고문을 더해도 이 파일은 고치지 않는다.
+PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NEXT_RE = re.compile(r"^\s*다음 점검:\s*(\d{4}-\d{2}-\d{2})", re.M)
 # 마일스톤 기준 형식: "다음 점검: 마일스톤 14일 전" — 프로필 next_milestone 의 날짜에서 뺀다
 MILESTONE_RE = re.compile(r"^\s*다음 점검:\s*마일스톤\s*(\d+)\s*일\s*전", re.M)
-MILESTONE_DATE_RE = re.compile(r"^next_milestone:.*?(\d{4}-\d{2}-\d{2})", re.M)
+MILESTONE_DATE_RE = re.compile(r"^next_milestone:[^#\n]*?(\d{4}-\d{2}-\d{2})", re.M)  # 주석(#) 속 예시 날짜는 읽지 않는다
 LAST_UPDATE_RE = re.compile(r"마지막 갱신:\s*(\d{4}-\d{2}-\d{2})")
 REPORT_DIR_RE = re.compile(r"^report_dir:\s*(.*?)\s*(#.*)?$", re.M)
 
@@ -42,12 +43,28 @@ def resolve_report_dir(project_root, profile_text):
     return os.path.normpath(value)
 
 
-def owner_of(state_file):
+def advisor_keys():
+    skills = os.path.join(PLUGIN_ROOT, "skills")
+    try:
+        names = os.listdir(skills)
+    except OSError:
+        return set()
+    return {n for n in names if os.path.isfile(os.path.join(skills, n, "SKILL.md"))}
+
+
+def plugin_name():
+    try:
+        with open(os.path.join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"), "r", encoding="utf-8") as f:
+            return json.load(f).get("name") or "advisors"
+    except (OSError, ValueError):
+        return "advisors"
+
+
+def owner_of(state_file, keys):
+    """파일 이름이 '<고문>-' 으로 시작하는 _state 파일만 그 고문의 점검 파일이다(source-checks 같은 공용 파일은 빠진다)."""
     name = os.path.basename(state_file)
-    for key in ADVISOR_NAMES:
-        if name.startswith(key + "-"):
-            return key
-    return None
+    # 이름이 겹치면(design, design-review) 가장 긴 이름이 주인이다
+    return max((k for k in keys if name.startswith(k + "-")), key=len, default=None)
 
 
 def open_questions(inbox_text):
@@ -77,6 +94,12 @@ def main():
         return 0  # 고문을 쓰지 않는 프로젝트 — 조용히 끝낸다
 
     today = dt.date.fromisoformat(args.today) if args.today else dt.date.today()
+    keys = advisor_keys()
+    plugin = plugin_name()
+
+    def label(key):
+        return "/{}:{}".format(plugin, key) if key in keys else key
+
     state_dir = os.path.join(resolve_report_dir(root, profile_text), "_state")
     items = []
 
@@ -88,7 +111,7 @@ def main():
         if not name.endswith(".md") or name == "inbox.md":
             continue
         text = read_text(os.path.join(state_dir, name)) or ""
-        key = owner_of(name)
+        key = owner_of(name, keys)
         if not key:
             continue
         m = NEXT_RE.search(text)
@@ -117,13 +140,12 @@ def main():
         if due is None:
             continue
         if due <= today:
-            items.append("{} 점검 예정일 {} 지남 ({})".format(ADVISOR_NAMES[key], due.isoformat(), name))
+            items.append("{} 점검 예정일 {} 지남 ({})".format(label(key), due.isoformat(), name))
 
     inbox = read_text(os.path.join(state_dir, "inbox.md"))
     if inbox:
         for receiver, n in sorted(open_questions(inbox).items()):
-            label = ADVISOR_NAMES.get(receiver, receiver)
-            items.append("{} 앞으로 열린 질문 {}건".format(label, n))
+            items.append("{} 앞으로 열린 질문 {}건".format(label(receiver), n))
 
     # 같은 고문의 _state 파일이 여러 개면 중복 알림을 줄인다
     seen, unique = set(), []

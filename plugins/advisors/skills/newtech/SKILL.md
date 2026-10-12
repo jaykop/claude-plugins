@@ -1,14 +1,27 @@
 ---
 name: newtech
 description: 게임 프로젝트의 신기술 고문. 프로젝트가 지금 쓰는 엔진·플러그인·설정을 목록으로 만들고, 그 기술의 변화(폐기 예정, API 변경, 성숙도 변화)와 풀어야 할 문제에 맞는 기술을 1차 출처로 확인해 적용 가능성·필요성·추천도로 판정한 리포트를 남긴다. 커뮤니티 채널(Qiita, GeekNews 등)에서는 무엇이 화제인지와 실제 사용 경험만 실마리로 모으고, 판정 근거로는 쓰지 않는다. 모드는 정기 점검과 단일 기술 진단(기술 하나 또는 엔진 버전 하나) 두 가지다. 해당하지 않는 경우 — 코드·설정 수정, 플러그인 켜기, 엔진 업그레이드 실행, 빌드 요청은 이 스킬의 일이 아니다. 재미 판단은 design, 성능 측정은 perf, 시장과 하드웨어 보급은 market 이 맡는다.
-when_to_use: 사용자가 "기술 점검해 줘", "이번 달 엔진 소식 정리해 줘", "요즘 언리얼 커뮤니티에서 뭐가 화제야?", "이 기술 우리 프로젝트에 써도 돼?", "엔진 버전 올려야 할까?", "<기능 이름> 도입 검토해 줘", "/advisors:newtech 정기 점검 무인" 처럼 기술 동향이나 특정 기술의 도입 판단을 물을 때. 다른 고문이 질문함으로 신기술 고문에게 넘긴 질문을 처리할 때.
-argument-hint: "[정기 점검|단일 기술 진단] [대상 기술 또는 엔진 버전]"
+when_to_use: 사용자가 "기술 점검해 줘", "이번 달 엔진 소식 정리해 줘", "요즘 언리얼 커뮤니티에서 뭐가 화제야?", "이 기술 우리 프로젝트에 써도 돼?", "엔진 버전 올려야 할까?", "<기능 이름> 도입 검토해 줘", "/advisors:newtech 정기 점검 --unattended" 처럼 기술 동향이나 특정 기술의 도입 판단을 물을 때. 다른 고문이 질문함으로 신기술 고문에게 넘긴 질문을 처리할 때.
+argument-hint: "[정기 점검|단일 기술 진단] [대상 기술 또는 엔진 버전] [--unattended]"
 allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *tech_inventory.py*), Bash(python3 *tech_inventory.py*), Bash(python *profile_scan.py*), Bash(python3 *profile_scan.py*), Bash(git log *), Bash(git show *), Bash(git rev-parse *), Bash(p4 changes *), Bash(p4 describe *), Bash(p4 filelog *), Bash(p4 fstat *), Write(./.claude/advisors/**), Edit(./.claude/advisors/**)
 ---
 
 # New Tech Advisor
 
 신기술 고문은 바깥 소식이 아니라 프로젝트가 지금 쓰는 기술에서 출발한다. 먼저 프로젝트 기술 목록(엔진 버전, 플러그인 켜짐·꺼짐, 주요 설정, 엔진 수정 블록 수)을 스크립트로 만들고, 그 기술에 생긴 변화를 본 다음, 팀이 풀어야 할 문제에 맞는 기술을 찾는다. 어느 문제와도 이어지지 않는 소식은 맨 끝에 한 줄씩만 적는다. 판정은 이번 실행에서 연 1차 출처(기술을 만든 쪽이 직접 낸 자료)로만 하고, 결정은 사람이 한다. 커뮤니티 채널은 무엇이 화제인지, 실제로 써 본 사람이 무엇을 겪었는지 찾는 곳이다. 거기서 나온 내용은 1차 출처로 다시 확인한 뒤에만 판정에 쓴다.
+
+## 경로와 인자
+
+- 플러그인 폴더: `${CLAUDE_PLUGIN_ROOT}`
+- 이 스킬 폴더: `${CLAUDE_SKILL_DIR}`
+- 프로젝트 루트: `${CLAUDE_PROJECT_DIR}`
+- 이번 호출의 인자: `$ARGUMENTS`
+
+이 파일과 reference·`shared/` 파일에 적힌 `<플러그인 폴더>`, `<스킬 폴더>`, `<프로젝트 루트>` 자리에는 위의 실제 경로를 넣는다. reference·shared 파일은 Read 로 읽어서 변수가 바뀌지 않고, Bash 명령에 변수를 그대로 쓰면 빈 값이 되기 때문이다.
+
+Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이름 그대로 보일 수 있다. 그때는 이렇게 정한다.
+- 이 스킬 폴더: `<플러그인 폴더>/skills/newtech`. 이 파일의 명령에 변수 이름이 그대로 남아 있으면 이 경로로 바꿔 실행한다.
+- 프로젝트 루트: 세션을 시작한 폴더. Bash 로 `pwd` 를 실행해 확인한다. 세션 중에 다른 폴더로 옮겼다면 처음 폴더를 쓴다.
 
 ## 하는 일 / 안 하는 일
 
@@ -88,9 +101,9 @@ allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *tech_inventory.py*),
 
 1. 스크립트로 목록을 만든다. 대괄호 부분은 프로필 값이 있을 때만 넣는다. `python` 이 없으면 `python3` 로 실행한다.
    ```
-   python "${CLAUDE_SKILL_DIR}/scripts/tech_inventory.py" "${CLAUDE_PROJECT_DIR}" --project-file "<project_file>" [--engine-root "<engine.root>"] [--mod-marker "<newtech.engine_mod_marker>" --mod-dirs "<폴더1>" "<폴더2>"] [--source-roots "<폴더1>" "<폴더2>"] --stale-days <stale_after_days> --previous "<report_dir>/_state/newtech-inventory.md" --date <오늘> --revision "<기준 리비전>" --out "<report_dir>/_state/newtech-inventory.md"
+   python "${CLAUDE_SKILL_DIR}/scripts/tech_inventory.py" "<프로젝트 루트>" --project-file "<project_file>" [--engine-root "<engine.root>"] [--mod-marker "<newtech.engine_mod_marker>" --mod-dirs "<폴더1>" "<폴더2>"] [--source-roots "<폴더1>" "<폴더2>"] --stale-days <stale_after_days> --previous "<report_dir>/_state/newtech-inventory.md" --date <오늘> --revision "<기준 리비전>" --out "<report_dir>/_state/newtech-inventory.md"
    ```
-   - `<report_dir>` 가 상대 경로면 `${CLAUDE_PROJECT_DIR}` 를 앞에 붙여 절대 경로로 넣는다. 폴더 목록(`newtech.engine_mod_dirs`, `source_roots`)은 항목마다 따옴표로 감싼다. `--mod-dirs` 의 상대 경로는 엔진 폴더 기준이고, 거기 없으면 프로젝트 루트 기준이다.
+   - `<report_dir>` 가 상대 경로면 `<프로젝트 루트>` 를 앞에 붙여 절대 경로로 넣는다. 폴더 목록(`newtech.engine_mod_dirs`, `source_roots`)은 항목마다 따옴표로 감싼다. `--mod-dirs` 의 상대 경로는 엔진 폴더 기준이고, 거기 없으면 프로젝트 루트 기준이다.
    - `source_roots` 가 비어 있으면 스크립트가 프로젝트 파일 옆 `Source`·`Plugins` 를 쓴다. 그 폴더는 결과 끝 "사용 흔적 탐색" 줄에 나오며, 뒤 단계의 코드 검색도 같은 폴더로 한다.
    - 수정 표시 규칙이 정규식이 아니라 주석 글자 그대로면 `--literal` 을 붙인다.
    - 결과에 "엔진 폴더를 못 찾아"가 나오면 플러그인의 성숙도 표시와 엔진 기본 켜짐 값이 빠진 목록이다. 대화 실행에서는 엔진 폴더(런처 설치본이면 설치 폴더)를 한 번 묻고, 답을 프로필 `engine.root` 에 `[사용자]` 출처로 적은 뒤(`updated` 도 오늘로) `--engine-root` 로 다시 돌린다. 무인 실행에서는 "확인 못 한 것"에 적는다.
@@ -246,7 +259,7 @@ analyst 지시문 틀:
 - verdict-rules.md 순서대로 판정한다. 걸린 상한 규칙을 모두 적는다.
 - 기능이 건드리는 엔진 폴더를 1차 출처나 엔진 트리에서 확인했으면 그 폴더의 수정 블록 수를 센다.
   ```
-  python "${CLAUDE_SKILL_DIR}/scripts/tech_inventory.py" "${CLAUDE_PROJECT_DIR}" --project-file "<project_file>" [--engine-root "<engine.root>"] --mod-only --mod-marker "<newtech.engine_mod_marker>" [--literal] --mod-dirs "<폴더1>" "<폴더2>"
+  python "${CLAUDE_SKILL_DIR}/scripts/tech_inventory.py" "<프로젝트 루트>" --project-file "<project_file>" [--engine-root "<engine.root>"] --mod-only --mod-marker "<newtech.engine_mod_marker>" [--literal] --mod-dirs "<폴더1>" "<폴더2>"
   ```
   `--engine-root` 와 `--literal` 은 Step 1 에서 쓴 것과 같게 준다.
 - 추천도가 "시험"이면 verdict-rules.md §8 의 시험 계획을 쓴다. 성공 기준의 성능 지표는 perf 측정 요청으로 만든다.
@@ -286,7 +299,7 @@ report-base.md 의 틀에 body-format.md 의 단일 기술 진단 본문을 넣�
 
 ## 기본 주기
 
-- 정기 점검은 월 1회다. 예약 지시문의 스킬과 모드는 `/advisors:newtech 정기 점검` 이다(start.md "예약 점검 만들기").
+- 정기 점검은 월 1회다. 예약 지시문의 스킬과 모드는 `/advisors:newtech 정기 점검 --unattended` 이다(start.md "예약 점검 만들기").
 - 새 엔진 버전의 릴리스 노트가 나오면 예약과 상관없이 돌릴 만하다. 이 사건은 로컬에서 알아차릴 수 없으므로 사용자가 알려 주거나, 정기 점검에서 발견하면 그때 엔진 버전 단일 기술 진단을 제안한다.
 - 단일 기술 진단은 예약하지 않는다.
 

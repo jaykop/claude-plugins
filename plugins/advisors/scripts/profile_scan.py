@@ -172,7 +172,7 @@ def find_engine_version(uproject_path, engine_hint):
 
 def main():
     ap = argparse.ArgumentParser(description="고문 프로필에 넣을 값을 프로젝트 폴더에서 찾아 출력한다 (읽기 전용).")
-    ap.add_argument("project_root", help="프로젝트 루트 폴더")
+    ap.add_argument("project_root", nargs="?", default="", help="프로젝트 루트 폴더. 없거나 빈 값이면 현재 폴더")
     ap.add_argument("--engine-root", help="엔진 소스 폴더를 알면 지정 (Build.version 탐색용)")
     ap.add_argument("--max-depth", type=int, default=4, help="폴더 탐색 깊이 (기본 4)")
     ap.add_argument("--seconds", type=float, default=20.0, help="탐색 시간 상한 초 (기본 20)")
@@ -180,7 +180,7 @@ def main():
     ap.add_argument("--json", action="store_true", help="JSON 으로 출력")
     args = ap.parse_args()
 
-    root = os.path.abspath(args.project_root)
+    root = os.path.abspath(args.project_root or os.getcwd())
     if not os.path.isdir(root):
         print("오류: 폴더가 없다 — " + root)
         return 2

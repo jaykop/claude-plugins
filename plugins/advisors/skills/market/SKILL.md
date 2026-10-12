@@ -1,8 +1,8 @@
 ---
 name: market
 description: 게임 프로젝트의 시장 동향 고문. 공개 자료로 경쟁작·최근 흐름·이용자층·지역 조건을 모으고, 프로필의 장르·플랫폼·수익 모델·지역·출시 시점 조건에서 시장성을 축별 등급과 근거로 평가한다. 결과는 결정이 아니라 근거다. "시장성 평가해 줘", "경쟁작 조사해 줘", "시장 동향 점검", "경쟁작 ○○ 요즘 성적 어때", "북미 자료 다시 봐 줘" 같은 요청에 쓴다. 해당하지 않는 경우 — 코드·기획서·데이터 수정 요청, 기획 항목의 재미나 추가 여부 판단(design), 엔진·기술 도입 판단(newtech), 성능 목표·진단(perf), 광고·홍보 실행안, 판매량을 숫자 하나로 맞혀 달라는 요청.
-when_to_use: 첫 시장성 평가, 프로필의 장르·플랫폼·수익 모델·지역·출시 시점이 바뀐 뒤, 분기 정기 점검, 직접 경쟁작이 출시된 직후, 특정 경쟁작·지역·지표를 다시 볼 때. 예약 실행은 요청에 "무인"이 붙어 온다.
-argument-hint: "[전면 평가|변화 점검] [대상]"
+when_to_use: 첫 시장성 평가, 프로필의 장르·플랫폼·수익 모델·지역·출시 시점이 바뀐 뒤, 분기 정기 점검, 직접 경쟁작이 출시된 직후, 특정 경쟁작·지역·지표를 다시 볼 때. 예약 실행은 `--unattended` 인자가 붙어 온다.
+argument-hint: "[전면 평가|변화 점검] [대상] [--unattended]"
 allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *profile_scan.py*), Bash(python3 *profile_scan.py*), Bash(python *steam_reviews.py*), Bash(python3 *steam_reviews.py*), Bash(python *market_calc.py*), Bash(python3 *market_calc.py*), Bash(git log *), Bash(git show *), Bash(git rev-parse *), Bash(p4 changes *), Bash(p4 describe *), Bash(p4 filelog *), Bash(p4 fstat *), Write(./.claude/advisors/**), Edit(./.claude/advisors/**)
 ---
 
@@ -10,7 +10,20 @@ allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *profile_scan.py*), B
 
 공개 자료로 확인할 수 있는 범위에서 경쟁작, 최근 흐름, 이용자층, 지역별 조건을 정리하고, 프로필의 장르·플랫폼·수익 모델·지역·출시 시점 조건에서 이 프로젝트가 시장의 어느 자리에 놓이는지 축별로 평가한다. 결과물은 결정이 아니라 근거다. 출시 조건(시점·지역·플랫폼 우선순위·가격·수익 모델)은 프로필 `decision_owners.business` 가 정하고, 게임 내용을 바꿀지는 design 고문과 사용자가 정한다. 모든 수치에 출처·기준 기간·조회일·표본을 붙이고, 확인하지 못한 것은 확인하지 못했다고 쓴다.
 
-이 스킬 폴더: `${CLAUDE_SKILL_DIR}` — reference 파일과 스크립트가 여기 있다. analyst 지시문에는 이 절대 경로를 그대로 적는다.
+## 경로와 인자
+
+- 플러그인 폴더: `${CLAUDE_PLUGIN_ROOT}`
+- 이 스킬 폴더: `${CLAUDE_SKILL_DIR}`
+- 프로젝트 루트: `${CLAUDE_PROJECT_DIR}`
+- 이번 호출의 인자: `$ARGUMENTS`
+
+이 파일과 reference·`shared/` 파일에 적힌 `<플러그인 폴더>`, `<스킬 폴더>`, `<프로젝트 루트>` 자리에는 위의 실제 경로를 넣는다. reference·shared 파일은 Read 로 읽어서 변수가 바뀌지 않고, Bash 명령에 변수를 그대로 쓰면 빈 값이 되기 때문이다.
+
+Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이름 그대로 보일 수 있다. 그때는 이렇게 정한다.
+- 이 스킬 폴더: `<플러그인 폴더>/skills/market`. 이 파일의 명령에 변수 이름이 그대로 남아 있으면 이 경로로 바꿔 실행한다.
+- 프로젝트 루트: 세션을 시작한 폴더. Bash 로 `pwd` 를 실행해 확인한다. 세션 중에 다른 폴더로 옮겼다면 처음 폴더를 쓴다.
+
+analyst 지시문에는 스킬 폴더의 절대 경로를 그대로 적는다.
 
 ## 하는 일 / 안 하는 일
 
@@ -102,8 +115,8 @@ python "${CLAUDE_SKILL_DIR}/scripts/market_calc.py" window --months 24 12 3
 
 스크립트 공통:
 - `python` 이 없으면 `python3` 로 실행한다.
-- 숫자 인자는 작은따옴표로 감싼다(예: `'$29.99'`). 감싸지 않으면 셸이 `$2` 를 변수로 읽어 `9.99` 로 바뀐 값이 오류 없이 계산된다.
-- `<report_dir>` 가 상대 경로면 `${CLAUDE_PROJECT_DIR}` 를 앞에 붙인 절대 경로로 넣는다. Bash 의 현재 폴더가 프로젝트 루트라는 보장이 없다.
+- 숫자 인자는 작은따옴표로 감싼다. 달러 기호 바로 뒤에 숫자가 오는 값을 감싸지 않으면, 셸이 달러 기호와 첫 숫자를 변수로 읽어 지운다. 그러면 29.99 달러가 9.99 로 바뀐 채 오류 없이 계산된다.
+- `<report_dir>` 가 상대 경로면 `<프로젝트 루트>` 를 앞에 붙인 절대 경로로 넣는다. 명령을 어느 폴더에서 돌려도 같은 곳에 쓰이게 하려는 것이다.
 
 ### 0-5. 첫 실행 안내
 대화 실행이고 market 리포트가 하나도 없으면(첫 실행), 수집 전에 `${CLAUDE_SKILL_DIR}/reference/audience-regions.md` §1 의 한계 안내를 사용자에게 알린다. 무인 실행이면 같은 내용을 리포트의 "확인 못 한 것"에 적는다.
@@ -240,7 +253,7 @@ metrics.md §9 의 잡음 규칙으로 "변화로 인정"할지 칸을 채운다
 5. **대화 출력** (대화 실행): 요약 세 줄, 결정이 필요한 것, 리포트 경로, 후속 제안 1~3개. 예:
    - "design 에 넘긴 질문 N건을 지금 볼까요?"
    - "추가 후보 ○○를 경쟁작 목록에 넣을까요?"
-   - start.md Step Final 4 의 예약 제안: 주기는 `market.check_interval`, 지시문 예는 `/advisors:market 변화 점검 무인`
+   - start.md Step Final 4 의 예약 제안: 주기는 `market.check_interval`, 지시문 예는 `/advisors:market 변화 점검 --unattended`
 
 ## 기본 주기
 

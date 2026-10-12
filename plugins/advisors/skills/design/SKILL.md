@@ -2,13 +2,26 @@
 name: design
 description: "게임 기획 고문. 프로젝트가 정한 기획 원칙(최상위 원칙, 필러 — 지켜야 할 핵심 플레이 경험, 필러 우선순위, 금지 원칙)을 기준으로 기획 영역 하나를 진단하거나(영역 진단), 아이디어 한 건의 추가 여부나 기존 시스템 한 건의 유지·수정·보류·제거를 심사한다(단건 심사). 기획서·데이터·코드·플레이테스트 기록에서 확인한 사실에 근거 등급을 붙이고, 재미 판단은 플레이테스트로 확인되기 전까지 가설로 다룬다. 예: '전투 기획 진단해 줘', '이 아이디어 넣을까?', '이 시스템 빼도 될까?'. 해당하지 않는 경우 — 기획서·데이터·코드 수정 요청, 문서의 미결정 항목·모순 검사, 신기술 조사(newtech), 시장성(market), 프레임·메모리(perf), 손맛·타격감 같은 조작 감각의 판정."
 when_to_use: "기획 영역이나 시스템 하나를 원칙에 비추어 점검할 때, 새 플레이테스트 기록이 생겼을 때, 마일스톤 전에 기획 범위를 다시 볼 때, 다른 고문(newtech · market · perf)이 질문함으로 넘긴 기획 후보를 심사할 때. 예: '미션 영역 시스템 점검', '게임 전체 기획 진단', '기획 고문 단건 심사'."
-argument-hint: "[영역 진단|단건 심사] [대상]"
+argument-hint: "[영역 진단|단건 심사] [대상] [--unattended]"
 allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *profile_scan.py*), Bash(python3 *profile_scan.py*), Bash(python *area_inventory.py*), Bash(python3 *area_inventory.py*), Bash(python *choice_calc.py*), Bash(python3 *choice_calc.py*), Bash(git log *), Bash(git show *), Bash(git rev-parse *), Bash(p4 changes *), Bash(p4 describe *), Bash(p4 filelog *), Bash(p4 fstat *), Write(./.claude/advisors/**), Edit(./.claude/advisors/**)
 ---
 
 # Design Advisor
 
 기획 고문은 이 게임이 지키기로 한 기획 원칙(최상위 원칙, 필러, 필러 우선순위, 금지 원칙의 네 층. 필러는 이 게임이 반드시 지켜야 할 핵심 플레이 경험이다)을 기준으로 지금의 기획과 시스템을 진단하고, 무엇을 더하고 미루고 고치고 뺄지 제안한다. 모든 제안은 이 프로젝트의 기획서, 데이터, 코드, 플레이테스트 기록에서 확인한 사실에 기댄다. AI 는 게임을 플레이할 수 없으므로 재미에 관한 판단은 플레이테스트로 확인되기 전까지 가설이고, 제안마다 플레이테스트에서 무엇을 보면 맞았는지 알 수 있는지를 함께 적는다. 결정은 사람이 한다.
+
+## 경로와 인자
+
+- 플러그인 폴더: `${CLAUDE_PLUGIN_ROOT}`
+- 이 스킬 폴더: `${CLAUDE_SKILL_DIR}`
+- 프로젝트 루트: `${CLAUDE_PROJECT_DIR}`
+- 이번 호출의 인자: `$ARGUMENTS`
+
+이 파일과 reference·`shared/` 파일에 적힌 `<플러그인 폴더>`, `<스킬 폴더>`, `<프로젝트 루트>` 자리에는 위의 실제 경로를 넣는다. reference·shared 파일은 Read 로 읽어서 변수가 바뀌지 않고, Bash 명령에 변수를 그대로 쓰면 빈 값이 되기 때문이다.
+
+Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이름 그대로 보일 수 있다. 그때는 이렇게 정한다.
+- 이 스킬 폴더: `<플러그인 폴더>/skills/design`. 이 파일의 명령에 변수 이름이 그대로 남아 있으면 이 경로로 바꿔 실행한다.
+- 프로젝트 루트: 세션을 시작한 폴더. Bash 로 `pwd` 를 실행해 확인한다. 세션 중에 다른 폴더로 옮겼다면 처음 폴더를 쓴다.
 
 ## 하는 일 / 안 하는 일
 
@@ -164,7 +177,7 @@ web-scout 지시문에는 입력 → 규칙 → 결과 단락, 내부 시스템 
    대상이 '게임 전체'면 영역 폴더 목록과 영역별 최근 영역 진단 날짜를 보여 주고 이번에 볼 영역을 고르게 한다. 고른 영역마다 A1~A4 를 따로 돌려 리포트를 하나씩 쓰고, 끝에 목차를 만든다(body-format.md '게임 전체 목차').
 2. 자료 목록 스크립트를 돌린다(`python` 이 없으면 `python3`).
    ```
-   python "${CLAUDE_SKILL_DIR}/scripts/area_inventory.py" "<영역 폴더>" --base "${CLAUDE_PROJECT_DIR}" --exclude "<design.exclude 와 design.archive_dirs 항목>" --summary "<design.summaries 패턴>" --deprecated-marker "<design.deprecated_marker>" [--include "<design.area_file_patterns 의 이 영역 패턴>"] --read-limit 40 --batches 3 --batch-kb 300 [--since <직전 리포트 작성일>]
+   python "${CLAUDE_SKILL_DIR}/scripts/area_inventory.py" "<영역 폴더>" --base "<프로젝트 루트>" --exclude "<design.exclude 와 design.archive_dirs 항목>" --summary "<design.summaries 패턴>" --deprecated-marker "<design.deprecated_marker>" [--include "<design.area_file_patterns 의 이 영역 패턴>"] --read-limit 40 --batches 3 --batch-kb 300 [--since <직전 리포트 작성일>]
    ```
    - `--exclude`, `--summary`, `--deprecated-marker`, `--include` 는 항목마다 하나씩 되풀이해 준다. `--base` 를 주면 결과 경로가 프로젝트 기준 상대 경로가 되어 리포트에 그대로 인용할 수 있다.
    - 미채택안 보관 폴더(`design.archive_dirs`)는 근거가 아니므로 `--exclude` 로 뺀다. `design.deprecated_marker` 가 비어 있으면 `--deprecated-marker` 를 빼고, 폐기 문서를 가리지 못했다고 '확인 못 한 것'에 적는다.
@@ -243,8 +256,8 @@ web-scout 지시문에는 입력 → 규칙 → 결과 단락, 내부 시스템 
 
 1. **제안 기록 갱신**(proposals-format.md): 새 제안은 '제안' 상태로 ID 를 붙여 넣는다. 최소 조건을 못 채운 아이디어는 '아이디어 메모'로. 상태 변경은 이번 대화에서 사용자가 결정을 말했거나 결정이 적힌 문서를 인용할 수 있을 때만 한다.
 2. **제안 기록 머리의 `다음 점검:` 줄**(proposals-format.md '머리의 다음 점검 줄'):
-   - `next_milestone` 에 날짜가 있고 오늘이 그 날짜의 14일 전보다 앞이면 `다음 점검: 마일스톤 14일 전`. 세션 시작 알림이 프로필의 마일스톤 날짜에서 14일을 빼 날짜로 바꿔 알린다. 14일 전 날짜는 `date -d "<마일스톤 날짜> -14 days" +%F` 로 구한다.
-   - 그 밖에는 `다음 점검: 조건 — 새 플레이테스트 기록이 생기거나 다음 마일스톤 날짜가 정해졌을 때`. 날짜가 없을 때와, 오늘이 그 14일 전과 같거나 뒤일 때다. 뒤의 경우는 이번 실행이 그 마일스톤 전 점검을 맡았으므로, 마일스톤 형식으로 두면 같은 알림이 되풀이된다.
+   - `next_milestone` 에 YYYY-MM-DD 날짜가 있으면 `다음 점검: 마일스톤 14일 전`. 세션 시작 알림 스크립트(`scripts/due_check.py`)는 마일스톤 날짜에서 14일을 뺀 날부터 알린다. 다만 이 파일 머리의 `마지막 갱신` 이 그날과 같거나 뒤면 알리지 않는다. 그래서 오늘이 그날보다 뒤여도 같은 줄을 쓴다. 날짜를 직접 계산하지 않는다.
+   - 그런 날짜가 없으면 `다음 점검: 조건 — 새 플레이테스트 기록이 생기거나 다음 마일스톤 날짜가 정해졌을 때`.
 3. **넘길 질문**(`${CLAUDE_PLUGIN_ROOT}/shared/inbox-format.md` 형식):
    - perf — '성능 미확인'이 붙은 제안. 시나리오 ID 는 `perf.scenarios` 에 있는 것만 쓴다. 맞는 시나리오가 없으면 '알맞은 시나리오 없음'과 필요한 장면을 적고, 시나리오 추가를 '결정이 필요한 것'에 올린다.
    - newtech — 새 엔진 기능이나 새 기술로 구현할 수 있는지가 판정을 가르는 경우. 풀어야 할 문제를 적는다.

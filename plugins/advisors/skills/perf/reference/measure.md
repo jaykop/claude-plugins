@@ -62,17 +62,17 @@
 
 ### 5-1. CSV 프로파일러 결과(.csv)
 
-`${CLAUDE_SKILL_DIR}/scripts/csv_profile_stat.py` 로 집계한다. `python` 이 없으면 `python3` 로 실행한다.
+`<스킬 폴더>/scripts/csv_profile_stat.py` 로 집계한다. `python` 이 없으면 `python3` 로 실행한다.
 
 ```
 # 1) 통계 이름부터 본다. 이름을 추측해 --stats 에 넣지 않는다.
-python "${CLAUDE_SKILL_DIR}/scripts/csv_profile_stat.py" list <파일.csv>
+python "<스킬 폴더>/scripts/csv_profile_stat.py" list <파일.csv>
 
 # 2) 한 회차(반복 3회) 집계. 워밍업 구간은 --skip-frames 로 뺀다.
-python "${CLAUDE_SKILL_DIR}/scripts/csv_profile_stat.py" summary <r1.csv> <r2.csv> <r3.csv> --stats "<프레임 시간 열>,<게임 스레드 시간 열>,<렌더 스레드 시간 열>,<GPU 시간 열>" --budget-ms <예산 ms> --hitch-ms <히치 기준 ms> --skip-frames <N>
+python "<스킬 폴더>/scripts/csv_profile_stat.py" summary <r1.csv> <r2.csv> <r3.csv> --stats "<프레임 시간 열>,<게임 스레드 시간 열>,<렌더 스레드 시간 열>,<GPU 시간 열>" --budget-ms <예산 ms> --hitch-ms <히치 기준 ms> --skip-frames <N>
 
 # 3) 두 회차 비교(직전 회차, 기준선 회차와 각각)
-python "${CLAUDE_SKILL_DIR}/scripts/csv_profile_stat.py" compare --a <이전 r1> <이전 r2> <이전 r3> --b <이번 r1> <이번 r2> <이번 r3> --stats "<열 이름들>" --budget-ms <예산 ms> --hitch-ms <히치 기준 ms> --skip-frames <N>
+python "<스킬 폴더>/scripts/csv_profile_stat.py" compare --a <이전 r1> <이전 r2> <이전 r3> --b <이번 r1> <이번 r2> <이번 r3> --stats "<열 이름들>" --budget-ms <예산 ms> --hitch-ms <히치 기준 ms> --skip-frames <N>
 ```
 
 - 프레임 시간과 스레드별 시간 열은 흔히 `FrameTime`, `GameThreadTime`, `RenderThreadTime`, `RHIThreadTime`, `GPUTime` 같은 이름이다. 실제 이름은 1) 의 결과로 확인한다. GPU 관련 열은 측정 설정에 따라 없을 수 있다(GPU 통계를 켜는 인자는 대상 엔진에서 확인).

@@ -4,7 +4,7 @@
 
 ## 머리
 
-모든 `_state` 파일과 같은 머리를 쓴다(`${CLAUDE_PLUGIN_ROOT}/shared/state-formats.md`).
+모든 `_state` 파일과 같은 머리를 쓴다(`<플러그인 폴더>/shared/state-formats.md`).
 
 ```markdown
 # 최적화 점검 기록
