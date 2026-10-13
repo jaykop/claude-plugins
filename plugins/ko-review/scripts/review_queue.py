@@ -266,7 +266,7 @@ def main():
     parser.add_argument("--path", help="Task file whose descriptions are unaffected")
     parser.add_argument("--id")
     parser.add_argument("--token")
-    parser.add_argument("--reviewer", default="reviewer")
+    parser.add_argument("--reviewer", help="Reviewer name recorded by begin (default: profile reviewer, then 'reviewer')")
     parser.add_argument("--status", choices=("reviewed", "needs-decision"), default="reviewed")
     parser.add_argument("--note")
     parser.add_argument("--description-hash", help="Expected hash of the final, edited description block")
@@ -350,8 +350,10 @@ def main():
             entry = get_entry(data, args.id)
             if entry.get("locationError"):
                 raise ValueError(entry["locationError"])
+            # 이름을 주지 않으면 프로필의 검토 담당 이름을 쓴다. 검토 스킬이 인자를 빠뜨려도 기록이 익명이 되지 않게 한다.
+            reviewer = args.reviewer or profile_value(ROOT, "reviewer") or "reviewer"
             entry["ticket"] = {"token": uuid.uuid4().hex, "snapshot": entry["snapshot"],
-                               "reviewer": args.reviewer, "startedAt": now()}
+                               "reviewer": reviewer, "startedAt": now()}
             print(json.dumps(entry["ticket"], ensure_ascii=False, indent=2))
         elif args.command == "finish":
             entry = get_entry(data, args.id)

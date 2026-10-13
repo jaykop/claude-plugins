@@ -18,7 +18,7 @@
 | `register <task> --items <JSON 파일>` | 작성 | 설명 항목을 등록한다. 같은 id 를 다시 등록하면 대기로 돌린다 |
 | `no-impact <task> --path <파일> --note "이유"` | 작성 | 설명에 영향이 없는 변경을 기록한다. 파일 내용이 바뀌면 기록이 무효가 된다 |
 | `pending <task>` | 둘 다 | 현재 내용과 맞춰 본 뒤 대기 항목, 미등록 변경 파일을 출력한다 |
-| `begin <task> --id <항목> --reviewer <이름>` | 검토 | 현재 스냅샷과 token 을 기록한다 |
+| `begin <task> --id <항목> [--reviewer <이름>]` | 검토 | 현재 스냅샷과 token 을 기록한다. 이름을 생략하면 프로필 `reviewer` 값, 그것도 없으면 `reviewer` 로 기록한다 |
 | `snapshot <task> --id <항목>` | 검토 | 현재 설명·근거의 해시를 출력한다. 완료 기록은 하지 않는다 |
 | `finish <task> --id <항목> --token <token> --note "결과" [--status needs-decision] [--description-hash <해시>]` | 검토 | 검토 결과를 기록한다 |
 

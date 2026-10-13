@@ -25,7 +25,7 @@ Codex:
 codex plugin marketplace add jaykop/claude-plugins
 ```
 
-그다음 Codex 의 플러그인 화면에서 `ko-review` 를 설치한다. Codex 쪽 설치 절차는 아직 실제로 확인하지 않았다. 확인되면 이 단락을 고친다.
+그다음 Codex 앱의 플러그인 화면에서 `ko-review` 를 설치한다. 업데이트 방법은 [리포 README](../../README.md#업데이트) 를 따른다.
 
 맞춤법·문체 전용 스킬이 필요하면 [DaleSeo/korean-skills](https://github.com/DaleSeo/korean-skills)(MIT)를 따로 설치한다. `polish` 는 이 스킬들이 있으면 필요한 참고만 읽는다.
 
@@ -44,7 +44,7 @@ codex plugin marketplace add jaykop/claude-plugins
 | `doc_roots`, `code_roots`, `exclude` | 넓은 범위를 요청받았을 때의 대상과 제외 범위 |
 | `engine` | 에디터에 보이는 주석의 기준. 지금은 `unreal` 전용 기준만 있다 |
 | `queue_dir` | 설명 변경 목록 폴더. 공개 저장소라면 git 에서 빠지는 폴더를 고른다 |
-| `writer`, `reviewer` | 작성·검토를 맡는 쪽의 이름. 검토 기록에 남는다 |
+| `writer`, `reviewer` | 작성·검토를 맡는 쪽의 이름. 검토를 시작할 때 이름을 따로 주지 않으면 `reviewer` 값이 검토 기록에 남는다 |
 | `check_runs` | `user` 면 빌드·테스트·lint 를 사용자가 요청할 때만 실행한다 |
 
 프로젝트에서만 쓰는 금지어·표기 목록은 `.claude/ko-review/terms.json` 에 둔다. 형식은 [shared/terms-format.md](shared/terms-format.md) 에 있다.
@@ -86,4 +86,4 @@ plugins/ko-review/
 - **문장 품질은 스크립트로 판정하지 않는다.** `doc_check.py` 는 판단이 필요 없는 후보만 찾는다. 통과해도 좋은 문장이라는 뜻은 아니다.
 - **목록의 미등록 알림은 파일 단위다.** 같은 파일 안에서 등록하지 않은 변경 구간은 작성 쪽이 직접 확인해야 한다.
 - **엔진별 기준은 언리얼만 있다.** 다른 엔진은 `editor-comments.md` 의 일반 기준만 쓴다.
-- **Codex 설치는 아직 확인 전이다.** 매니페스트 형식은 Codex 가 설치한 플러그인과 같게 맞췄지만, 이 리포를 Codex 마켓플레이스로 추가해 설치하는 과정은 실제로 시험하지 않았다.
+- **Codex 는 버전이 같으면 새 사본을 받지 않는다.** 스킬이나 스크립트를 고치면 `.codex-plugin/plugin.json` 의 `version` 을 올려야 Codex 에 반영된다.

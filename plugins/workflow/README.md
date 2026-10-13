@@ -35,7 +35,7 @@ Codex:
 codex plugin marketplace add jaykop/claude-plugins
 ```
 
-그다음 Codex 의 플러그인 화면에서 `workflow` 를 설치한다. Codex 쪽 설치 절차는 아직 실제로 확인하지 않았다.
+그다음 Codex 앱의 플러그인 화면에서 `workflow` 를 설치한다. 업데이트 방법은 [리포 README](../../README.md#업데이트) 를 따른다.
 
 주석·문서 설명의 교차 검토까지 쓰려면 [ko-review](../ko-review/README.md) 도 설치하고 프로필에서 `description_review: true` 로 켠다.
 
@@ -67,7 +67,7 @@ codex plugin marketplace add jaykop/claude-plugins
 | PreToolUse (Bash·PowerShell) | `commit_gate: true` | `git commit` 명령에 `commit_trailer`(기본 `Docs-Reviewed:`)가 없으면 막고 `commit-doc-review` 를 거치게 한다. 에이전트의 커밋에만 적용되고 사용자가 터미널에서 직접 하는 커밋에는 영향이 없다 |
 | Stop | `handoff_reminder_turns: N` (1 이상) | 세션 턴이 N 의 배수가 될 때 `context-handoff` 를 권한다. 턴 수는 `~/.claude/_hook_state/workflow/` 에 둔다 |
 
-Codex 에서 같은 동작이 필요하면 프로젝트의 `.codex/hooks.json` 에 직접 연결한다. Codex 플러그인 훅은 아직 다루지 않는다.
+Codex 에서 같은 동작이 필요하면 프로젝트의 `.codex/hooks.json` 에서 Claude Code 마켓플레이스 사본의 스크립트(`~/.claude/plugins/marketplaces/jaykop/plugins/workflow/hooks/commit_gate.py`, `handoff_reminder.py`)를 `python` 으로 실행하게 연결한다. Codex 플러그인 사본은 버전마다 경로가 바뀌므로 쓰지 않는다. 훅 정의를 바꾸면 Codex 의 `/hooks` 에서 다시 승인해야 한다.
 
 ## 우선순위 등급
 
@@ -97,4 +97,4 @@ plugins/workflow/
 
 - **이슈 트래커는 GitHub 만 다룬다.** 다른 트래커는 `tracker: none` 으로 두면 이슈 단계를 건너뛴다.
 - **훅은 맥락 사용량을 모른다.** 인계 권유는 턴 수를 대신 쓴다.
-- **Codex 설치와 훅은 아직 확인 전이다.** 스킬은 같은 파일을 쓰지만, 이 리포를 Codex 마켓플레이스로 추가해 설치하는 과정과 Codex 플러그인 훅은 시험하지 않았다.
+- **Codex 플러그인 훅은 쓰지 않는다.** Codex 에서는 위 훅 단락처럼 프로젝트의 `.codex/hooks.json` 으로 연결한다. 이 연결은 같은 PC 의 Claude Code 에 이 마켓플레이스가 추가돼 있어야 동작한다.

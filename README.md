@@ -52,7 +52,7 @@ Codex 용 마켓플레이스 목록은 `.agents/plugins/marketplace.json` 이다
 codex plugin marketplace add jaykop/claude-plugins
 ```
 
-그다음 Codex 의 플러그인 화면에서 설치한다. 이 경로는 아직 실제로 시험하지 않았다. 확인되면 이 단락을 고친다.
+그다음 Codex 앱의 플러그인 화면에서 설치한다. Codex 는 설치한 플러그인을 `~/.codex/plugins/cache/jaykop/<플러그인>/<version>/` 에 둔다. Codex 플러그인 훅은 쓰지 않고, 필요하면 프로젝트의 `.codex/hooks.json` 으로 연결한다([workflow 설명서](plugins/workflow/README.md#훅-claude-code)).
 
 ## 업데이트
 
@@ -60,7 +60,7 @@ Claude Code 플러그인 설정 파일에 `version` 을 적지 않았다. 그래
 
 - 서드파티 마켓플레이스는 자동 업데이트가 기본으로 꺼져 있다. `/plugin` 화면의 Marketplaces 탭에서 `jaykop` 의 자동 업데이트를 켜면 된다.
 - 설치된 사본(`~/.claude/plugins/` 아래)은 업데이트 때 덮어써지므로 직접 고치지 않는다. 고칠 곳은 이 리포뿐이다.
-- Codex 매니페스트(`.codex-plugin/plugin.json`)에는 `version` 이 있다. Codex 가 업데이트를 버전으로 가리는지는 아직 확인하지 않았으므로, 스킬을 바꾸면 이 값도 올린다.
+- Codex 는 매니페스트(`.codex-plugin/plugin.json`)의 `version` 을 설치 폴더 이름으로 쓴다. 버전이 같으면 새 사본을 받지 않으므로, 플러그인 폴더의 파일을 고치면 이 값을 올린다. 받는 쪽은 `codex plugin marketplace upgrade jaykop` 를 실행한 뒤 Codex 앱의 플러그인 화면에서 다시 설치한다.
 
 ## 개발
 
