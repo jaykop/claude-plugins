@@ -1,0 +1,18 @@
+{
+  "name": "workflow",
+  "version": "0.1.0",
+  "description": "이슈 기반 작업 흐름 — 다음 작업 고르기·이슈 만들기, 규모별 구현 절차, 문서 반영, 커밋 전 문서 검토, 세션 인계 메모. 프로젝트 값은 각 프로젝트의 .claude/workflow/profile.md 에서 읽는다.",
+  "author": {
+    "name": "jaykop"
+  },
+  "homepage": "https://github.com/jaykop/claude-plugins",
+  "repository": "https://github.com/jaykop/claude-plugins",
+  "license": "MIT",
+  "keywords": ["workflow", "github-issues", "documentation", "handoff"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "workflow",
+    "shortDescription": "이슈 기반 구현·문서·커밋·인계 절차",
+    "longDescription": "작업을 고르고 이슈를 만들고, 규모에 맞춰 구현하고, 영향받는 문서를 반영하고, 커밋 전에 빠진 문서를 확인하고, 세션 인계 메모를 남기는 절차를 프로젝트 프로필에 맞춰 진행한다."
+  }
+}

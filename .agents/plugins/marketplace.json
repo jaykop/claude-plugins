@@ -1,0 +1,29 @@
+{
+  "name": "jaykop",
+  "plugins": [
+    {
+      "name": "ko-review",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ko-review"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "workflow",
+      "source": {
+        "source": "local",
+        "path": "./plugins/workflow"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
