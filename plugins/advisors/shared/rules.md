@@ -1,6 +1,6 @@
 # 고문 공통 규칙
 
-네 고문(design · newtech · market · perf)과 두 에이전트(web-scout · analyst)가 모두 지키는 규칙이다.
+다섯 고문(design · newtech · market · perf · pm)과 두 에이전트(web-scout · analyst)가 모두 지키는 규칙이다.
 고문별 판정 기준은 각 스킬의 SKILL.md 와 reference 파일에 있다. 여기와 충돌하면 이 파일이 우선한다.
 
 ## 1. 근거 표기
@@ -91,6 +91,7 @@
 ├─ market/<YYYY-MM-DD>-<모드>.md     모드: full (전면 평가), check (변화 점검)
 │  └─ data/<YYYY-MM-DD>/            스크립트가 받은 원본 자료 (리뷰 JSONL, 분류 CSV, 요약)
 ├─ perf/<YYYY-MM-DD>-<모드>.md       모드: diagnosis (진단), periodic (주기 점검)
+├─ pm/<YYYY-MM-DD>-<모드>.md         모드: next (다음 작업), weekly (주간 점검), milestone (마일스톤 계획), retro (마일스톤 회고), scope (범위 판단), playtest (플레이테스트 계획)
 └─ _state/
    ├─ inbox.md                 고문 사이 질문함 (형식: shared/inbox-format.md)
    ├─ source-checks.md         날짜가 붙은 바깥 사실과 출처 접근 가능 여부 (newtech · market 공용)
@@ -99,7 +100,10 @@
    ├─ newtech-watchlist.md     추적 중인 기술
    ├─ market-competitors.md    경쟁작 목록 (market 이 만들고 design 이 읽음)
    ├─ market-snapshot.md       직전 시장 수치
-   └─ perf-ledger.md           부문·항목별 점검 기록
+   ├─ perf-ledger.md           부문·항목별 점검 기록
+   ├─ pm-cadence.md            고문 정기 점검·플레이테스트 주기표 (pm 이 만들고 관리)
+   ├─ pm-risks.md              위험 목록
+   └─ pm-plan.md               마일스톤 계획과 주간 기록
 ```
 
 - 다른 고문이 읽는 파일(newtech-inventory, market-competitors, source-checks)의 형식은 `shared/state-formats.md` 에 고정돼 있다.

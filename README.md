@@ -8,7 +8,7 @@ A personal Claude Code plugin marketplace. Some plugins also ship a Codex manife
 
 | 플러그인 | 설명 | Codex | 설명서 |
 |---|---|---|---|
-| `advisors` | 게임 프로젝트 고문 4종 — 기획, 신기술, 시장 동향, 최적화 | - | [plugins/advisors/README.md](plugins/advisors/README.md) |
+| `advisors` | 게임 프로젝트 고문 5종 — 기획, 신기술, 시장 동향, 최적화, PM | - | [plugins/advisors/README.md](plugins/advisors/README.md) |
 | `ko-review` | 한국어 문서·주석 교정, 한 AI 가 쓴 설명을 다른 AI 가 부분 검토하는 설명 변경 목록 | 스킬 | [plugins/ko-review/README.md](plugins/ko-review/README.md) |
 | `workflow` | 이슈 기반 작업 흐름 — 다음 작업 고르기, 규모별 구현, 문서 반영, 커밋 전 문서 검토, 인계 메모 | 스킬 | [plugins/workflow/README.md](plugins/workflow/README.md) |
 

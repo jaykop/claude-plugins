@@ -1,6 +1,6 @@
 # 고문 공통 시작·마무리 절차
 
-각 고문 스킬의 Step 0 과 Step Final 은 이 파일을 따른다. 아래에서 `<고문>` 은 design · newtech · market · perf 중 하나다.
+각 고문 스킬의 Step 0 과 Step Final 은 이 파일을 따른다. 아래에서 `<고문>` 은 design · newtech · market · perf · pm 중 하나다.
 
 이 파일은 Read 로 읽으므로 경로 변수가 바뀌지 않는다. `<플러그인 폴더>`, `<프로젝트 루트>` 는 SKILL.md '경로와 인자'에 적힌 실제 경로로 바꿔 쓴다.
 

@@ -1,6 +1,6 @@
-# advisors — 게임 프로젝트 고문 4종
+# advisors — 게임 프로젝트 고문 5종
 
-게임 프로젝트를 네 가지 관점에서 진단하고 제안하는 Claude Code 플러그인이다. 고문은 판단하고 제안까지만 한다. 결정은 사람이 하고, 코드·기획서·설정은 고치지 않는다.
+게임 프로젝트를 다섯 가지 관점에서 진단하고 제안하는 Claude Code 플러그인이다. 고문은 판단하고 제안까지만 한다. 결정은 사람이 하고, 코드·기획서·설정은 고치지 않는다.
 
 | 고문 | 명령 | 모드 | 하는 일 |
 |---|---|---|---|
@@ -8,8 +8,9 @@
 | 신기술 고문 | `/advisors:newtech` | 정기 점검 / 단일 기술 진단 | 프로젝트가 쓰는 엔진·플러그인·설정 목록에서 출발해 엔진·그래픽스·네트워크·AI 도구 소식을 1차 출처로 확인하고 적용 가능성·필요성·추천도를 판정. 커뮤니티 채널(Qiita, GeekNews 등)은 화제를 찾는 실마리로만 쓴다 |
 | 시장 동향 고문 | `/advisors:market` | 전면 평가 / 변화 점검 | 흥행작의 특징, 이용자 구성, 우리 프로젝트의 시장 내 위치를 공개 자료로 정리 |
 | 최적화 고문 | `/advisors:perf` | 진단 / 주기 점검 | 측정으로 병목을 찾고, 테스트·리팩터링이 필요한지 판단하고, 부문별로 주기 점검 |
+| PM 고문 | `/advisors:pm` | 다음 작업 / 주간 점검 / 마일스톤 계획 / 마일스톤 회고 / 범위 판단 / 플레이테스트 계획 | 트래커와 작업 가능 시간으로 다음 작업을 고르고, 마일스톤 용량·위험·회고를 관리하고, 다른 고문의 정기 점검과 플레이테스트 주기를 한 표로 관리 |
 
-명령 이름을 외우지 않아도 된다. "이 아이디어 넣어도 될까?", "요즘 언리얼 소식 정리해 줘", "우리 게임 시장성 어때?", "전투 중 프레임 떨어지는 원인 찾아 줘" 같은 말로도 해당 고문이 불린다.
+명령 이름을 외우지 않아도 된다. "이 아이디어 넣어도 될까?", "요즘 언리얼 소식 정리해 줘", "우리 게임 시장성 어때?", "전투 중 프레임 떨어지는 원인 찾아 줘", "이번 주 점검해 줘" 같은 말로도 해당 고문이 불린다.
 
 ## 처음 쓸 때
 
@@ -39,6 +40,8 @@
 | `search_banned_terms`, `search_banned_combos` | 웹 검색어는 외부로 나간다. 내부 코드 이름이나 미발표 정보 조합을 막는다 |
 | `design.principles`, `design.principles_status` | 기획 고문의 판단 기준(최상위 원칙, 필러, 우선순위, 금지 원칙)과 그 상태(확정·가안). 없으면 후보를 모아 확인을 받는다 |
 | `perf.budgets` | 최적화 고문의 우선순위 기준(목표 fps, 프레임 시간, 메모리) |
+| `pm.capacity` 또는 `pm.capacity_file` | PM 고문의 작업 가능 시간. 개인 값이면 버전 관리 밖 파일을 `capacity_file` 로 가리킨다 |
+| `decision_owners.schedule` | 마일스톤 범위·작업 순서의 결정권자 |
 
 ## 리포트
 
@@ -51,6 +54,7 @@
   | newtech | `periodic`(정기 점검), `single`(단일 기술 진단) |
   | market | `full`(전면 평가), `check`(변화 점검) |
   | perf | `diagnosis`(진단), `periodic`(주기 점검) |
+  | pm | `next`(다음 작업), `weekly`(주간 점검), `milestone`(마일스톤 계획), `retro`(마일스톤 회고), `scope`(범위 판단), `playtest`(플레이테스트 계획) |
 
 - 시장 고문이 스크립트로 받은 Steam 리뷰 원본과 분류 결과는 `<report_dir>/market/data/<날짜>/` 에 둔다.
 - 대화에는 요약 세 줄, 결정이 필요한 것, 리포트 경로, 후속 제안만 나온다. 전문은 파일에 있다.
@@ -67,6 +71,7 @@
 | `newtech-inventory.md` | 신기술 | 최적화, 기획 — 엔진 버전, 플러그인 상태, 주요 설정 |
 | `market-competitors.md` | 시장 | 기획 — 경쟁작 목록 |
 | `source-checks.md` | 신기술, 시장 | 모두 — 날짜가 붙은 바깥 사실과 출처 접근 가능 여부 |
+| `pm-cadence.md` | PM | PM — 모든 고문의 정기 점검과 플레이테스트 주기. 때가 된 것을 PM 이 알리고, 동의하면 그 고문을 부른다 |
 
 예를 들어 신기술 고문이 새 그림자 방식을 "시험"으로 권하면, 성공 기준을 재 달라는 요청이 최적화 고문 앞으로 질문함에 들어간다.
 
@@ -78,6 +83,7 @@
 | 시장 | 분기 1회 | 프로필 `market.check_interval` 로 바꿀 수 있다. 직접 경쟁작이 출시되면 그때도 제안 |
 | 최적화 | 주 1회 | 새 측정 파일이 있을 때만 리포트를 만든다 |
 | 기획 | 예약 없음 | 요청할 때, 새 플레이테스트 기록이 생겼을 때, 마일스톤 14일 전(세션 시작 알림) |
+| PM | 주 1회 | 주간 점검. 마일스톤 계획·회고는 예약하지 않고 정기 점검표의 조건으로 알린다 |
 
 - 기본 주기가 "예약 없음"이 아닌 고문은 처음 돌린 뒤, 예약된 점검이 없으면 "다음 점검을 예약할까요?"라고 묻는다. 동의하면 Claude Desktop 의 예약 작업으로 만든다.
 - 예약 작업은 Claude Desktop 앱이 켜져 있을 때 돈다. 꺼져 있었으면 다음에 앱을 켤 때 돈다.
@@ -104,11 +110,12 @@ plugins/advisors/
 │  ├─ design/    기획 고문 (SKILL.md, reference/, scripts/area_inventory.py, choice_calc.py)
 │  ├─ newtech/   신기술 고문 (SKILL.md, reference/, scripts/tech_inventory.py)
 │  ├─ market/    시장 동향 고문 (SKILL.md, reference/, scripts/steam_reviews.py, market_calc.py)
-│  └─ perf/      최적화 고문 (SKILL.md, reference/, scripts/csv_profile_stat.py, vcs_churn.py)
+│  ├─ perf/      최적화 고문 (SKILL.md, reference/, scripts/csv_profile_stat.py, vcs_churn.py)
+│  └─ pm/        PM 고문 (SKILL.md, reference/, scripts/pm_calc.py)
 ├─ agents/
 │  ├─ web-scout.md   웹 수집 전용
 │  └─ analyst.md     파일 읽기 전용
-├─ shared/           네 고문 공통 규칙·양식
+├─ shared/           다섯 고문 공통 규칙·양식
 ├─ scripts/          profile_scan.py (프로필 자동 채우기), due_check.py (때가 된 점검 찾기)
 └─ hooks/            세션 시작 알림
 ```
@@ -125,5 +132,7 @@ plugins/advisors/
 - **시장 고문은 장르 단위 연령·성별을 거의 채우지 못한다.** 공개 자료가 대부분 국가·플랫폼 단위라서다. 확인된 단위의 값과 간접 신호만 적고, 고정관념으로 채우지 않는다. 유료 리포트 원문은 볼 수 없다.
 - **일부 통계·조사 사이트는 자동 조회가 막혀 있다.** 그 값이 필요하면 화면 캡처나 CSV 로 넘겨 줘야 한다. 고문은 막힌 사이트를 다른 주소나 방법으로 열지 않는다. 처음 쓸 때 확인한 사이트 목록과 결과는 [metrics.md](skills/market/reference/metrics.md) 의 '출처 후보' 항목에 있고, 실행할 때마다 다시 열어 `_state/source-checks.md` 에 기록한다.
 - **신기술 고문의 커뮤니티 채널은 실마리일 뿐이다.** Qiita, GeekNews, 텐센트 게임 학당은 자동으로 읽고, Reddit 과 Zhihu 는 자동 조회가 막혀 사용자가 붙여 넣거나 파일로 넘긴 글만 읽는다. 커뮤니티 글은 1차 출처로 다시 확인한 것만 판정에 쓴다. 채널 목록은 [sources.md](skills/newtech/reference/sources.md) 의 '커뮤니티 채널' 항목에 있다.
+- **PM 고문의 이슈 순서는 라벨만 본 초안이다.** 선행 관계(Blocked by)는 읽지 않는다. 순서 확정과 이슈 게시는 프로필 `pm.next_task_entry` 의 스킬(예: workflow 플러그인의 `next-task`)에 넘긴다. 규모 라벨이 없는 이슈는 용량 계산에서 빠지고 따로 센다.
+- **PM 고문의 기준 노트는 프로젝트가 정한다.** 기본 방법은 [methods.md](skills/pm/reference/methods.md) 에 있다. 팀이 쓰는 교재나 사내 기준이 있으면 요약 노트를 프로필 `pm.knowledge_dir` 에 두면 그 노트를 먼저 따른다. 노트 원문은 리포트에 옮기지 않으므로 비공개 자료여도 된다.
 - **최적화 고문은 측정 파일이 있어야 병목을 말한다.** 측정이 없으면 코드에서 찾은 것은 "후보"로만 적고, 첫 결과물은 측정 계획이다.
 - **에이전트 이름 호출.** 스킬은 `advisors:web-scout`, `advisors:analyst` 를 이름으로 부른다. 이 이름을 찾지 못하는 환경이면 메인 대화에서 같은 규칙으로 수집하고, 리포트에 그 사실을 적는다.
