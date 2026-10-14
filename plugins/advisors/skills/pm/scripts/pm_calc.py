@@ -24,6 +24,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
+CAPACITY_RE = re.compile(r"(?:용량|capacity)\s*[:：]\s*(\d+(?:\.\d+)?)\s*(?:시간|h\b|hours?\b)", re.I)
 
 
 def parse_date(text):
@@ -311,9 +312,12 @@ def cmd_issues(args):
         ranks = [order.index(l) for l in labels(i) if l in order]
         return min(ranks) if ranks else len(order)
 
-    ms_due = {}
+    ms_due, ms_cap = {}, {}
     for m in milestones:
         ms_due[m["title"]] = parse_date(m.get("due_on") or "")
+        # 마일스톤 설명의 "용량: N시간" / "capacity: Nh" 줄은 프로젝트가 정한 계획량 기준이다
+        cap = CAPACITY_RE.search(m.get("description") or "")
+        ms_cap[m["title"]] = float(cap.group(1)) if cap else None
 
     def ms_key(i):
         title = (i.get("milestone") or {}).get("title")
@@ -343,10 +347,13 @@ def cmd_issues(args):
         known = [r["hours"] for r in mine if r["hours"] is not None]
         must_known = [r["hours"] for r in mine if r["must"] and r["hours"] is not None]
         due = ms_due.get(title)
+        cap = ms_cap.get(title)
+        must_hours = round(sum(must_known), 2)
         summary.append({
             "title": title, "due": due, "days_left": (due - today).days if due else None,
             "open": len(mine), "open_hours": round(sum(known), 2), "unsized": len(mine) - len(known),
-            "must_open": sum(1 for r in mine if r["must"]), "must_hours": round(sum(must_known), 2),
+            "must_open": sum(1 for r in mine if r["must"]), "must_hours": must_hours,
+            "capacity_hours": cap, "must_ratio": round(must_hours / cap, 3) if cap else None,
             "blocked": sum(1 for r in mine if r["blocked"]),
             "closed_since": sum(1 for c in closed if (c.get("milestone") or {}).get("title") == title),
             "description": (m.get("description") or "").strip(),
@@ -355,12 +362,14 @@ def cmd_issues(args):
     lines = ["저장소: {} / 오늘: {}{}".format(repo, today, " / 완료 집계 기준일: {}".format(since) if since else "")]
     lines.append("")
     lines.append("## 열린 마일스톤")
-    lines.append("| 마일스톤 | 마감 | 남은 날 | 열린 이슈 | 열린 규모(h) | 규모 없음 | 필수 | 필수 규모(h) | 대기 | 기준일 뒤 닫힘 |")
-    lines.append("|---|---|---|---|---|---|---|---|---|---|")
+    lines.append("| 마일스톤 | 마감 | 남은 날 | 열린 이슈 | 열린 규모(h) | 규모 없음 | 필수 | 필수 규모(h) | 설명의 용량(h) | 필수/용량 | 대기 | 기준일 뒤 닫힘 |")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
     for s in summary:
-        lines.append("| {title} | {due} | {left} | {open} | {oh} | {un} | {mo} | {mh} | {bl} | {cs} |".format(
+        lines.append("| {title} | {due} | {left} | {open} | {oh} | {un} | {mo} | {mh} | {cap} | {ratio} | {bl} | {cs} |".format(
             title=s["title"], due=s["due"] or "-", left=s["days_left"] if s["days_left"] is not None else "-",
             open=s["open"], oh=s["open_hours"], un=s["unsized"], mo=s["must_open"], mh=s["must_hours"],
+            cap=s["capacity_hours"] if s["capacity_hours"] is not None else "-",
+            ratio="{:.0%}".format(s["must_ratio"]) if s["must_ratio"] is not None else "-",
             bl=s["blocked"], cs=s["closed_since"] if since else "-"))
     lines.append("")
     lines.append("## 열린 이슈 (마일스톤 마감 → 순서 라벨 → 필수 → 번호)")
