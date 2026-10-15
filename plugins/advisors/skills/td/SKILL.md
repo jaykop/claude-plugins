@@ -67,6 +67,7 @@ Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이
 | `newtech.engine_mod_marker`, `newtech.engine_mod_end_marker`, `newtech.engine_mod_tag_re`, `newtech.engine_mod_dirs` (Step 0 에서 묻지 않음) | 엔진 수정 블록 목록 | 구조 점검 '엔진 수정' 범위에서 확인한다(audit-scopes.md §2) |
 | `next_milestone`, `play_mode`, `platforms`, `design.roots`, `perf.scenarios`, `code_change_entry` (Step 0 에서 묻지 않음) | 다음 점검 줄, 요구 찾기, 측정 요청, 후속 제안 | 비어 있으면 그 쓰임을 건너뛰고 "확인 못 한 것"에 적는다 |
 | `report_dir`, `stale_after_days` | 저장, 다른 리포트 인용 | 양식의 기본값 |
+| `td.knowledge_dir` (Step 0 에서 묻지 않음) | 팀 기준 노트(start.md 0-F). 판정 방법을 담는다. 코드 작성 규칙은 `td.rule_docs` 가 근거로 쓴다 | 이 스킬의 reference 만 쓴다 |
 
 ## 프로필이 없을 때
 
@@ -272,3 +273,4 @@ report-base.md 의 틀에 body-format.md 의 구조 점검 본문(범위별 양�
 - [ ] 코드, 설정, 팀 문서를 고치지 않았다. 무인 실행이거나 프로필이 없으면 프로필도 고치지 않았다. 버전 관리 명령은 `vcs_read_commands` 에 있는 읽기 명령만 썼다.
 - [ ] 리포트 파일 이름의 모드 부분이 `decision` 또는 `audit` 이다.
 - [ ] 문체가 rules.md §11 을 따른다. 평서문, 처음 나온 영어 용어 풀이, 은유·지어낸 축약어 없음.
+- [ ] 팀 기준 노트 원문을 리포트에 옮기지 않았고, 머리 "범위"에 읽은 결과 표시 행 ID 를 적었다(start.md 0-F).

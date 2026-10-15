@@ -1,6 +1,7 @@
 ---
 # advisors 프로필 — 프로젝트마다 하나. 위치: <프로젝트 루트>/.claude/advisors/profile.md
 # 값 옆 주석에 출처를 적는다: [사용자] 사용자가 확정 / [파일] 프로젝트 파일에서 읽음 / [추정] 고문이 추정, 확인 필요
+# 고문마다 knowledge_dir 칸이 있다: 그 고문이 판정 기준으로 먼저 따를 팀 기준 노트 폴더. 비공개 자료여도 된다. index.md 부터 읽는다
 profile_version: 1
 updated:                      # YYYY-MM-DD
 
@@ -62,6 +63,7 @@ design:
   area_file_patterns: {}      # 기획서가 영역별 폴더로 나뉘지 않았을 때 영역별 파일 이름 패턴. 예: {전투: "combat_*.md"}
   existing_tools: []          # 이미 쓰는 기획 도구. 항목 형식 "<역할>: <도구 이름> — <산출물 위치>"
                               # 역할은 넷 중 하나: 문서 리뷰 / 관찰 포인트 게시 / 피드백 정리 / 수치 분석
+  knowledge_dir:              # 기획 판단 기준 노트 폴더(팀이 정한 심사 기준, 지난 판정에서 배운 것). 원칙(필러)은 principles 에 둔다. 읽는 규칙은 shared/rules.md §13
 
 # ── 신기술 고문 ─────────────────────────────────────────
 newtech:
@@ -75,6 +77,7 @@ newtech:
   community_sources:          # 소식을 찾는 커뮤니티 채널. 판정 근거가 아니라 '무엇이 화제인지' 찾는 곳이다
     auto: [qiita, geeknews, tencent-gameinstitute]   # 자동으로 읽는 곳. 채널 이름은 skills/newtech/reference/sources.md 의 '커뮤니티 채널' 항목
     manual: [reddit, zhihu]   # 자동 조회가 막힌 곳. 사용자가 글을 붙여 넣거나 파일로 넘겨 줄 때만 읽는다
+  knowledge_dir:              # 기술 도입 판단 기준 노트 폴더(사내 도입 절차, 피하는 기술 종류 등). 읽는 규칙은 shared/rules.md §13
 
 # ── 시장 동향 고문 ─────────────────────────────────────
 market:
@@ -83,6 +86,7 @@ market:
   paid_data_files: []         # 사용자가 넣어 준 유료 데이터 파일
   price_band:                 # 예상 가격대와 통화. 예: 39.99~49.99 USD
   check_interval: quarterly   # 변화 점검 주기. source-checks.md 에서 market 이 넣은 행의 '다시 확인할 날짜' 기본값으로도 쓴다
+  knowledge_dir:              # 시장 판단 기준 노트 폴더(사내 지표 해석 기준, 지역별 사정 등). 읽는 규칙은 shared/rules.md §13
 
 # ── 최적화 고문 ───────────────────────────────────────
 perf:
@@ -93,10 +97,11 @@ perf:
   test_command:               # 자동화 테스트 실행 명령
   test_convention:            # 기존 테스트의 위치·이름 규칙
   edit_scope: tests_only      # tests_only / source
+  knowledge_dir:              # 성능 판단 기준 노트 폴더(팀의 측정 절차, 플랫폼별 주의점 등). 읽는 규칙은 shared/rules.md §13
 
 # ── PM 고문 ───────────────────────────────────────────
 pm:
-  knowledge_dir:              # 일정·위험·회고 기준 노트 폴더(비공개 자료여도 된다). index.md 가 있으면 그것부터 읽는다
+  knowledge_dir:              # 일정·위험·회고 기준 노트 폴더(비공개 자료여도 된다). 읽는 규칙은 shared/rules.md §13
   tracker:                    # github / none
   tracker_repo:               # owner/repo
   size_hours: {}              # 규모 라벨 → 시간. 예: {"size: S": 1, "size: M": 2, "size: L": 5.5}
@@ -119,6 +124,7 @@ td:
   extra_roots: []             # source_roots 밖에서 읽을 빌드·배포·서버·도구 폴더
   vanilla_engine_root:        # 순정 엔진 소스 폴더(로컬). 있으면 엔진 수정 블록과 버전별 동작을 로컬에서 비교한다
   engine_base_ref:            # 버전 관리 서버에 있는 순정 엔진 기준(p4 스트림·git 브랜치). 엔진 수정 블록이 든 파일이 순정 엔진 쪽에서 바뀐 이력을 셀 때 쓴다
+  knowledge_dir:              # 설계 판단 기준 노트 폴더(구조 선택 원칙, 엔진 수정 방침 등). 코드 작성 규칙 문서는 rule_docs 에 둔다. 읽는 규칙은 shared/rules.md §13
 ---
 
 # 프로필 메모
