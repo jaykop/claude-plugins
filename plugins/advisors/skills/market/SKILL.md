@@ -73,6 +73,7 @@ analyst 지시문에는 스킬 폴더의 절대 경로를 그대로 적는다.
 | `market.target_player` | 이용자층 적합 축 | 비면 그 축만 판단 보류 |
 | `market.paid_data_files` (Step 0 에서 묻지 않음) | 사용자가 넘겨 준 유료·차단 출처 자료 | 비면 막힌 출처는 "조회 실패". 1-3 에서 막힌 출처를 알릴 때 받는다 |
 | `market.check_interval` | 다음 점검 날짜, 출처의 다시 확인할 날짜 | 비면 quarterly |
+| `market.knowledge_dir` (Step 0 에서 묻지 않음) | 팀 기준 노트(start.md 0-F) | 이 스킬의 reference 만 쓴다 |
 
 ## 모드 판별
 
@@ -92,7 +93,7 @@ analyst 지시문에는 스킬 폴더의 절대 경로를 그대로 적는다.
 ## Step 0 — 시작
 
 ### 0-1. 공통 시작
-`${CLAUDE_PLUGIN_ROOT}/shared/start.md` 를 읽고 0-A ~ 0-E 를 따른다. `<고문>` 은 `market` 이다. 아래는 market 만의 추가 사항이다.
+`${CLAUDE_PLUGIN_ROOT}/shared/start.md` 를 읽고 0-A ~ 0-F 를 따른다. `<고문>` 은 `market` 이다. 아래는 market 만의 추가 사항이다.
 
 ### 0-2. 필수 칸 점검
 - 필수 칸 다섯(`genre`, `platforms`, `business_model`, `regions`, `release_window`)과 `play_mode`, `market.price_band` 를 본다.
@@ -274,3 +275,4 @@ metrics.md §9 의 잡음 규칙으로 "변화로 인정"할지 칸을 채운다
 - [ ] 막힌 출처("막힘", "도구가 막음")를 다른 주소나 방법으로 돌아가 열지 않았고, 그 값을 사용자 자료 없이 채우지 않았다. 유료 자료의 원문을 본 것처럼 쓴 곳이 없다.
 - [ ] 출시 조건 제안은 결정권자 기준으로 표기했고, 게임 내용은 "~에 대해 기획 판단이 필요하다" 질문으로만 썼다.
 - [ ] 검색어 기록에 금지어, 금지 조합, 우리 게임 특징이 없다. 본문에 "올해", "요즘" 같은 상대 시간 표현 대신 연월을 썼다('최근'은 조사 조건에 고정한 범위를 가리킬 때만).
+- [ ] 팀 기준 노트 원문을 리포트에 옮기지 않았고, 머리 "범위"에 읽은 결과 표시 행 ID 를 적었다(start.md 0-F).

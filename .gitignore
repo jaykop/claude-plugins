@@ -7,3 +7,6 @@ desktop.ini
 .DS_Store
 .vscode/
 .idea/
+
+# 플러그인 시험 질문 실행 결과 (claude plugin eval)
+plugins/*/evals/results/

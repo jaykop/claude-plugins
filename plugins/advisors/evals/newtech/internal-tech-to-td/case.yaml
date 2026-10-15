@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: newtech-internal-tech-to-td
+context:
+  scaffold_script: fixture.sh

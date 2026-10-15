@@ -69,6 +69,7 @@ Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이
 | `newtech.interests`, `newtech.excluded` (Step 0 에서 묻지 않음) | 문제 목록, 수집 주제 | 비워 둔다. 문제 목록이 비면 리포트가 등록 방법을 안내한다 |
 | `newtech.ai_tool_policy` (Step 0 에서 묻지 않음) | 개발 도구용 AI 판정 | "미확인"으로 보고 그 분야를 한 줄로 묶는다 |
 | `newtech.community_sources` (Step 0 에서 묻지 않음) | 커뮤니티 수집 | 양식의 기본값. auto(자동으로 읽는 채널) qiita, geeknews, tencent-gameinstitute / manual(사용자가 넘겨줄 때만 읽는 채널) reddit, zhihu |
+| `newtech.knowledge_dir` (Step 0 에서 묻지 않음) | 팀 기준 노트(start.md 0-F) | 이 스킬의 reference 만 쓴다 |
 
 ## 모드 판별
 
@@ -343,3 +344,4 @@ report-base.md 의 틀에 body-format.md 의 단일 기술 진단 본문을 넣�
 - [ ] source-checks.md 에 새로 쓴 행의 "쓴 고문"이 newtech 이고, 머리 `다음 점검:` 이 모든 행의 가장 이른 "다시 확인할 날짜"다.
 - [ ] 우리 코드 구조를 묻는 질문(shared/routing.md 의 td 몫)을 단일 기술 진단으로 처리하지 않았다. 사용자가 TD 고문으로 넘기기를 거절했으면 그 기술의 바깥 변화만 다뤘다.
 - [ ] 문체가 rules.md §11 을 따른다. 평서문, 처음 나온 영어 용어 풀이, 은유·지어낸 축약어 없음.
+- [ ] 팀 기준 노트 원문을 리포트에 옮기지 않았고, 머리 "범위"에 읽은 결과 표시 행 ID 를 적었다(start.md 0-F).
