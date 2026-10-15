@@ -1,6 +1,6 @@
 # 고문끼리 함께 읽는 기록 파일 형식
 
-`<report_dir>/_state/` 의 파일 가운데 **다른 고문이 읽는 것**만 형식을 여기서 고정한다. 한 고문만 쓰고 읽는 파일(design-proposals, market-snapshot, perf-ledger, td-ledger, td-debt)의 형식은 각 스킬의 reference 에 있다. newtech-watchlist 는 신기술 고문만 쓰지만 TD 고문이 "다음 버전으로 올릴 때 걸리는 것"(UP 행)의 상태와 추적 행을 읽는다. 형식은 newtech/reference/watchlist-format.md 에 있고, 그 표의 칸을 바꾸면 td 의 evidence.md §3 과 audit-scopes.md §3 도 맞춘다.
+`<report_dir>/_state/` 의 파일 가운데 **다른 고문이 읽는 것**만 형식을 여기서 고정한다. 한 고문만 쓰고 읽는 파일(design-proposals, market-snapshot, perf-ledger, pm-cadence, pm-risks, pm-plan, td-ledger, td-debt)의 형식은 각 스킬의 reference 에 있다. 다만 td-debt 는 PM 고문의 정기 점검 계산(`pm_calc.py cadence`)이 머리의 `마지막 갱신` 날짜를 읽는다. newtech-watchlist 는 신기술 고문만 쓰지만 TD 고문이 "다음 버전으로 올릴 때 걸리는 것"(UP 행)의 상태와 추적 행을 읽는다. 형식은 newtech/reference/watchlist-format.md 에 있고, 그 표의 칸을 바꾸면 td 의 evidence.md §3 과 audit-scopes.md §3 도 맞춘다.
 
 모든 `_state` 파일의 첫 부분은 같다.
 

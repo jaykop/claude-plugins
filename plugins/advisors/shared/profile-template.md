@@ -35,6 +35,7 @@ decision_owners:              # 영역별 결정권자. 사용자가 아니면 �
   design:
   business:                   # 출시 시점, 지역, 가격, 수익 모델
   tech:                       # 엔진 버전 올리기, 기술 도입(newtech), 코드 구조·설계 선택(td)
+  schedule:                   # 마일스톤 범위, 작업 순서, 일정 (PM 고문)
 user_role:                    # 이 프로필을 쓰는 사람의 역할. 예: 클라이언트 프로그래머
 
 report_dir: .claude/advisors/reports   # 프로젝트 루트 기준 상대 경로 또는 절대 경로
@@ -92,6 +93,24 @@ perf:
   test_command:               # 자동화 테스트 실행 명령
   test_convention:            # 기존 테스트의 위치·이름 규칙
   edit_scope: tests_only      # tests_only / source
+
+# ── PM 고문 ───────────────────────────────────────────
+pm:
+  knowledge_dir:              # 일정·위험·회고 기준 노트 폴더(비공개 자료여도 된다). index.md 가 있으면 그것부터 읽는다
+  tracker:                    # github / none
+  tracker_repo:               # owner/repo
+  size_hours: {}              # 규모 라벨 → 시간. 예: {"size: S": 1, "size: M": 2, "size: L": 5.5}
+  must_label:                 # 필수 작업 라벨. 예: "priority: must"
+  blocked_label:              # 대기 라벨. 예: "status: blocked"
+  progress_label:             # 진행 중 라벨
+  order_labels: []            # 프로젝트 순서 라벨, 앞일수록 먼저. 예: ["grade: A1", "grade: A2", "grade: B1"]
+  next_task_entry:            # 이슈 순서 확정·게시를 맡길 스킬. 예: workflow:next-task
+  capacity:                   # {weekday_hours: 2, holiday_hours: 4, plan_ratio: 0.7}. 개인 값이면 아래 capacity_file 을 쓴다
+  capacity_file:              # 하루 작업 시간을 적어 둔 다른 파일(버전 관리 밖). 값은 이 프로필에 옮겨 적지 않는다
+  capacity_keys: {}           # capacity_file 의 키 이름. 예: {weekday_hours: time_budget_weekday, holiday_hours: time_budget_holiday}
+  holidays: []                # 공휴일 YYYY-MM-DD 목록. 비우면 공휴일을 평일로 센다
+  must_ratio_limit: 0.6       # 필수 작업 규모가 계획 가능 시간에서 차지할 수 있는 한도
+  week_start: 월              # 주간 점검 기준 요일
 
 # ── TD 고문 ─────────────────────────────────────────
 td:

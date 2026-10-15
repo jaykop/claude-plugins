@@ -1,6 +1,6 @@
 # 고문 공통 규칙
 
-모든 고문(플러그인 `skills/` 아래 폴더마다 하나: design · newtech · market · perf · td)과 두 에이전트(web-scout · analyst)가 지키는 규칙이다.
+모든 고문(플러그인 `skills/` 아래 폴더마다 하나: design · newtech · market · perf · pm · td)과 두 에이전트(web-scout · analyst)가 지키는 규칙이다.
 고문별 판정 기준은 각 스킬의 SKILL.md 와 reference 파일에 있다. 여기와 충돌하면 이 파일이 우선한다.
 
 ## 1. 근거 표기
@@ -96,6 +96,7 @@
 ├─ market/<YYYY-MM-DD>-<모드>.md     모드: full (전면 평가), check (변화 점검)
 │  └─ data/<YYYY-MM-DD>/            스크립트가 받은 원본 자료 (리뷰 JSONL, 분류 CSV, 요약)
 ├─ perf/<YYYY-MM-DD>-<모드>.md       모드: diagnosis (진단), periodic (주기 점검)
+├─ pm/<YYYY-MM-DD>-<모드>.md         모드: next (다음 작업), weekly (주간 점검), milestone (마일스톤 계획), retro (마일스톤 회고), scope (범위 판단), playtest (플레이테스트 계획)
 ├─ td/<YYYY-MM-DD>-<모드>.md         모드: decision (설계 검토), audit (구조 점검)
 └─ _state/
    ├─ inbox.md                 고문 사이 질문함 (형식: shared/inbox-format.md)
@@ -106,6 +107,9 @@
    ├─ market-competitors.md    경쟁작 목록 (market 이 만들고 design 이 읽음)
    ├─ market-snapshot.md       직전 시장 수치
    ├─ perf-ledger.md           부문·항목별 점검 기록
+   ├─ pm-cadence.md            고문 정기 점검·플레이테스트 주기표 (pm 이 만들고 관리)
+   ├─ pm-risks.md              위험 목록
+   ├─ pm-plan.md               마일스톤 계획과 주간 기록
    ├─ td-ledger.md             TD 기록 — 판정 기준·결정 기록·층 규칙
    ├─ td-debt.md               기술 부채 기록
    └─ td-engine-mods.md        엔진 수정 블록 묶음 분류 (td 가 만들고 newtech 가 읽음)

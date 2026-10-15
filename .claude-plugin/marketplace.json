@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "jaykop",
-  "description": "jaykop 의 Claude Code 플러그인 모음",
+  "description": "jaykop 의 Claude Code · Codex 플러그인 모음",
   "owner": {
     "name": "jaykop"
   },
@@ -9,7 +9,17 @@
     {
       "name": "advisors",
       "source": "./plugins/advisors",
-      "description": "게임 프로젝트 고문 5종 — 기획, 신기술, 시장 동향, 최적화, TD(테크니컬 디렉터). 근거 등급을 붙인 리포트를 남기고 지난 리포트와 비교한다."
+      "description": "게임 프로젝트 고문 6종 — 기획, 신기술, 시장 동향, 최적화, PM(일정·범위·위험), TD(테크니컬 디렉터). 근거 등급을 붙인 리포트를 남기고 지난 리포트와 비교한다."
+    },
+    {
+      "name": "ko-review",
+      "source": "./plugins/ko-review",
+      "description": "한국어 기술 문서·코드 주석 교정과, 한 AI 가 작성한 설명을 다른 AI 가 부분 검토하는 설명 변경 목록."
+    },
+    {
+      "name": "workflow",
+      "source": "./plugins/workflow",
+      "description": "이슈 기반 작업 흐름 — 다음 작업 고르기·이슈 만들기, 규모별 구현 절차, 문서 반영, 커밋 전 문서 검토, 세션 인계 메모."
     }
   ]
 }

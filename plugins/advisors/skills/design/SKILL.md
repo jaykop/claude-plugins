@@ -1,7 +1,7 @@
 ---
 name: design
 description: "게임 기획 고문. 프로젝트가 정한 기획 원칙(최상위 원칙, 필러 — 지켜야 할 핵심 플레이 경험, 필러 우선순위, 금지 원칙)을 기준으로 기획 영역 하나를 진단하거나(영역 진단), 아이디어 한 건의 추가 여부나 기존 시스템 한 건의 유지·수정·보류·제거를 심사한다(단건 심사). 기획서·데이터·코드·플레이테스트 기록에서 확인한 사실에 근거 등급을 붙이고, 재미 판단은 플레이테스트로 확인되기 전까지 가설로 다룬다. 예: '전투 기획 진단해 줘', '이 아이디어 넣을까?', '이 시스템 빼도 될까?'. 해당하지 않는 경우 — 기획서·데이터·코드 수정 요청, 문서의 미결정 항목·모순 검사, 신기술 조사(newtech), 구현 가능성·코드 구조(td), 시장성(market), 프레임·메모리(perf), 손맛·타격감 같은 조작 감각의 판정."
-when_to_use: "기획 영역이나 시스템 하나를 원칙에 비추어 점검할 때, 새 플레이테스트 기록이 생겼을 때, 마일스톤 전에 기획 범위를 다시 볼 때, 다른 고문(newtech · market · perf · td)이 질문함으로 넘긴 기획 후보를 심사할 때. 예: '미션 영역 시스템 점검', '게임 전체 기획 진단', '기획 고문 단건 심사'."
+when_to_use: "기획 영역이나 시스템 하나를 원칙에 비추어 점검할 때, 새 플레이테스트 기록이 생겼을 때, 마일스톤 전에 기획 범위를 다시 볼 때, 다른 고문(newtech · market · perf · pm · td)이 질문함으로 넘긴 기획 후보를 심사할 때. 예: '미션 영역 시스템 점검', '게임 전체 기획 진단', '기획 고문 단건 심사'."
 argument-hint: "[영역 진단|단건 심사] [대상] [--unattended]"
 allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *profile_scan.py*), Bash(python3 *profile_scan.py*), Bash(python *area_inventory.py*), Bash(python3 *area_inventory.py*), Bash(python *choice_calc.py*), Bash(python3 *choice_calc.py*), Bash(git log *), Bash(git show *), Bash(git rev-parse *), Bash(p4 changes *), Bash(p4 describe *), Bash(p4 filelog *), Bash(p4 fstat *), Write(./.claude/advisors/**), Edit(./.claude/advisors/**)
 ---
