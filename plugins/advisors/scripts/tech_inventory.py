@@ -18,6 +18,10 @@
 어느 쪽도 아니면 다시 만들지 않고 '변경 없음' 을 출력한다.
 
 출력 형식은 advisors 플러그인 shared/state-formats.md 의 newtech-inventory.md 형식을 따른다.
+
+--mod-only 는 목록을 만들지 않고 지정한 폴더의 수정 블록 수만 낸다(newtech 단일 기술 진단).
+--mod-only --mod-list 는 블록마다 파일:줄, 끝 줄, 줄 수, 주제 태그, 수정 사유(시작 표시 뒤의 글. 시작 표시는 내지 않음)를 낸다(td 구조 점검의 엔진 수정 범위).
+newtech 와 td 가 함께 쓰므로 플러그인 공용 폴더(scripts/)에 둔다.
 """
 
 import argparse
@@ -259,8 +263,10 @@ def collect_build_cs(build_files, per_name=20):
     return names
 
 
-def count_mod_blocks(dirs, marker_re, exts, seconds, max_files, max_bytes, workers=8):
+def count_mod_blocks(dirs, marker_re, exts, seconds, max_files, max_bytes, workers=8, end_re=None):
     """폴더별 수정 블록 수. 결과: [(폴더, 개수 또는 None, 실패 이유, 블록이 있는 파일 {경로: 개수}, 메모)].
+
+    end_re 를 주면(--mod-list) 끝 표시만 있는 파일도 개수 0 으로 파일 목록에 넣는다. 짝이 맞지 않는 끝 줄을 찾기 위해서다.
 
     파일 목록을 먼저 모은 뒤 여러 스레드로 읽는다. 묶음마다 시간 상한을 확인하고,
     상한에 걸린 폴더와 그 뒤 폴더는 개수 대신 '검색 실패' 를 돌려준다(0 으로 치지 않는다).
@@ -272,7 +278,11 @@ def count_mod_blocks(dirs, marker_re, exts, seconds, max_files, max_bytes, worke
             if os.path.getsize(fp) > max_bytes:
                 return fp, "big"
             with open(fp, "rb") as fh:
-                return fp, len(marker_re.findall(fh.read()))
+                data = fh.read()
+            n = len(marker_re.findall(data))
+            if not n and end_re is not None and end_re.search(data):
+                return fp, -1  # 끝 표시만 있다
+            return fp, n
         except OSError:
             return fp, "fail"
 
@@ -309,6 +319,8 @@ def count_mod_blocks(dirs, marker_re, exts, seconds, max_files, max_bytes, worke
                         for fp, n in pool.map(scan, todo[s:s + step], chunksize=64):
                             if n in skipped:
                                 skipped[n] += 1
+                            elif n == -1:
+                                hits[norm(fp)] = 0
                             elif n:
                                 hits[norm(fp)] = n
                                 total += n
@@ -327,6 +339,72 @@ def count_mod_blocks(dirs, marker_re, exts, seconds, max_files, max_bytes, worke
                     results.append((norm(rest), None, "검색 실패 — 앞 폴더에서 상한에 걸려 세지 않음", {}, ""))
                 break
     return results
+
+
+def decode_line(raw):
+    """엔진 파일 한 줄을 푼다. UTF-8 을 먼저, 안 되면 CP949, 그래도 안 되면 깨진 글자를 바꿔 푼다."""
+    for enc in ("utf-8", "cp949"):
+        try:
+            return raw.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    return raw.decode("utf-8", errors="replace")
+
+
+def list_mod_blocks(files, start_re, end_re, tag_re):
+    """수정 블록이 있는 파일들에서 블록마다 위치와 수정 사유를 뽑는다.
+
+    결과: (블록 목록, 시작 표시 없는 끝 줄 목록, 읽기 실패 파일 수).
+    블록 = (파일, 시작 줄, 끝 줄 또는 None, 짝 상태, 태그, 수정 사유).
+    - 수정 사유는 시작 표시 뒤의 글만이다. 시작 표시(수정자 ID 가 든 경우가 많다)는 내지 않는다.
+    - 끝 표시는 가장 가까운 열린 시작 표시와 짝짓는다(겹친 블록도 안쪽부터 닫힌다).
+    - 한 줄에서 시작 표시와 끝 표시가 겹쳐 걸리면 끝 줄로 본다(시작 정규식이 'X_(BEGIN|END)' 처럼 끝 줄에도 걸리는 경우).
+    - 한 줄에 시작 표시가 있고 그 뒤에 끝 표시가 따로 있으면 그 줄 하나로 닫힌 블록이다.
+    """
+    blocks, orphans, failed = [], [], 0
+    for fp in files:
+        try:
+            with open(fp, "rb") as fh:
+                lines = fh.read().splitlines()
+        except OSError:
+            failed += 1
+            continue
+        stack = []
+        for no, raw in enumerate(lines, 1):
+            m = start_re.search(raw)
+            e = None
+            if end_re is not None:
+                e = end_re.search(raw, m.end()) if m else end_re.search(raw)
+                if m and not e:
+                    # 끝 표시가 시작 표시와 겹치면 끝 줄이다
+                    e2 = end_re.search(raw)
+                    if e2 and e2.start() < m.end():
+                        m, e = None, e2
+            if m:
+                after = decode_line(raw[m.end():e.start() if e else len(raw)]).strip().lstrip(":").strip()
+                t = tag_re.search(after) if tag_re else None
+                b = [fp, no, None, "", t.group(1) if t else "", after[:200]]
+                if e:
+                    b[2], b[3] = no, "짝 맞음(한 줄)"
+                    blocks.append(b)
+                elif end_re is None:
+                    b[3] = "끝 표시 미지정"
+                    blocks.append(b)
+                else:
+                    stack.append(b)
+                continue
+            if e:
+                if stack:
+                    b = stack.pop()
+                    b[2], b[3] = no, "짝 맞음"
+                    blocks.append(b)
+                else:
+                    orphans.append((fp, no))
+        for b in stack:
+            b[3] = "끝 표시 못 찾음"
+            blocks.append(b)
+    blocks.sort(key=lambda b: (b[0], b[1]))
+    return [tuple(b) for b in blocks], orphans, failed
 
 
 def scan_config(config_dir, key_res, seconds):
@@ -403,6 +481,85 @@ def md_cell(text):
     return str(text).replace("|", "\\|").replace("\n", " ")
 
 
+def print_mod_list(res, marker_re, end_re, tag_re, args, roots_for_show):
+    """--mod-only --mod-list 결과: 폴더별 블록 수(목록 기준), 블록 표, 태그별 묶음, 짝이 맞지 않는 곳."""
+    files = sorted({fp for _, _, _, hits, _ in res for fp in hits})
+    failed_dirs = [show(d, roots_for_show) for d, _, fail, _, _ in res if fail and fail != "폴더 없음"]
+    missing_dirs = [show(d, roots_for_show) for d, _, fail, _, _ in res if fail == "폴더 없음"]
+    memos = ["{} — {}".format(show(d, roots_for_show), memo) for d, _, _, _, memo in res if memo]
+    blocks, orphans, read_fail = list_mod_blocks(files, marker_re, end_re, tag_re)
+    print()
+    print("## 블록 목록")
+    print("- 끝 표시: {}".format(
+        "{}{}".format(args.mod_end, " (글자 그대로)" if args.literal else " (정규식)") if end_re else "지정 안 함 — 끝 줄과 줄 수는 모름"))
+    if failed_dirs:
+        print("- 주의: 검색 실패한 폴더가 있어 아래 목록은 일부다(0 으로 읽지 않는다) — " + ", ".join(failed_dirs))
+    if missing_dirs:
+        print("- 없는 폴더: " + ", ".join(missing_dirs))
+    for m in memos:
+        print("- 주의: 건너뛴 파일이 있어 이 폴더의 블록 수는 최소값이다 — " + m)
+    if read_fail:
+        print("- 주의: 목록을 만들 때 다시 읽지 못한 파일 {} 개".format(read_fail))
+    print("- 수정 사유는 프로젝트 내부 정보다. 검색어에 넣지 않는다. 시작 표시(수정자 ID 가 들 수 있다)는 결과에 넣지 않았다.")
+
+    # 폴더별 블록 수는 목록에서 다시 센다. 시작 표시 정규식이 끝 줄에도 걸리면 위의 개수(걸린 줄 수)와 다르다
+    print()
+    print("### 폴더별 블록 수 (목록 기준)")
+    dirs = [d for d, _, fail, _, _ in res if fail != "폴더 없음"]
+    for d, n, fail, hits, memo in res:
+        if fail == "폴더 없음":
+            continue
+        inside = [b for b in blocks if b[0] == d or b[0].startswith(d + os.sep)]
+        note = ""
+        if n is not None and n != len(inside):
+            note = " — 위의 개수({})와 다르다. 시작 표시 정규식이 끝 줄에도 걸리는지 확인할 것".format(n)
+        print("- {}: {}{}".format(show(d, roots_for_show), fail if fail else "{} 개".format(len(inside)), note))
+
+    print()
+    print("| # | 위치 | 끝 줄 | 줄 수 | 짝 | 태그 | 수정 사유 |")
+    print("|---|---|---|---|---|---|---|")
+    for i, (fp, start, end, state, tag, text) in enumerate(blocks, 1):
+        lines = end - start + 1 if end else "모름"
+        print("| {} | {}:{} | {} | {} | {} | {} | {} |".format(
+            i, md_cell(show(fp, roots_for_show)), start, end or "-", lines, state, md_cell(tag or "-"), md_cell(text or "(수정 사유 없음)")))
+    if not blocks:
+        print("| - | {} | | | | | |".format("검색 실패 — 일부다" if failed_dirs else "블록 없음"))
+
+    print()
+    print("## 태그별 묶음")
+    print("태그가 없는 블록은 파일 단위로 묶는다. 줄 수 합은 끝 줄을 찾은 블록만 더한 값이다.")
+    print()
+    print("| 묶음 | 블록 수 | 파일 수 | 줄 수 합 | 끝 줄을 못 찾은 블록 |")
+    print("|---|---|---|---|---|")
+    groups = {}
+    for fp, start, end, state, tag, text in blocks:
+        key = "[{}]".format(tag) if tag else "(태그 없음) " + show(fp, roots_for_show)
+        g = groups.setdefault(key, {"n": 0, "files": set(), "lines": 0, "open": 0})
+        g["n"] += 1
+        g["files"].add(fp)
+        if end:
+            g["lines"] += end - start + 1
+        else:
+            g["open"] += 1
+    for key, g in sorted(groups.items(), key=lambda kv: (-kv[1]["n"], kv[0])):
+        print("| {} | {} | {} | {} | {} |".format(md_cell(key), g["n"], len(g["files"]), g["lines"], g["open"]))
+    broken = [k for k in groups if "�" in k]
+    if broken:
+        print()
+        print("- 주의: 태그 글자가 깨진 묶음 {} 개 — 파일 인코딩을 확인할 것".format(len(broken)))
+
+    if end_re:
+        print()
+        print("## 짝이 맞지 않는 곳")
+        bad = [b for b in blocks if not b[3].startswith("짝 맞음")]
+        if not bad and not orphans:
+            print("- 없음" if not failed_dirs else "- 검색 실패 — 일부만 봤다")
+        for fp, start, end, state, tag, text in bad:
+            print("- {}:{} — {}".format(show(fp, roots_for_show), start, state))
+        for fp, no in orphans:
+            print("- {}:{} — 시작 표시 없는 끝 줄".format(show(fp, roots_for_show), no))
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="언리얼 프로젝트의 기술 목록(newtech-inventory.md)을 만든다. 프로젝트·엔진 파일은 읽기만 한다.")
@@ -414,6 +571,10 @@ def main():
     ap.add_argument("--mod-dirs", nargs="*", default=[], help="수정 블록을 셀 폴더들. 상대 경로면 엔진 폴더 기준, 거기 없으면 프로젝트 루트 기준")
     ap.add_argument("--mod-ext", default=DEFAULT_MOD_EXT, help="수정 블록을 찾을 파일 확장자, 쉼표로 구분 (기본: {})".format(DEFAULT_MOD_EXT))
     ap.add_argument("--mod-only", action="store_true", help="목록은 만들지 않고 --mod-dirs 의 수정 블록 수만 출력한다")
+    ap.add_argument("--mod-list", action="store_true", help="--mod-only 와 함께: 블록마다 파일:줄, 끝 줄, 줄 수, 짝, 주제 태그, 수정 사유(시작 표시 뒤의 글)를 낸다")
+    ap.add_argument("--mod-end", help="--mod-list 에서 블록 끝 줄을 찾는 정규식 (예: 'MYGAME_END'). --literal 이면 글자 그대로. 없으면 끝 줄과 줄 수는 '모름'")
+    ap.add_argument("--mod-tag-re", default=r"\[([^\]]+)\]",
+                    help="--mod-list 에서 시작 표시 뒤 글에서 주제 태그를 뽑는 정규식. 첫 번째 캡처 그룹을 태그로 쓴다 (기본: 대괄호 안 글)")
     ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들 (사용 흔적 검색). 없으면 프로젝트 파일 옆 Source 와 Plugins")
     ap.add_argument("--extra-key", action="append", default=[], help="더 볼 설정 이름 정규식 (여러 번 줄 수 있음)")
     ap.add_argument("--previous", help="직전 newtech-inventory.md. 주면 ID 를 이어 쓰고, 입력 지문이 같고 --stale-days 안이면 다시 만들지 않는다")
@@ -474,18 +635,36 @@ def main():
         cands = [os.path.join(b, d) for b in (engine_root, root) if b]
         mod_dirs.append(norm(next((c for c in cands if os.path.isdir(c)), cands[0])))
 
+    if (args.mod_list or args.mod_end) and not args.mod_only:
+        print("오류: --mod-list 와 --mod-end 는 --mod-only 와 함께 쓴다")
+        return 2
     if args.mod_only:
         if not marker_re or not mod_dirs:
             print("오류: --mod-only 에는 --mod-marker 와 --mod-dirs 가 필요하다")
             return 2
-        res = count_mod_blocks(mod_dirs, marker_re, exts, args.seconds, args.max_files, args.max_bytes)
+        end_re = tag_re = None
+        if args.mod_list:
+            try:
+                if args.mod_end:
+                    end_re = re.compile((re.escape(args.mod_end) if args.literal else args.mod_end).encode("utf-8"))
+                tag_re = re.compile(args.mod_tag_re) if args.mod_tag_re else None
+            except re.error as e:
+                print("오류: --mod-end 나 --mod-tag-re 정규식이 잘못됐다 — {}".format(e))
+                return 2
+            if tag_re is not None and tag_re.groups < 1:
+                print(r"오류: --mod-tag-re 에는 태그를 담을 캡처 그룹이 하나 있어야 한다 (예: '\[([^\]]+)\]')")
+                return 2
+        res = count_mod_blocks(mod_dirs, marker_re, exts, args.seconds, args.max_files, args.max_bytes, end_re=end_re)
         print("# 엔진 수정 블록 수 (읽기 전용, {})".format(today))
-        print("- 패턴: {}{}".format(args.mod_marker, " (글자 그대로)" if args.literal else " (정규식)"))
+        print("- 패턴: {}{} — 시작 표시가 걸린 줄 수를 센다".format(args.mod_marker, " (글자 그대로)" if args.literal else " (정규식)"))
         for d, n, fail, hits, memo in res:
-            print("- {}: {}{}".format(show(d, roots_for_show), fail if fail else "{} 개, 파일 {} 개".format(n, len(hits)),
+            with_start = {fp: c for fp, c in hits.items() if c}
+            print("- {}: {}{}".format(show(d, roots_for_show), fail if fail else "{} 개, 파일 {} 개".format(n, len(with_start)),
                                       " ({})".format(memo) if memo else ""))
-            for fp, c in sorted(hits.items(), key=lambda x: -x[1])[:15]:
+            for fp, c in sorted(with_start.items(), key=lambda x: -x[1])[:15]:
                 print("  - {} : {}".format(show(fp, roots_for_show), c))
+        if args.mod_list:
+            print_mod_list(res, marker_re, end_re, tag_re, args, roots_for_show)
         return 0
 
     data, err = read_json(uproject)

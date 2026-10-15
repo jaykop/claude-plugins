@@ -25,7 +25,7 @@ engine:
   source_build:               # true 면 소스 빌드(커스텀 엔진)
   root:                       # 엔진 폴더 경로. 소스 빌드가 아니어도(런처 설치본) 적는다. 콘솔 명령·설정 이름이 실제로 있는지 엔진 소스에서 확인할 때 쓴다
 
-source_roots: []              # 게임 코드 폴더 (design · newtech · perf 공용)
+source_roots: []              # 게임 코드 폴더 (design · newtech · perf · td 공용)
 project_file:                 # 프로젝트 파일. 예: Game/MyGame.uproject
 
 vcs: git                      # git / p4 / 기타
@@ -34,7 +34,7 @@ vcs_read_commands: []         # 고문이 써도 되는 읽기 명령. 예: [git
 decision_owners:              # 영역별 결정권자. 사용자가 아니면 제안을 '참고 선택지'로 낮춘다
   design:
   business:                   # 출시 시점, 지역, 가격, 수익 모델
-  tech:                       # 엔진 버전 올리기, 기술 도입, 코드 구조
+  tech:                       # 엔진 버전 올리기, 기술 도입(newtech), 코드 구조·설계 선택(td)
 user_role:                    # 이 프로필을 쓰는 사람의 역할. 예: 클라이언트 프로그래머
 
 report_dir: .claude/advisors/reports   # 프로젝트 루트 기준 상대 경로 또는 절대 경로
@@ -64,7 +64,9 @@ design:
 
 # ── 신기술 고문 ─────────────────────────────────────────
 newtech:
-  engine_mod_marker:          # 엔진 수정 표시. 기본은 정규식으로 읽는다. 예: '// MYGAME_(BEGIN|END)'
+  engine_mod_marker:          # 엔진 수정 블록의 시작 줄 표시. 기본은 정규식으로 읽는다. 시작 줄에만 걸려야 한다(끝 줄에도 걸리면 블록 수가 두 배가 된다). 예: '// MYGAME_BEGIN'
+  engine_mod_end_marker:      # 엔진 수정 블록의 끝 줄 표시. td 가 블록 목록을 낼 때 쓴다. 예: '// MYGAME_END'
+  engine_mod_tag_re:          # 시작 표시 뒤 글에서 주제 태그를 뽑는 정규식. 캡처 그룹(괄호로 묶은 부분)이 하나 있어야 한다. 비면 대괄호 안 글을 쓴다. 예: '\[([^\]]+)\]'
   engine_mod_dirs: []         # 엔진 수정 블록을 셀 폴더. 상대 경로는 engine.root 기준. 엔진 전체를 검색하지 않도록 좁힌다
   interests: []               # 특히 볼 분야
   excluded: []                # 보지 않을 분야
@@ -90,6 +92,14 @@ perf:
   test_command:               # 자동화 테스트 실행 명령
   test_convention:            # 기존 테스트의 위치·이름 규칙
   edit_scope: tests_only      # tests_only / source
+
+# ── TD 고문 ─────────────────────────────────────────
+td:
+  rule_docs: []               # 팀 기술 규칙 문서(경로나 와일드카드 패턴. 예: Docs/*.md). 근거 1순위. 예: [Dev/Client/CLAUDE.md, Docs/CodingStandard.md]
+  record_roots: []            # 설계 기록·사고 기록·백로그 폴더. 그 문서 속 원인 분석은 '출처 문서의 추정'으로 읽는다
+  extra_roots: []             # source_roots 밖에서 읽을 빌드·배포·서버·도구 폴더
+  vanilla_engine_root:        # 순정 엔진 소스 폴더(로컬). 있으면 엔진 수정 블록과 버전별 동작을 로컬에서 비교한다
+  engine_base_ref:            # 버전 관리 서버에 있는 순정 엔진 기준(p4 스트림·git 브랜치). 엔진 수정 블록이 든 파일이 순정 엔진 쪽에서 바뀐 이력을 셀 때 쓴다
 ---
 
 # 프로필 메모

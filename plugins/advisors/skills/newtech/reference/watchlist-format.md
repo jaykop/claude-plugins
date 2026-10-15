@@ -1,6 +1,6 @@
 # newtech-watchlist.md 형식
 
-파일: `<report_dir>/_state/newtech-watchlist.md`. 신기술 고문만 쓰고 읽는다. 정기 점검과 단일 기술 진단이 끝날 때마다 갱신한다. 머리의 "작성:" 칸에는 고문 이름 대신 폴더 이름과 같은 `newtech` 를 쓴다.
+파일: `<report_dir>/_state/newtech-watchlist.md`. 신기술 고문만 쓴다. TD 고문이 "다음 버전으로 올릴 때 걸리는 것" 표의 상태와 추적 행을 읽는다(칸을 바꾸면 shared/state-formats.md 머리의 안내대로 td 쪽 문서도 맞춘다). 정기 점검과 단일 기술 진단이 끝날 때마다 갱신한다. 머리의 "작성:" 칸에는 고문 이름 대신 폴더 이름과 같은 `newtech` 를 쓴다.
 
 ```markdown
 # 기술 추적 목록

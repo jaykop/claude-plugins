@@ -289,7 +289,12 @@ def aggregate(changes, args, find_keys):
     pair_counts = {}
     ticket_changes = {}
     bulk = 0
+    excludes = [e.replace("\\", "/").rstrip("/").rstrip(".").rstrip("/").casefold() for e in (args.exclude_path or [])]
     for ch in changes:
+        if excludes:
+            # 점검 제외 경로 아래 파일은 세지 않는다(외부 공급사 플러그인 등)
+            ch["files"] = [f for f in ch["files"]
+                           if not any(f.replace("\\", "/").casefold().startswith(e + "/") for e in excludes)]
         keys = find_keys(ch["desc"])
         ch["keys"] = keys
         for k in keys:
@@ -371,6 +376,7 @@ def render(args, changes, cap_hit, partial, files, pairs, tickets, bulk, sizes, 
         ("명령", "`" + command_text() + "`"),
         ("버전 관리", args.vcs),
         ("대상 경로", ", ".join(args.path) if args.path else "저장소 전체"),
+        ("제외한 경로", ", ".join(args.exclude_path) if args.exclude_path else "없음"),
         ("기간", period),
         ("실행한 읽기 명령", "; ".join(vcs_cmds)),
         ("변경 수", cap),
@@ -446,6 +452,8 @@ def build_parser():
                         help="티켓 키 접두사. 쉼표로 여러 개. 주면 이 접두사만 찾는다. 예: --ticket-prefix ABC,XYZ")
     common.add_argument("--ticket-regex", metavar="정규식",
                         help="티켓 키 정규식. 기본 '[A-Z][A-Z0-9]+-숫자'. 그룹 1=접두사, 그룹 2=번호로 짜면 번호를 맞춰 준다")
+    common.add_argument("--exclude-path", action="append", metavar="경로",
+                        help="이 경로 아래 파일은 세지 않는다. 여러 번 줄 수 있다. git 은 저장소 기준 경로, p4 는 depot 경로(//.../...)")
     common.add_argument("--exclude-prefix", action="append", metavar="접두사",
                         help="키로 치지 않을 접두사. 쉼표로 여러 개. 기본 UTF,ISO,SHA,RFC (UTF-8 같은 글자를 키로 오인하지 않게)")
     common.add_argument("--sizes", action="store_true",

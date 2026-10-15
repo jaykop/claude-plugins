@@ -1,6 +1,6 @@
 # 고문 공통 규칙
 
-네 고문(design · newtech · market · perf)과 두 에이전트(web-scout · analyst)가 모두 지키는 규칙이다.
+모든 고문(플러그인 `skills/` 아래 폴더마다 하나: design · newtech · market · perf · td)과 두 에이전트(web-scout · analyst)가 지키는 규칙이다.
 고문별 판정 기준은 각 스킬의 SKILL.md 와 reference 파일에 있다. 여기와 충돌하면 이 파일이 우선한다.
 
 ## 1. 근거 표기
@@ -10,7 +10,7 @@
 
   | 공통 단계 | 뜻 |
   |---|---|
-  | 확인함 | 이번 실행에서 원문·측정값·계산 결과를 직접 보았다 |
+  | 확인함 | 이번 실행에서 원문·측정값·계산 결과를 직접 보았다. 또는 §3 의 조건에 맞춰 재사용한 `source-checks.md` 행이다(행 ID 와 원래 확인일을 함께 적는다) |
   | 추정 | 간접 근거, 선례, 이론, 2차 자료로 미루어 본 것이다 |
   | 모름 | 확인할 자료가 없거나 확인에 실패했다 |
 
@@ -27,7 +27,12 @@
 - 오늘 날짜는 시스템 날짜로 정한다(Bash `date +%F`). 학습 시점의 날짜 감각으로 "올해", "최근"을 쓰지 않는다.
 - 문서·코드의 날짜는 **버전 관리 이력**(p4 filelog 의 마지막 submit 날짜, git log)이나 **문서 머리에 적힌 개정일**에서 읽는다. 파일 시스템의 수정 시각은 쓰지 않는다. 동기화(sync·pull)한 시각과 같아져서 모든 파일이 최신으로 보이기 때문이다.
 - 파일 이름에 적힌 날짜(예: 회의록·플레이테스트 기록)는 **작성일**로만 쓴다. 문서가 언제 마지막으로 고쳐졌는지, 최신 판인지를 가리는 데는 쓰지 않는다.
-- "최신 버전", "현재 지원됨", "아직 실험 단계" 같은 말은 **이번 실행에서 연 1차 출처**로만 쓴다. 기억에 기대지 않는다.
+- "최신 버전", "현재 지원됨", "아직 실험 단계" 같은 말은 **이번 실행에서 연 1차 출처**, 또는 아래 조건에 맞는 `_state/source-checks.md` 행으로만 쓴다. 기억에 기대지 않는다.
+- source-checks 행을 재사용하는 조건(셋 다 맞아야 한다):
+  1. 출처 종류 칸이 1차이고 출처가 하나다. 2차·3차, 출처가 둘 이상 섞인 행, 1차끼리 어긋나는 행(값 칸에 "SC-xxx 와 어긋남"이 있는 행)은 근거로 쓰지 않고 다시 확인할 사실로 넘긴다. 출처 종류가 "1차 없음(찾지 못함)"인 행은 다시 확인할 날짜 전까지 "1차 출처가 없다"는 사실로만 쓴다.
+  2. "다시 확인할 날짜"가 오늘보다 뒤다. 오늘이거나 지났으면 다시 연다.
+  3. 발표 단계나 지원 플랫폼을 정하는 사실이면, 값 칸에 1차 출처의 원문 문장(따옴표)이 있고, 원문에 범위 한정이 있으면 그 문구도, 없으면 "범위 한정 없음"이 적혀 있다.
+  재사용하면 행 ID 와 원래 확인일을 함께 적는다. 고문별로 늘 다시 여는 사실은 그 고문의 SKILL.md 나 reference 파일이 정한다(예: 신기술 고문 정기 점검의 최신 정식 엔진 버전 — newtech/reference/sources.md §4).
 
 ## 4. 검색 실패는 0건이 아니다
 
@@ -91,18 +96,22 @@
 ├─ market/<YYYY-MM-DD>-<모드>.md     모드: full (전면 평가), check (변화 점검)
 │  └─ data/<YYYY-MM-DD>/            스크립트가 받은 원본 자료 (리뷰 JSONL, 분류 CSV, 요약)
 ├─ perf/<YYYY-MM-DD>-<모드>.md       모드: diagnosis (진단), periodic (주기 점검)
+├─ td/<YYYY-MM-DD>-<모드>.md         모드: decision (설계 검토), audit (구조 점검)
 └─ _state/
    ├─ inbox.md                 고문 사이 질문함 (형식: shared/inbox-format.md)
-   ├─ source-checks.md         날짜가 붙은 바깥 사실과 출처 접근 가능 여부 (newtech · market 공용)
+   ├─ source-checks.md         날짜가 붙은 바깥 사실과 출처 접근 가능 여부 (newtech · market · td 공용)
    ├─ design-proposals.md      기획 제안 기록
-   ├─ newtech-inventory.md     프로젝트 기술 목록 (newtech 가 만들고 perf 가 읽음)
+   ├─ newtech-inventory.md     프로젝트 기술 목록 (newtech 가 만들고 perf · design · td 가 읽음)
    ├─ newtech-watchlist.md     추적 중인 기술
    ├─ market-competitors.md    경쟁작 목록 (market 이 만들고 design 이 읽음)
    ├─ market-snapshot.md       직전 시장 수치
-   └─ perf-ledger.md           부문·항목별 점검 기록
+   ├─ perf-ledger.md           부문·항목별 점검 기록
+   ├─ td-ledger.md             TD 기록 — 판정 기준·결정 기록·층 규칙
+   ├─ td-debt.md               기술 부채 기록
+   └─ td-engine-mods.md        엔진 수정 블록 묶음 분류 (td 가 만들고 newtech 가 읽음)
 ```
 
-- 다른 고문이 읽는 파일(newtech-inventory, market-competitors, source-checks)의 형식은 `shared/state-formats.md` 에 고정돼 있다.
+- 다른 고문이 읽는 파일(newtech-inventory, market-competitors, source-checks, td-engine-mods)의 형식은 `shared/state-formats.md` 에 고정돼 있다.
 - 파일 이름의 모드 부분은 위에 적은 영어 소문자 낱말만 쓴다. 한글·공백을 넣지 않는다. 버전 관리 서버나 도구에 따라 한글 파일 이름이 깨질 수 있어서다.
 - 같은 날 같은 모드를 두 번 돌리면 파일 이름 끝에 `-2` 를 붙인다.
 - `_state` 파일은 항목마다 고정 ID 를 둔다. 이름이 바뀌어도 ID 는 유지한다.
@@ -117,4 +126,4 @@
   - `다음 점검: 마일스톤 N일 전` — 프로필 `next_milestone` 의 날짜에서 N일을 뺀 날부터 알린다. 그 파일의 `마지막 갱신` 이 그날 이후면(이미 점검했으면) 알리지 않는다.
   - `다음 점검: 조건 — <조건 설명>` — 날짜 비교를 하지 않는다. 그 고문이 실행될 때 조건을 직접 확인한다.
 
-  `source-checks.md` 는 두 고문이 같이 쓰는 파일이라 세션 시작 알림 대상이 아니다. newtech 와 market 이 실행될 때 "다시 확인할 날짜"를 직접 본다.
+  `source-checks.md` 는 여러 고문(newtech · market · td)이 같이 쓰는 파일이라 세션 시작 알림 대상이 아니다. 그 고문들이 실행될 때 "다시 확인할 날짜"를 직접 본다.

@@ -8,7 +8,7 @@ A personal Claude Code plugin marketplace. Documentation is in Korean.
 
 | 플러그인 | 설명 | 설명서 |
 |---|---|---|
-| `advisors` | 게임 프로젝트 고문 4종 — 기획, 신기술, 시장 동향, 최적화 | [plugins/advisors/README.md](plugins/advisors/README.md) |
+| `advisors` | 게임 프로젝트 고문 5종 — 기획, 신기술, 시장 동향, 최적화, TD(테크니컬 디렉터) | [plugins/advisors/README.md](plugins/advisors/README.md) |
 
 ## 설치
 
