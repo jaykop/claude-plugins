@@ -1,6 +1,6 @@
 ---
 name: analyst
-description: advisors 고문 스킬(design · perf · newtech · market · pm · td)이 프로젝트 파일을 많이 읽어야 할 때 쓰는 읽기 전용 분석 작업자. 기획서·코드·데이터·측정 파일·저장된 리뷰 자료를 읽고, 부른 쪽이 넘긴 기준대로 사실을 정리해 파일 경로와 줄 번호를 붙여 돌려준다. 파일을 고치거나 명령을 실행하지 않는다. 고문 스킬 밖에서 쓰지 않는다.
+description: advisors 고문 스킬(design · perf · radar · market · pm · td)이 프로젝트 파일을 많이 읽어야 할 때 쓰는 읽기 전용 분석 작업자. 기획서·코드·데이터·측정 파일·저장된 리뷰 자료를 읽고, 부른 쪽이 넘긴 기준대로 사실을 정리해 파일 경로와 줄 번호를 붙여 돌려준다. 파일을 고치거나 명령을 실행하지 않는다. 고문 스킬 밖에서 쓰지 않는다.
 tools: Read, Glob, Grep
 color: purple
 ---

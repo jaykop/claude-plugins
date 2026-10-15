@@ -1,6 +1,6 @@
 ---
 name: market
-description: 게임 프로젝트의 시장 동향 고문. 공개 자료로 경쟁작·최근 흐름·이용자층·지역 조건을 모으고, 프로필의 장르·플랫폼·수익 모델·지역·출시 시점 조건에서 시장성을 축별 등급과 근거로 평가한다. 결과는 결정이 아니라 근거다. "시장성 평가해 줘", "경쟁작 조사해 줘", "시장 동향 점검", "경쟁작 ○○ 요즘 성적 어때", "북미 자료 다시 봐 줘" 같은 요청에 쓴다. 해당하지 않는 경우 — 코드·기획서·데이터 수정 요청, 기획 항목의 재미나 추가 여부 판단(design), 엔진·기술 도입 판단(newtech), 코드 구조·설계 선택(td), 성능 목표·진단(perf), 광고·홍보 실행안, 판매량을 숫자 하나로 맞혀 달라는 요청.
+description: 게임 프로젝트의 시장 동향 고문. 공개 자료로 경쟁작·최근 흐름·이용자층·지역 조건을 모으고, 프로필의 장르·플랫폼·수익 모델·지역·출시 시점 조건에서 시장성을 축별 등급과 근거로 평가한다. 결과는 결정이 아니라 근거다. "시장성 평가해 줘", "경쟁작 조사해 줘", "시장 동향 점검", "경쟁작 ○○ 요즘 성적 어때", "북미 자료 다시 봐 줘" 같은 요청에 쓴다. 해당하지 않는 경우 — 코드·기획서·데이터 수정 요청, 기획 항목의 재미나 추가 여부 판단(design), 엔진·기술 도입 판단(radar), 코드 구조·설계 선택(td), 성능 목표·진단(perf), 광고·홍보 실행안, 판매량을 숫자 하나로 맞혀 달라는 요청.
 when_to_use: 첫 시장성 평가, 프로필의 장르·플랫폼·수익 모델·지역·출시 시점이 바뀐 뒤, 분기 정기 점검, 직접 경쟁작이 출시된 직후, 특정 경쟁작·지역·지표를 다시 볼 때. 예약 실행은 `--unattended` 인자가 붙어 온다.
 argument-hint: "[전면 평가|변화 점검] [대상] [--unattended]"
 allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *profile_scan.py*), Bash(python3 *profile_scan.py*), Bash(python *steam_reviews.py*), Bash(python3 *steam_reviews.py*), Bash(python *market_calc.py*), Bash(python3 *market_calc.py*), Bash(git log *), Bash(git show *), Bash(git rev-parse *), Bash(p4 changes *), Bash(p4 describe *), Bash(p4 filelog *), Bash(p4 fstat *), Write(./.claude/advisors/**), Edit(./.claude/advisors/**)
@@ -43,7 +43,7 @@ analyst 지시문에는 스킬 폴더의 절대 경로를 그대로 적는다.
 | 안 하는 일 | 넘기는 곳 |
 |---|---|
 | 기획 항목의 재미 판단, 추가·보류·제거 결정, 기획서 품평 | design. 질문함에 "~에 대해 기획 판단이 필요하다" 질문과 입력 → 규칙 → 결과 초안, 시장 근거를 함께 올린다 |
-| 엔진 기능·신기술을 쓸지 판단 | 새 기술은 newtech, 우리 코드 구조는 td 의 일. market 은 다루지 않는다 |
+| 엔진 기능·신기술을 쓸지 판단 | 새 기술은 radar, 우리 코드 구조는 td 의 일. market 은 다루지 않는다 |
 | 성능 목표 설정, 병목 진단 | perf 의 일. market 은 `target_spec` 변경 제안까지만 |
 | 출시 조건 결정 | `decision_owners.business`. 사용자가 결정권자가 아니면 "참고 선택지"로 낮춘다 |
 | 판매량·매출을 숫자 하나로 예측, 리뷰 수에 배수를 곱한 판매량 | 하지 않는다. 비교작 분포 안의 구간과 조건으로만 쓴다 |

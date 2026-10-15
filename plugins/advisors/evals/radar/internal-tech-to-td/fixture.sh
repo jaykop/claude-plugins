@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 시험용 프로젝트: 신기술 고문이 Step 0 에서 묻지 않도록 필요한 프로필 칸을 채우고,
+# 시험용 프로젝트: 기술 동향 고문이 Step 0 에서 묻지 않도록 필요한 프로필 칸을 채우고,
 # GAS 가 "사용 중"인 기술 목록과 자체 쿨다운 코드를 둔다.
 set -eu
 
@@ -50,7 +50,7 @@ code_change_entry:              # [사용자] 모름
 search_banned_terms: []         # [사용자] 없음
 search_banned_combos: []        # [사용자] 없음
 
-newtech:
+radar:
   engine_mod_marker:            # [사용자] 모름
   engine_mod_dirs: []           # [사용자] 없음
   interests: []                 # [사용자] 없음
@@ -60,18 +60,18 @@ newtech:
 ---
 EOF
 
-cat > .claude/advisors/reports/_state/newtech-inventory.md <<'EOF'
+cat > .claude/advisors/reports/_state/radar-inventory.md <<'EOF'
 # 프로젝트 기술 목록
 
 다음 점검: 2026-12-31
-작성: newtech / 마지막 갱신: 2026-10-01 / 기준 리비전: 확인 못 함
+작성: radar / 마지막 갱신: 2026-10-01 / 기준 리비전: 확인 못 함
 
 ## 엔진
 | 항목 | 값 | 근거 위치 |
 |---|---|---|
 | 엔진 버전 | 5.6.1 | 프로필 engine.version |
 | 소스 빌드 여부 | 아니오 | EvalGame.uproject 의 EngineAssociation |
-| 엔진 수정 블록 수 | 세지 않음 | 프로필 newtech.engine_mod_dirs 비어 있음 |
+| 엔진 수정 블록 수 | 세지 않음 | 프로필 radar.engine_mod_dirs 비어 있음 |
 
 ## 플러그인·기능
 | ID | 이름 | 상태 | 근거 위치 |

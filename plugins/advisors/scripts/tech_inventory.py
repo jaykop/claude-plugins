@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""언리얼 프로젝트의 기술 목록(newtech-inventory.md)을 만든다.
+"""언리얼 프로젝트의 기술 목록(radar-inventory.md)을 만든다.
 
 읽기만 한다. 프로젝트·엔진 파일을 고치지 않는다. 결과는 --out 으로 받은 경로에만 쓰고, 없으면 표준 출력으로 낸다.
 
@@ -17,11 +17,11 @@
 - --force 를 줬을 때
 어느 쪽도 아니면 다시 만들지 않고 '변경 없음' 을 출력한다.
 
-출력 형식은 advisors 플러그인 shared/state-formats.md 의 newtech-inventory.md 형식을 따른다.
+출력 형식은 advisors 플러그인 shared/state-formats.md 의 radar-inventory.md 형식을 따른다.
 
---mod-only 는 목록을 만들지 않고 지정한 폴더의 수정 블록 수만 낸다(newtech 단일 기술 진단).
+--mod-only 는 목록을 만들지 않고 지정한 폴더의 수정 블록 수만 낸다(radar 단일 기술 진단).
 --mod-only --mod-list 는 블록마다 파일:줄, 끝 줄, 줄 수, 주제 태그, 수정 사유(시작 표시 뒤의 글. 시작 표시는 내지 않음)를 낸다(td 구조 점검의 엔진 수정 범위).
-newtech 와 td 가 함께 쓰므로 플러그인 공용 폴더(scripts/)에 둔다.
+radar 와 td 가 함께 쓰므로 플러그인 공용 폴더(scripts/)에 둔다.
 """
 
 import argparse
@@ -562,7 +562,7 @@ def print_mod_list(res, marker_re, end_re, tag_re, args, roots_for_show):
 
 def main():
     ap = argparse.ArgumentParser(
-        description="언리얼 프로젝트의 기술 목록(newtech-inventory.md)을 만든다. 프로젝트·엔진 파일은 읽기만 한다.")
+        description="언리얼 프로젝트의 기술 목록(radar-inventory.md)을 만든다. 프로젝트·엔진 파일은 읽기만 한다.")
     ap.add_argument("project_root", nargs="?", default="", help="프로젝트 루트 폴더 (근거 위치를 이 폴더 기준 상대 경로로 적는다). 없거나 빈 값이면 현재 폴더")
     ap.add_argument("--project-file", help="프로젝트 파일(.uproject) 경로. 상대 경로면 프로젝트 루트 기준. 없으면 깊이 3 까지 찾는다")
     ap.add_argument("--engine-root", help="엔진 폴더(안에 Build/Build.version 이 있는 폴더). 없으면 프로젝트 파일 위쪽에서 찾는다")
@@ -577,7 +577,7 @@ def main():
                     help="--mod-list 에서 시작 표시 뒤 글에서 주제 태그를 뽑는 정규식. 첫 번째 캡처 그룹을 태그로 쓴다 (기본: 대괄호 안 글)")
     ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들 (사용 흔적 검색). 없으면 프로젝트 파일 옆 Source 와 Plugins")
     ap.add_argument("--extra-key", action="append", default=[], help="더 볼 설정 이름 정규식 (여러 번 줄 수 있음)")
-    ap.add_argument("--previous", help="직전 newtech-inventory.md. 주면 ID 를 이어 쓰고, 입력 지문이 같고 --stale-days 안이면 다시 만들지 않는다")
+    ap.add_argument("--previous", help="직전 radar-inventory.md. 주면 ID 를 이어 쓰고, 입력 지문이 같고 --stale-days 안이면 다시 만들지 않는다")
     ap.add_argument("--stale-days", type=int, help="직전 목록의 마지막 갱신일에서 이 일수가 지나면 입력 지문이 같아도 다시 만든다 (프로필 stale_after_days)")
     ap.add_argument("--force", action="store_true", help="입력 지문이 같아도 다시 만든다")
     ap.add_argument("--date", help="작성일 YYYY-MM-DD (기본: 시스템 날짜)")
@@ -778,7 +778,7 @@ def main():
         engine_rows.append(("엔진 수정 블록 수", val, "패턴 '{}'{}, 확장자 {}".format(
             args.mod_marker, " 글자 그대로" if args.literal else " 정규식", ",".join(sorted(exts)))))
     else:
-        engine_rows.append(("엔진 수정 블록 수", "세지 않음 — 수정 표시 규칙이나 셀 폴더가 주어지지 않음", "프로필 newtech.engine_mod_marker, newtech.engine_mod_dirs"))
+        engine_rows.append(("엔진 수정 블록 수", "세지 않음 — 수정 표시 규칙이나 셀 폴더가 주어지지 않음", "프로필 radar.engine_mod_marker, radar.engine_mod_dirs"))
 
     mods = data.get("Modules", []) or []
     if mods:
@@ -993,13 +993,13 @@ def main():
     if args.next_check:
         next_check = args.next_check
     else:
-        next_check = "조건 — 엔진 버전 파일, 프로젝트 파일, Config 폴더, 게임 코드 Build.cs 가 바뀌었을 때{} (신기술 고문이 실행마다 입력 지문과 갱신일로 비교)".format(
+        next_check = "조건 — 엔진 버전 파일, 프로젝트 파일, Config 폴더, 게임 코드 Build.cs 가 바뀌었을 때{} (기술 동향 고문이 실행마다 입력 지문과 갱신일로 비교)".format(
             ", 또는 마지막 갱신 후 {}일이 지났을 때".format(args.stale_days) if args.stale_days is not None else "")
     out = []
     out.append("# 프로젝트 기술 목록")
     out.append("")
     out.append("다음 점검: " + next_check)
-    out.append("작성: newtech / 마지막 갱신: {} / 기준 리비전: {}".format(today, args.revision))
+    out.append("작성: radar / 마지막 갱신: {} / 기준 리비전: {}".format(today, args.revision))
     out.append("")
     out.append("## 엔진")
     out.append("| 항목 | 값 | 근거 위치 |")

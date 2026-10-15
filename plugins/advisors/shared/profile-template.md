@@ -17,7 +17,7 @@ business_model:               # 패키지 / 부분 유료 / 구독 / 미정
 release_window:               # 예: 2027 하반기, 미정
 dev_stage:                    # 프리프로덕션 / 본 제작 / 알파 / 베타 / 라이브
 next_milestone:               # 이름과 날짜. 예: 알파 2027-03-31 (날짜는 YYYY-MM-DD)
-team_size:                    # 개발 인원과 출처. 예: 약 40명 [사용자]. 신기술 고문이 '비슷한 규모의 출시 사례'를 가릴 때 쓴다
+team_size:                    # 개발 인원과 출처. 예: 약 40명 [사용자]. 기술 동향 고문이 '비슷한 규모의 출시 사례'를 가릴 때 쓴다
 feature_cutoff:               # 기능 추가 마감일 YYYY-MM-DD. 지났으면 기획 고문이 큰 추가 제안을 '다음 단계 후보'로 돌린다
 
 engine:
@@ -26,7 +26,7 @@ engine:
   source_build:               # true 면 소스 빌드(커스텀 엔진)
   root:                       # 엔진 폴더 경로. 소스 빌드가 아니어도(런처 설치본) 적는다. 콘솔 명령·설정 이름이 실제로 있는지 엔진 소스에서 확인할 때 쓴다
 
-source_roots: []              # 게임 코드 폴더 (design · newtech · perf · td 공용)
+source_roots: []              # 게임 코드 폴더 (design · radar · perf · td 공용)
 project_file:                 # 프로젝트 파일. 예: Game/MyGame.uproject
 
 vcs: git                      # git / p4 / 기타
@@ -35,7 +35,7 @@ vcs_read_commands: []         # 고문이 써도 되는 읽기 명령. 예: [git
 decision_owners:              # 영역별 결정권자. 사용자가 아니면 제안을 '참고 선택지'로 낮춘다
   design:
   business:                   # 출시 시점, 지역, 가격, 수익 모델
-  tech:                       # 엔진 버전 올리기, 기술 도입(newtech), 코드 구조·설계 선택(td)
+  tech:                       # 엔진 버전 올리기, 기술 도입(radar), 코드 구조·설계 선택(td)
   schedule:                   # 마일스톤 범위, 작업 순서, 일정 (PM 고문)
 user_role:                    # 이 프로필을 쓰는 사람의 역할. 예: 클라이언트 프로그래머
 
@@ -65,8 +65,8 @@ design:
                               # 역할은 넷 중 하나: 문서 리뷰 / 관찰 포인트 게시 / 피드백 정리 / 수치 분석
   knowledge_dir:              # 기획 판단 기준 노트 폴더(팀이 정한 심사 기준, 지난 판정에서 배운 것). 원칙(필러)은 principles 에 둔다. 읽는 규칙은 shared/rules.md §13
 
-# ── 신기술 고문 ─────────────────────────────────────────
-newtech:
+# ── 기술 동향 고문 ─────────────────────────────────────
+radar:
   engine_mod_marker:          # 엔진 수정 블록의 시작 줄 표시. 기본은 정규식으로 읽는다. 시작 줄에만 걸려야 한다(끝 줄에도 걸리면 블록 수가 두 배가 된다). 예: '// MYGAME_BEGIN'
   engine_mod_end_marker:      # 엔진 수정 블록의 끝 줄 표시. td 가 블록 목록을 낼 때 쓴다. 예: '// MYGAME_END'
   engine_mod_tag_re:          # 시작 표시 뒤 글에서 주제 태그를 뽑는 정규식. 캡처 그룹(괄호로 묶은 부분)이 하나 있어야 한다. 비면 대괄호 안 글을 쓴다. 예: '\[([^\]]+)\]'
@@ -75,7 +75,7 @@ newtech:
   excluded: []                # 보지 않을 분야
   ai_tool_policy:             # 회사의 AI 도구 정책 확인 여부. 미확인 / 허용 / 제한
   community_sources:          # 소식을 찾는 커뮤니티 채널. 판정 근거가 아니라 '무엇이 화제인지' 찾는 곳이다
-    auto: [qiita, geeknews, tencent-gameinstitute]   # 자동으로 읽는 곳. 채널 이름은 skills/newtech/reference/sources.md 의 '커뮤니티 채널' 항목
+    auto: [qiita, geeknews, tencent-gameinstitute]   # 자동으로 읽는 곳. 채널 이름은 skills/radar/reference/sources.md 의 '커뮤니티 채널' 항목
     manual: [reddit, zhihu]   # 자동 조회가 막힌 곳. 사용자가 글을 붙여 넣거나 파일로 넘겨 줄 때만 읽는다
   knowledge_dir:              # 기술 도입 판단 기준 노트 폴더(사내 도입 절차, 피하는 기술 종류 등). 읽는 규칙은 shared/rules.md §13
 

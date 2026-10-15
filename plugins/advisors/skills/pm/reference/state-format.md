@@ -19,7 +19,7 @@
 | PC-001 | 주간 점검 | /advisors:pm 주간 점검 | 7 | pm/*-weekly*.md | - | |
 | PC-002 | 성능 주기 점검 | /advisors:perf 주기 점검 | 7 | perf/*-periodic*.md | - | 새 측정 파일이 있을 때만 리포트가 생긴다 |
 | PC-003 | 리팩터링 판단 | /advisors:perf 진단 <영역> 리팩터링 필요성 | 28 | - | YYYY-MM-DD | 진단 리포트가 다른 목적과 섞이므로 마지막 실행을 직접 적는다 |
-| PC-004 | 신기술 정기 점검 | /advisors:newtech 정기 점검 | 30 | newtech/*-periodic*.md | - | |
+| PC-004 | 기술 동향 정기 점검 | /advisors:radar 정기 점검 | 30 | radar/*-periodic*.md | - | |
 | PC-005 | 시장 변화 점검 | /advisors:market 변화 점검 | 90 | market/*-check*.md | - | |
 | PC-006 | 기획 영역 점검 | /advisors:design 영역 진단 <영역> | 마일스톤 14일 전 | design/*-area*.md | - | |
 | PC-007 | 플레이테스트 | 사람이 진행. 계획은 /advisors:pm 플레이테스트 계획 | 14 | - | - | |

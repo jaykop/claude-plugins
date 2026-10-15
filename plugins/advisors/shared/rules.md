@@ -1,6 +1,6 @@
 # 고문 공통 규칙
 
-모든 고문(플러그인 `skills/` 아래 폴더마다 하나: design · newtech · market · perf · pm · td)과 두 에이전트(web-scout · analyst)가 지키는 규칙이다.
+모든 고문(플러그인 `skills/` 아래 폴더마다 하나: design · radar · market · perf · pm · td)과 두 에이전트(web-scout · analyst)가 지키는 규칙이다.
 고문별 판정 기준은 각 스킬의 SKILL.md 와 reference 파일에 있다. 여기와 충돌하면 이 파일이 우선한다.
 
 ## 1. 근거 표기
@@ -32,7 +32,7 @@
   1. 출처 종류 칸이 1차이고 출처가 하나다. 2차·3차, 출처가 둘 이상 섞인 행, 1차끼리 어긋나는 행(값 칸에 "SC-xxx 와 어긋남"이 있는 행)은 근거로 쓰지 않고 다시 확인할 사실로 넘긴다. 출처 종류가 "1차 없음(찾지 못함)"인 행은 다시 확인할 날짜 전까지 "1차 출처가 없다"는 사실로만 쓴다.
   2. "다시 확인할 날짜"가 오늘보다 뒤다. 오늘이거나 지났으면 다시 연다.
   3. 발표 단계나 지원 플랫폼을 정하는 사실이면, 값 칸에 1차 출처의 원문 문장(따옴표)이 있고, 원문에 범위 한정이 있으면 그 문구도, 없으면 "범위 한정 없음"이 적혀 있다.
-  재사용하면 행 ID 와 원래 확인일을 함께 적는다. 고문별로 늘 다시 여는 사실은 그 고문의 SKILL.md 나 reference 파일이 정한다(예: 신기술 고문 정기 점검의 최신 정식 엔진 버전 — newtech/reference/sources.md §4).
+  재사용하면 행 ID 와 원래 확인일을 함께 적는다. 고문별로 늘 다시 여는 사실은 그 고문의 SKILL.md 나 reference 파일이 정한다(예: 기술 동향 고문 정기 점검의 최신 정식 엔진 버전 — radar/reference/sources.md §4).
 
 ## 4. 검색 실패는 0건이 아니다
 
@@ -92,7 +92,7 @@
 ```
 <report_dir>/
 ├─ design/<YYYY-MM-DD>-<모드>.md     모드: area (영역 진단), review (단건 심사), area-index (영역 진단 목차)
-├─ newtech/<YYYY-MM-DD>-<모드>.md    모드: periodic (정기 점검), single (단일 기술 진단)
+├─ radar/<YYYY-MM-DD>-<모드>.md      모드: periodic (정기 점검), single (단일 기술 진단)
 ├─ market/<YYYY-MM-DD>-<모드>.md     모드: full (전면 평가), check (변화 점검)
 │  └─ data/<YYYY-MM-DD>/            스크립트가 받은 원본 자료 (리뷰 JSONL, 분류 CSV, 요약)
 ├─ perf/<YYYY-MM-DD>-<모드>.md       모드: diagnosis (진단), periodic (주기 점검)
@@ -101,10 +101,10 @@
 └─ _state/
    ├─ inbox.md                 고문 사이 질문함 (형식: shared/inbox-format.md)
    ├─ feedback.md              결과 표시 기록 — 사용자가 리포트 항목에 붙인 틀림·일반론·놓침 (모든 고문 공용, 사용자도 직접 씀)
-   ├─ source-checks.md         날짜가 붙은 바깥 사실과 출처 접근 가능 여부 (newtech · market · td 공용)
+   ├─ source-checks.md         날짜가 붙은 바깥 사실과 출처 접근 가능 여부 (radar · market · td 공용)
    ├─ design-proposals.md      기획 제안 기록
-   ├─ newtech-inventory.md     프로젝트 기술 목록 (newtech 가 만들고 perf · design · td 가 읽음)
-   ├─ newtech-watchlist.md     추적 중인 기술
+   ├─ radar-inventory.md       프로젝트 기술 목록 (radar 가 만들고 perf · design · td 가 읽음)
+   ├─ radar-watchlist.md       추적 중인 기술
    ├─ market-competitors.md    경쟁작 목록 (market 이 만들고 design 이 읽음)
    ├─ market-snapshot.md       직전 시장 수치
    ├─ perf-ledger.md           부문·항목별 점검 기록
@@ -113,10 +113,10 @@
    ├─ pm-plan.md               마일스톤 계획과 주간 기록
    ├─ td-ledger.md             TD 기록 — 판정 기준·결정 기록·층 규칙
    ├─ td-debt.md               기술 부채 기록
-   └─ td-engine-mods.md        엔진 수정 블록 묶음 분류 (td 가 만들고 newtech 가 읽음)
+   └─ td-engine-mods.md        엔진 수정 블록 묶음 분류 (td 가 만들고 radar 가 읽음)
 ```
 
-- 다른 고문이 읽거나 여러 고문이 함께 쓰는 파일(newtech-inventory, market-competitors, source-checks, td-engine-mods, feedback)의 형식은 `shared/state-formats.md` 에 고정돼 있다.
+- 다른 고문이 읽거나 여러 고문이 함께 쓰는 파일(radar-inventory, market-competitors, source-checks, td-engine-mods, feedback)의 형식은 `shared/state-formats.md` 에 고정돼 있다.
 - 파일 이름의 모드 부분은 위에 적은 영어 소문자 낱말만 쓴다. 한글·공백을 넣지 않는다. 버전 관리 서버나 도구에 따라 한글 파일 이름이 깨질 수 있어서다.
 - 같은 날 같은 모드를 두 번 돌리면 파일 이름 끝에 `-2` 를 붙인다.
 - `_state` 파일은 항목마다 고정 ID 를 둔다. 이름이 바뀌어도 ID 는 유지한다.
@@ -131,7 +131,7 @@
   - `다음 점검: 마일스톤 N일 전` — 프로필 `next_milestone` 의 날짜에서 N일을 뺀 날부터 알린다. 그 파일의 `마지막 갱신` 이 그날 이후면(이미 점검했으면) 알리지 않는다.
   - `다음 점검: 조건 — <조건 설명>` — 날짜 비교를 하지 않는다. 그 고문이 실행될 때 조건을 직접 확인한다.
 
-  `source-checks.md` 는 여러 고문(newtech · market · td)이 같이 쓰는 파일이라 세션 시작 알림 대상이 아니다. 그 고문들이 실행될 때 "다시 확인할 날짜"를 직접 본다. `feedback.md` 도 모든 고문이 같이 쓰는 파일이라 알림 대상이 아니다. 각 고문이 실행될 때 자기 앞 "반영 전" 행을 직접 본다(start.md 0-F).
+  `source-checks.md` 는 여러 고문(radar · market · td)이 같이 쓰는 파일이라 세션 시작 알림 대상이 아니다. 그 고문들이 실행될 때 "다시 확인할 날짜"를 직접 본다. `feedback.md` 도 모든 고문이 같이 쓰는 파일이라 알림 대상이 아니다. 각 고문이 실행될 때 자기 앞 "반영 전" 행을 직접 본다(start.md 0-F).
 
 ## 13. 팀 기준 노트와 결과 표시 기록
 

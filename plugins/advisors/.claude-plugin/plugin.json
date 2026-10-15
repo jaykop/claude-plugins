@@ -1,6 +1,6 @@
 {
   "name": "advisors",
-  "description": "게임 프로젝트 고문 6종 — 기획(design), 신기술(newtech), 시장 동향(market), 최적화(perf), PM(pm), TD(테크니컬 디렉터, td). 프로젝트 값은 각 프로젝트의 .claude/advisors/profile.md 에서 읽는다.",
+  "description": "게임 프로젝트 고문 6종 — 기획(design), 기술 동향(radar), 시장 동향(market), 최적화(perf), PM(pm), TD(테크니컬 디렉터, td). 프로젝트 값은 각 프로젝트의 .claude/advisors/profile.md 에서 읽는다.",
   "author": {
     "name": "jaykop"
   },

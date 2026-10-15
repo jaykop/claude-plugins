@@ -1,6 +1,6 @@
 ---
 name: web-scout
-description: advisors 고문 스킬(newtech · market · design · td)이 웹 자료 수집을 맡길 때 쓰는 수집 전용 작업자. 웹 검색과 페이지 열기만 하고, 부른 쪽이 정한 표 형식으로 출처·날짜·원문 인용을 돌려준다. 판정·추천·평가는 하지 않는다. 고문 스킬 밖에서 일반 웹 검색 용도로 쓰지 않는다.
+description: advisors 고문 스킬(radar · market · design · td)이 웹 자료 수집을 맡길 때 쓰는 수집 전용 작업자. 웹 검색과 페이지 열기만 하고, 부른 쪽이 정한 표 형식으로 출처·날짜·원문 인용을 돌려준다. 판정·추천·평가는 하지 않는다. 고문 스킬 밖에서 일반 웹 검색 용도로 쓰지 않는다.
 tools: WebSearch, WebFetch
 omitClaudeMd: true
 color: cyan

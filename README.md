@@ -8,7 +8,7 @@ A personal Claude Code plugin marketplace. Some plugins also ship a Codex manife
 
 | 플러그인 | 설명 | Codex | 설명서 |
 |---|---|---|---|
-| `advisors` | 게임 프로젝트 고문 6종 — 기획, 신기술, 시장 동향, 최적화, PM, TD(테크니컬 디렉터) | - | [plugins/advisors/README.md](plugins/advisors/README.md) |
+| `advisors` | 게임 프로젝트 고문 6종 — 기획, 기술 동향, 시장 동향, 최적화, PM, TD(테크니컬 디렉터) | - | [plugins/advisors/README.md](plugins/advisors/README.md) |
 | `ko-review` | 한국어 문서·주석 교정, 한 AI 가 쓴 설명을 다른 AI 가 부분 검토하는 설명 변경 목록 | 스킬 | [plugins/ko-review/README.md](plugins/ko-review/README.md) |
 | `workflow` | 이슈 기반 작업 흐름 — 다음 작업 고르기, 규모별 구현, 문서 반영, 커밋 전 문서 검토, 인계 메모 | 스킬 | [plugins/workflow/README.md](plugins/workflow/README.md) |
 
@@ -59,6 +59,7 @@ codex plugin marketplace add jaykop/claude-plugins
 Claude Code 플러그인 설정 파일에 `version` 을 적지 않았다. 그래서 커밋마다 버전이 바뀌고, 새 커밋을 push 하면 업데이트로 전달된다.
 
 - 서드파티 마켓플레이스는 자동 업데이트가 기본으로 꺼져 있다. `/plugin` 화면의 Marketplaces 탭에서 `jaykop` 의 자동 업데이트를 켜면 된다.
+- advisors 의 신기술 고문(`newtech`)은 기술 동향 고문(`radar`)으로 이름이 바뀌었다. 이전 버전으로 쓰던 프로젝트는 [advisors 설명서의 이전 절차](plugins/advisors/README.md#신기술-고문newtech--기술-동향-고문radar)대로 프로필 키, 리포트 폴더, 기록 파일 이름을 바꾼다.
 - 설치된 사본(`~/.claude/plugins/` 아래)은 업데이트 때 덮어써지므로 직접 고치지 않는다. 고칠 곳은 이 리포뿐이다.
 - Codex 는 매니페스트(`.codex-plugin/plugin.json`)의 `version` 을 설치 폴더 이름으로 쓴다. 버전이 같으면 새 사본을 받지 않으므로, 플러그인 폴더의 파일을 고치면 이 값을 올린다. 받는 쪽은 `codex plugin marketplace upgrade jaykop` 를 실행하면 설치된 플러그인도 새 버전으로 바뀐다.
 

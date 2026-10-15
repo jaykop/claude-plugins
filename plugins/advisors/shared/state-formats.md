@@ -1,6 +1,6 @@
 # 고문끼리 함께 읽는 기록 파일 형식
 
-`<report_dir>/_state/` 의 파일 가운데 **다른 고문이 읽는 것**과 **여러 고문이 함께 쓰는 것**(source-checks, feedback)만 형식을 여기서 고정한다. 질문함(inbox)의 형식은 `shared/inbox-format.md` 에 있다. 한 고문만 쓰고 읽는 파일(design-proposals, market-snapshot, perf-ledger, pm-cadence, pm-risks, pm-plan, td-ledger, td-debt)의 형식은 각 스킬의 reference 에 있다. 다만 td-debt 는 PM 고문의 정기 점검 계산(`pm_calc.py cadence`)이 머리의 `마지막 갱신` 날짜를 읽는다. newtech-watchlist 는 신기술 고문만 쓰지만 TD 고문이 "다음 버전으로 올릴 때 걸리는 것"(UP 행)의 상태와 추적 행을 읽는다. 형식은 newtech/reference/watchlist-format.md 에 있고, 그 표의 칸을 바꾸면 td 의 evidence.md §3 과 audit-scopes.md §3 도 맞춘다.
+`<report_dir>/_state/` 의 파일 가운데 **다른 고문이 읽는 것**과 **여러 고문이 함께 쓰는 것**(source-checks, feedback)만 형식을 여기서 고정한다. 질문함(inbox)의 형식은 `shared/inbox-format.md` 에 있다. 한 고문만 쓰고 읽는 파일(design-proposals, market-snapshot, perf-ledger, pm-cadence, pm-risks, pm-plan, td-ledger, td-debt)의 형식은 각 스킬의 reference 에 있다. 다만 td-debt 는 PM 고문의 정기 점검 계산(`pm_calc.py cadence`)이 머리의 `마지막 갱신` 날짜를 읽는다. radar-watchlist 는 기술 동향 고문만 쓰지만 TD 고문이 "다음 버전으로 올릴 때 걸리는 것"(UP 행)의 상태와 추적 행을 읽는다. 형식은 radar/reference/watchlist-format.md 에 있고, 그 표의 칸을 바꾸면 td 의 evidence.md §3 과 audit-scopes.md §3 도 맞춘다.
 
 모든 `_state` 파일의 첫 부분은 같다.
 
@@ -11,9 +11,9 @@
 작성: <고문> / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <CL 또는 커밋>
 ```
 
-## newtech-inventory.md — 프로젝트 기술 목록
+## radar-inventory.md — 프로젝트 기술 목록
 
-- 만드는 고문: newtech. 읽는 고문: perf, design(구현 확인 보조), td(이미 쓰는 기술과 성숙도 표시).
+- 만드는 고문: radar. 읽는 고문: perf, design(구현 확인 보조), td(이미 쓰는 기술과 성숙도 표시).
 - 다시 만드는 조건: 엔진 버전 파일, 프로젝트 파일(.uproject 등), Config 폴더, 게임 코드의 빌드 설정(Build.cs)이 바뀌었을 때, 또는 마지막 갱신이 프로필 `stale_after_days` 보다 오래됐을 때. 어느 쪽도 아니면 다시 만들지 않고 날짜만 확인한다.
 - 아래 표에 행을 더해도 된다(예: 프로젝트 모듈, 프로젝트 파일의 대상 플랫폼, 입력 지문). 끝에 `## 만든 방법과 검색 기록` 을 둬서 검색 범위, 상한, 실패 여부, 직전 목록과 달라진 것을 적는다.
 
@@ -23,7 +23,7 @@
 |---|---|---|
 | 엔진 버전 | 5.x.y | Engine/Build/Build.version |
 | 소스 빌드 여부 | 예 / 아니오 | 프로젝트 파일의 EngineAssociation |
-| 엔진 수정 블록 수 | N (폴더별) 또는 "검색 실패" | 프로필 newtech.engine_mod_dirs, 검색 패턴 |
+| 엔진 수정 블록 수 | N (폴더별) 또는 "검색 실패" | 프로필 radar.engine_mod_dirs, 검색 패턴 |
 
 ## 플러그인·기능
 | ID | 이름 | 상태 | 근거 위치 |
@@ -56,7 +56,7 @@
 
 ## source-checks.md — 바깥 사실과 출처 확인 기록
 
-- 쓰는 고문: newtech, market, td(td/reference/evidence.md §4 의 W2~W4 조건으로 찾은 바깥 사실, "1차 없음(찾지 못함)" 행, 그때 연 출처의 접근 결과. evidence.md §8). 읽는 고문: 모두.
+- 쓰는 고문: radar, market, td(td/reference/evidence.md §4 의 W2~W4 조건으로 찾은 바깥 사실, "1차 없음(찾지 못함)" 행, 그때 연 출처의 접근 결과. evidence.md §8). 읽는 고문: 모두.
 - 재사용 조건은 rules.md §3 에 있다.
 - 한 행에는 출처 하나만 적는다. 출처끼리 말이 다르면 행을 나누고 값 칸에 "SC-xxx 와 어긋남"을 적는다.
 - 발표 단계·지원 플랫폼을 정하는 사실은 값 칸에 원문 문장을 따옴표로 옮기고 해당 버전과 범위를 좁히는 문구를 함께 적는다. 원문에 범위 한정이 없으면 "범위 한정 없음"이라고 적는다.
@@ -69,7 +69,7 @@
 ## 바깥 사실
 | ID | 사실 | 값 | 출처 URL | 출처 종류 | 쓴 고문 | 확인일 | 다시 확인할 날짜 |
 |---|---|---|---|---|---|---|---|
-| SC-001 | 최신 엔진 정식 버전 | 5.x | ... | 1차 | newtech | YYYY-MM-DD | YYYY-MM-DD |
+| SC-001 | 최신 엔진 정식 버전 | 5.x | ... | 1차 | radar | YYYY-MM-DD | YYYY-MM-DD |
 
 ## 출처 접근 가능 여부
 | 출처 | 방식 | 결과 | 쓴 고문 | 확인일 | 다시 확인할 날짜 | 메모 |
@@ -81,9 +81,9 @@
 
 ## td-engine-mods.md — 엔진 수정 블록 묶음 분류
 
-- 만드는 고문: td(구조 점검 '엔진 수정' 범위). 읽는 고문: newtech(엔진 버전 점검표 4번 항목).
+- 만드는 고문: td(구조 점검 '엔진 수정' 범위). 읽는 고문: radar(엔진 버전 점검표 4번 항목).
 - 머리의 다음 점검은 조건 문장이다: `다음 점검: 조건 — 엔진 버전을 올리기로 했거나 블록 수가 바뀌었을 때`. 날짜 알림을 하지 않는다.
-- 블록 수는 기준 리비전과 센 날짜와 함께 적는다. newtech-inventory 의 블록 수와 다르면 두 값을 센 날짜와 함께 모두 적고, 늦게 센 쪽을 쓴다. 기술 목록은 엔진 소스가 바뀌어도 다시 만들지 않을 수 있기 때문이다(기술 목록의 다시 만드는 조건에 엔진 소스는 없다).
+- 블록 수는 기준 리비전과 센 날짜와 함께 적는다. radar-inventory 의 블록 수와 다르면 두 값을 센 날짜와 함께 모두 적고, 늦게 센 쪽을 쓴다. 기술 목록은 엔진 소스가 바뀌어도 다시 만들지 않을 수 있기 때문이다(기술 목록의 다시 만드는 조건에 엔진 소스는 없다).
 - 묶음 이름과 수정 사유는 프로젝트 내부 정보다. 어느 고문도 검색어에 넣지 않는다.
 
 ```markdown
@@ -110,14 +110,14 @@
 
 | ID | 날짜 | 고문 | 리포트 | 항목 | 표시 | 설명 | 원인 | 고친 곳 | 상태 |
 |---|---|---|---|---|---|---|---|---|---|
-| FB-0001 | 2026-10-15 | newtech | newtech/2026-10-14-single.md | 판정 표 2행 | 틀림 | 우리 코드에서 어떻게 쓸지 물었는데 커뮤니티 글부터 모았다 | 다른 고문 몫 | | 반영 전 |
+| FB-0001 | 2026-10-15 | radar | radar/2026-10-14-single.md | 판정 표 2행 | 틀림 | 우리 코드에서 어떻게 쓸지 물었는데 커뮤니티 글부터 모았다 | 다른 고문 몫 | | 반영 전 |
 ```
 
 | 칸 | 적는 것 |
 |---|---|
 | ID | `FB-` 뒤에 네 자리 번호. 표의 마지막 번호 다음 번호 |
 | 날짜 | 표시한 날 YYYY-MM-DD |
-| 고문 | 그 리포트를 쓴 고문(design · newtech · market · perf · pm · td). 다른 고문 몫인 일을 잘못 맡은 경우에도 그 리포트를 쓴 고문이다 |
+| 고문 | 그 리포트를 쓴 고문(design · radar · market · perf · pm · td). 다른 고문 몫인 일을 잘못 맡은 경우에도 그 리포트를 쓴 고문이다 |
 | 리포트 | `report_dir` 기준 리포트 경로 |
 | 항목 | 리포트 안의 위치. 제목, 표 이름과 행, 제안 ID 등. 리포트 전체에 대한 표시면 "전체" |
 | 표시 | 셋 가운데 하나. **틀림**: 사실이나 판정이 틀렸다. **일반론**: 이 프로젝트가 아니어도 어디에나 맞는 말이라 판단에 쓸 수 없다. **놓침**: 봤어야 할 자료나 위험을 보지 않았다 |
@@ -148,4 +148,4 @@
 여러 고문이 쓰는 값은 `_state` 가 아니라 프로필에 둔다. 예: 대상 사양(`target_spec`), 타깃 이용자(`market.target_player`), 측정 장면(`perf.scenarios`).
 
 - 고문이 이 값을 바꾸자고 할 때는 직접 고치지 않는다. 리포트의 "결정이 필요한 것"에 바꿀 값과 근거를 적고, 사용자가 확정하면 그때 프로필에 쓴다.
-- 하드웨어 보급 분포는 market 만 조회한다. newtech 와 perf 는 프로필의 `target_spec` 만 읽는다.
+- 하드웨어 보급 분포는 market 만 조회한다. radar 와 perf 는 프로필의 `target_spec` 만 읽는다.

@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Skill
-input_match: '"skill"\s*:\s*"advisors:newtech"'
+input_match: '"skill"\s*:\s*"advisors:radar"'
 min: 1
 arm: with-only
 ---

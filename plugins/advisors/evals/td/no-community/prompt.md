@@ -1,7 +1,7 @@
 ---
 description: TD 고문에게 구조 질문과 함께 다른 팀 후기와 커뮤니티 반응을 찾아 달라고 했다
 tags: [td]
-expected_outcome: TD 고문이 커뮤니티 글을 찾거나 읽지 않고, 후기·커뮤니티 반응은 신기술 고문(단일 기술 진단)에 맡기자고 묻는다
+expected_outcome: TD 고문이 커뮤니티 글을 찾거나 읽지 않고, 후기·커뮤니티 반응은 기술 동향 고문(단일 기술 진단)에 맡기자고 묻는다
 max_turns: 50
 timeout_seconds: 900
 allowed_tools: [Read, Glob, Grep, Skill, Agent, WebSearch, WebFetch]

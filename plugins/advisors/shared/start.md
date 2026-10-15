@@ -1,6 +1,6 @@
 # 고문 공통 시작·마무리 절차
 
-각 고문 스킬의 Step 0 과 Step Final 은 이 파일을 따른다. 대화 중에 사용자가 리포트의 잘못을 말할 때의 절차("결과 표시 받기")도 여기에 있다. 아래에서 `<고문>` 은 플러그인 `skills/` 아래 폴더 이름(design · newtech · market · perf · pm · td) 가운데 하나다. 질문이 다른 고문의 일로 보이면 `shared/routing.md` 를 본다.
+각 고문 스킬의 Step 0 과 Step Final 은 이 파일을 따른다. 대화 중에 사용자가 리포트의 잘못을 말할 때의 절차("결과 표시 받기")도 여기에 있다. 아래에서 `<고문>` 은 플러그인 `skills/` 아래 폴더 이름(design · radar · market · perf · pm · td) 가운데 하나다. 질문이 다른 고문의 일로 보이면 `shared/routing.md` 를 본다.
 
 이 파일은 Read 로 읽으므로 경로 변수가 바뀌지 않는다. `<플러그인 폴더>`, `<프로젝트 루트>` 는 SKILL.md '경로와 인자'에 적힌 실제 경로로 바꿔 쓴다.
 
@@ -104,7 +104,7 @@
 
 - 세션에 예약 작업 도구(Claude Desktop 의 scheduled-tasks `create_scheduled_task`)가 있으면 그것으로 만든다.
   - 예약 실행은 이 대화를 기억하지 못한다. 지시문에 다음을 모두 넣는다.
-    - 첫 줄: 부를 스킬과 모드, 그리고 `--unattended` 인자. 예: `/advisors:newtech 정기 점검 --unattended`. 무인 실행은 이 인자로만 판별된다(0-A). 슬래시 명령으로 읽히도록 이 줄을 맨 앞에 둔다
+    - 첫 줄: 부를 스킬과 모드, 그리고 `--unattended` 인자. 예: `/advisors:radar 정기 점검 --unattended`. 무인 실행은 이 인자로만 판별된다(0-A). 슬래시 명령으로 읽히도록 이 줄을 맨 앞에 둔다
     - 프로젝트 루트의 절대 경로, 그리고 그 폴더에서 작업하라는 지시
     - "질문하지 말고 리포트 저장까지만 할 것". 사람이 읽는 설명이고, 판별은 첫 줄의 인자로 한다
     - `report_dir` 의 절대 경로. 예약 작업의 권한 설정에서 이 폴더 쓰기를 허용해 달라고 사용자에게 알린다. 각 SKILL.md 의 allowed-tools 는 `.claude/advisors/` 아래 쓰기와 git·p4 읽기 명령 몇 개만 미리 허용한다. `report_dir` 가 다른 곳이거나 `vcs_read_commands` 에 다른 명령이 있으면 그것도 허용해 달라고 알린다. 그 고문의 `knowledge_dir` 가 프로젝트 밖이면 그 폴더 읽기도 허용해 달라고 알린다

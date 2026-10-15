@@ -16,9 +16,9 @@ evals/<고문>/<사례>/
 
 | 고문 | 사례 | 요청 | 지켜야 할 동작 | 판정 |
 |---|---|---|---|---|
-| newtech | `newtech/internal-tech-to-td` | 이미 쓰는 GAS 로 자체 쿨다운을 옮겨 넓혀 써도 되는지 | 웹·커뮤니티 수집을 시작하지 않고, TD 고문이 맡는 질문이라고 말한 뒤 TD 고문으로 볼지 묻는다 | web-scout 호출·WebSearch·WebFetch 0번, 묻기 전 TD 스킬 호출 0번, 마지막 답 |
+| radar | `radar/internal-tech-to-td` | 이미 쓰는 GAS 로 자체 쿨다운을 옮겨 넓혀 써도 되는지 | 웹·커뮤니티 수집을 시작하지 않고, TD 고문이 맡는 질문이라고 말한 뒤 TD 고문으로 볼지 묻는다 | web-scout 호출·WebSearch·WebFetch 0번, 묻기 전 TD 스킬 호출 0번, 마지막 답 |
 | pm | `pm/debt-rank-not-inbox` | 다음 작업과 기술 부채 순위 | 질문함에 TD 앞 질문을 쓰지 않는다. 부채 순위는 TD 고문의 기술 부채 점검 몫이라고 말하고, 그 점검(정기 점검표 PC-009)을 돌릴지 묻는다. 순위를 스스로 지어내지 않는다 | inbox.md 쓰기·고치기 0번, 묻기 전 TD 스킬 호출 0번, 마지막 답 |
-| td | `td/no-community` | 쓰고 있는 Niagara 컴포넌트 재사용을 넓혀도 되는지, 다른 팀 후기와 커뮤니티 반응도 | 커뮤니티 글을 찾거나 읽지 않고, 후기와 커뮤니티 반응은 신기술 고문의 단일 기술 진단에 맡기자고 묻는다 | WebSearch·WebFetch 0번, 커뮤니티 채널 이름이 든 에이전트 지시 0번, 묻기 전 신기술 스킬 호출 0번, 마지막 답 |
+| td | `td/no-community` | 쓰고 있는 Niagara 컴포넌트 재사용을 넓혀도 되는지, 다른 팀 후기와 커뮤니티 반응도 | 커뮤니티 글을 찾거나 읽지 않고, 후기와 커뮤니티 반응은 기술 동향 고문의 단일 기술 진단에 맡기자고 묻는다 | WebSearch·WebFetch 0번, 커뮤니티 채널 이름이 든 에이전트 지시 0번, 묻기 전 기술 동향 스킬 호출 0번, 마지막 답 |
 
 모든 사례에 "그 고문 스킬이 불렸다"(`skill-fired`) 판정이 있다. 실행이 중간에 실패하면 "0번" 판정은 저절로 통과하므로, 이 판정과 마지막 답 판정까지 모두 통과해야 사례가 통과한 것이다.
 
@@ -34,7 +34,7 @@ claude plugin eval plugins/advisors --scaffold --ablation none --allow-tools Wri
 - `--ablation none`: 플러그인 없이 도는 비교 실행을 뺀다. 여기서는 고문이 불린 뒤의 동작만 보므로 비교 실행이 필요 없다.
 - `--allow-tools`: 잘못된 동작(웹 검색, 질문함 쓰기)이 실제로 일어날 수 있게 그 도구를 허용한다. 허용하지 않으면 도구가 아예 없어서 "0번" 판정이 저절로 통과한다.
 - Bash 는 허용하지 않는다. Windows 에서 Bash 를 허용하면 WSL2 안에서만 돈다(공식 문서). 그래서 고문의 스크립트(`date`, 계산 스크립트)는 돌지 않고 고문은 그 단계를 "확인 못 함"으로 둔다. 시험하는 동작은 그보다 앞에서 정해진다.
-- 고문 하나만: `--tag newtech`. 사례 하나만: `--case td-no-community`.
+- 고문 하나만: `--tag radar`. 사례 하나만: `--case td-no-community`.
 - 결과는 `plugins/advisors/evals/results/` 에 쌓인다(.gitignore 에 있음).
 - fixture.sh 는 bash 로 돈다. Windows 에서 어느 bash 를 쓰는지는 공식 문서에 없다. 처음 돌릴 때 `scaffold failed` 가 나오면 Git Bash 가 PATH 에 있는지 본다.
 

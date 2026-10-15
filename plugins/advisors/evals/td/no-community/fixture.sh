@@ -52,18 +52,18 @@ td:
 ---
 EOF
 
-cat > .claude/advisors/reports/_state/newtech-inventory.md <<'EOF'
+cat > .claude/advisors/reports/_state/radar-inventory.md <<'EOF'
 # 프로젝트 기술 목록
 
 다음 점검: 2026-12-31
-작성: newtech / 마지막 갱신: 2026-10-01 / 기준 리비전: 확인 못 함
+작성: radar / 마지막 갱신: 2026-10-01 / 기준 리비전: 확인 못 함
 
 ## 엔진
 | 항목 | 값 | 근거 위치 |
 |---|---|---|
 | 엔진 버전 | 5.6.1 | 프로필 engine.version |
 | 소스 빌드 여부 | 아니오 | EvalGame.uproject 의 EngineAssociation |
-| 엔진 수정 블록 수 | 세지 않음 | 프로필 newtech.engine_mod_dirs 비어 있음 |
+| 엔진 수정 블록 수 | 세지 않음 | 프로필 radar.engine_mod_dirs 비어 있음 |
 
 ## 플러그인·기능
 | ID | 이름 | 상태 | 근거 위치 |
