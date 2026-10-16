@@ -12,6 +12,7 @@ import datetime as dt
 import json
 import os
 import re
+import subprocess
 import sys
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -65,6 +66,33 @@ def owner_of(state_file, keys):
     name = os.path.basename(state_file)
     # 이름이 겹치면(design, design-review) 가장 긴 이름이 주인이다
     return max((k for k in keys if name.startswith(k + "-")), key=len, default=None)
+
+
+def due_cadence_rows(report_dir, today):
+    """PM 정기 점검표에서 예정일이 오늘이거나 지난 행을 '점검(실행 방법)' 꼴로 돌려준다.
+
+    점검표 머리의 날짜는 지난 항목이 남아 있으면 오늘로 고정되므로, 그 날짜만으로는 어느 점검이 때가 됐는지 알 수 없다.
+    예정일 계산은 pm_calc.py cadence 한 곳에 두고 여기서는 그 결과만 읽는다. 실패하면 None 을 돌려 기본 문구로 알린다.
+    """
+    script = os.path.join(PLUGIN_ROOT, "skills", "pm", "scripts", "pm_calc.py")
+    if not os.path.isfile(script):
+        return None
+    try:
+        out = subprocess.run(
+            [sys.executable, script, "cadence", report_dir, "--today", today.isoformat(), "--json"],
+            capture_output=True, text=True, encoding="utf-8", timeout=10,
+        )
+        rows = json.loads(out.stdout).get("rows", [])
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+    names = []
+    for r in rows:
+        due = r.get("due")
+        if not due or str(due) > today.isoformat():
+            continue
+        how = (r.get("how") or "").strip("` ")
+        names.append("{}({})".format(r.get("check", ""), how) if how.startswith("/") else r.get("check", ""))
+    return names or None
 
 
 def open_questions(inbox_text):
@@ -140,6 +168,11 @@ def main():
         if due is None:
             continue
         if due <= today:
+            if name == "pm-cadence.md":
+                rows = due_cadence_rows(resolve_report_dir(root, profile_text), today)
+                if rows:
+                    items.append("{} 정기 점검표에서 때가 된 점검: {} ({})".format(label(key), ", ".join(rows), name))
+                    continue
             items.append("{} 점검 예정일 {} 지남 ({})".format(label(key), due.isoformat(), name))
 
     inbox = read_text(os.path.join(state_dir, "inbox.md"))

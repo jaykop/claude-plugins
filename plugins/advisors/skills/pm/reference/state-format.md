@@ -1,6 +1,6 @@
 # PM 고문의 기록 파일 형식
 
-`<report_dir>/_state/` 에 PM 고문만 쓰는 파일 세 개를 둔다. 머리 형식은 `shared/state-formats.md` 와 같다. 파일 이름이 `pm-` 로 시작하므로 세션 시작 알림(`scripts/due_check.py`)이 `다음 점검:` 줄을 읽는다.
+`<report_dir>/_state/` 에 PM 고문만 쓰는 파일 세 개를 둔다. 머리 형식은 `shared/state-formats.md` 와 같다. 파일 이름이 `pm-` 로 시작하므로 세션 시작 알림(`scripts/due_check.py`)이 `다음 점검:` 줄을 읽는다. pm-cadence.md 는 그 날짜가 되면 `pm_calc.py cadence` 로 때가 된 행의 점검 이름을 찾아 함께 알린다.
 
 `pm_calc.py` 가 표를 칸 이름으로 읽는다. 칸 이름과 순서를 바꾸지 않는다. 칸을 더할 때는 맨 끝에 더한다.
 
