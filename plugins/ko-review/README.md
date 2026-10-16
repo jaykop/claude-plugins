@@ -44,6 +44,7 @@ codex plugin marketplace add jaykop/claude-plugins
 | `doc_roots`, `code_roots`, `exclude` | 넓은 범위를 요청받았을 때의 대상과 제외 범위 |
 | `engine` | 에디터에 보이는 주석의 기준. 지금은 `unreal` 전용 기준만 있다 |
 | `queue_dir` | 설명 변경 목록 폴더. 공개 저장소라면 git 에서 빠지는 폴더를 고른다 |
+| `queue_scope` | 목록에 등록할 수 있는 설명 파일의 경로 패턴. 범위 밖 파일은 등록을 거절한다. 비우면 제한하지 않는다 |
 | `writer`, `reviewer` | 작성·검토를 맡는 쪽의 이름. 검토를 시작할 때 이름을 따로 주지 않으면 `reviewer` 값이 검토 기록에 남는다 |
 | `check_runs` | `user` 면 빌드·테스트·lint 를 사용자가 요청할 때만 실행한다 |
 

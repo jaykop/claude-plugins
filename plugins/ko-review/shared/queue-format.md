@@ -15,14 +15,23 @@
 | `start <task> --paths <파일들> [--issue <번호>]` | 작성 | 수정 전 파일 상태를 기록하고 목록을 만든다. 이미 있으면 거절한다 |
 | `scope <task> --paths <파일들>` | 작성 | 작업 중 새로 손댈 파일을 수정 전에 더한다 |
 | `capture <task>` | 작성 | 시작 상태와 다른 파일, git diff 구간, 현재 HEAD 를 기록한다 |
-| `register <task> --items <JSON 파일>` | 작성 | 설명 항목을 등록한다. 같은 id 를 다시 등록하면 대기로 돌린다 |
+| `register <task> --items <JSON 파일>` | 작성 | 설명 항목을 등록한다. 같은 id 를 다시 등록하면 대기로 돌린다. 설명 파일이 프로필 `queue_scope` 밖이면 거절한다 |
 | `no-impact <task> --path <파일> --note "이유"` | 작성 | 설명에 영향이 없는 변경을 기록한다. 파일 내용이 바뀌면 기록이 무효가 된다 |
-| `pending <task>` | 둘 다 | 현재 내용과 맞춰 본 뒤 대기 항목, 미등록 변경 파일을 출력한다 |
+| `pending <task>` | 둘 다 | 현재 내용과 맞춰 본 뒤 대기 항목, 미등록 변경 파일을 출력한다. `queue_scope` 밖의 대기 항목은 `outOfScopeEntries` 로 따로 출력한다 |
 | `begin <task> --id <항목> [--reviewer <이름>]` | 검토 | 현재 스냅샷과 token 을 기록한다. 이름을 생략하면 프로필 `reviewer` 값, 그것도 없으면 `reviewer` 로 기록한다 |
 | `snapshot <task> --id <항목>` | 검토 | 현재 설명·근거의 해시를 출력한다. 완료 기록은 하지 않는다 |
 | `finish <task> --id <항목> --token <token> --note "결과" [--status needs-decision] [--description-hash <해시>]` | 검토 | 검토 결과를 기록한다 |
 
 공통 인자: `--root <프로젝트 루트>`, `--queue-dir <목록 폴더>`. 보통은 생략한다.
+
+## 등록 범위
+
+프로필의 `queue_scope` 는 목록에 등록할 수 있는 설명 파일의 경로 패턴이다. 프로젝트 루트 기준 `/` 경로에 fnmatch 로 맞춘다. `*` 는 `/` 도 넘으므로 `Source/*` 는 `Source` 아래 모든 파일과 맞는다. 패턴이 폴더 이름이면 그 아래 파일도 맞는다.
+
+- `queue_scope` 가 비었거나 없으면 제한하지 않는다. 이때는 `exclude` 도 적용하지 않는다.
+- `queue_scope` 가 있으면 `register` 는 `selector.path` 가 패턴에 하나도 맞지 않거나 `exclude` 에 걸리는 항목을 `Description file is outside profile queue_scope; record it with no-impact` 로 거절한다. 항목 하나라도 거절되면 같은 `--items` 파일의 항목은 하나도 등록하지 않는다. 범위 밖 파일은 `no-impact` 로 남긴다.
+- `evidence` 경로는 제한하지 않는다.
+- `pending` 은 범위 밖 대기 항목(범위를 정하기 전에 등록된 항목 등)을 `entries` 에서 빼고 `outOfScopeEntries` 로 따로 출력한다. 자동으로 지우지 않는다. 정리는 사용자가 정한다.
 
 ## 항목 JSON
 

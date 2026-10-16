@@ -33,7 +33,7 @@ ko-review 플러그인이 설치돼 있으면 그 `polish` 스킬의 기준으�
 
 ## 4. 설명 변경 목록 갱신
 
-프로필 `description_review` 가 true 면 ko-review `record` 스킬을 따른다. 문서화만 요청받은 작업도 고치기 전에 `start` 나 `scope` 로 파일 상태를 기록하고, 끝나면 `capture` → `register` / `no-impact` 로 남긴다.
+프로필 `description_review` 가 true 면 ko-review `record` 스킬을 따른다. 대상은 ko-review 프로필 `queue_scope` 에 맞는 파일이다(비었으면 모든 설명 파일). 범위 밖 문서(devlog·plan·문서 목록 등)는 항목으로 등록하지 않고 `no-impact` 로 남긴다. 문서화만 요청받은 작업도 고치기 전에 `start` 나 `scope` 로 파일 상태를 기록하고, 끝나면 `capture` → `register` / `no-impact` 로 남긴다.
 
 - 로직 변경으로 영향을 받는 미수정 설명도 등록한다.
 - 이후 설명을 또 바꾸면 같은 id 를 다시 등록해 대기로 돌린다. 검토하는 쪽이 목록을 고치는 중이면 동시에 고치지 않고 현재 내용을 먼저 읽는다.

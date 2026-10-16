@@ -1,7 +1,7 @@
 ---
 # ko-review 프로필 — 프로젝트마다 하나. 위치: <프로젝트 루트>/.claude/ko-review/profile.md
 # 값 옆 주석에 출처를 적는다: [사용자] 사용자가 확정 / [파일] 프로젝트 파일에서 읽음 / [추정] 확인 필요
-# 스크립트는 이 머리 부분의 최상위 `키: 값` 한 줄만 읽는다. 목록과 하위 항목은 스킬이 읽는다.
+# 스크립트는 이 머리 부분의 최상위 `키: 값` 한 줄만 읽는다. 목록은 `[a, b]` 처럼 한 줄로 적는다. 하위 항목은 스킬이 읽는다.
 profile_version: 1
 updated:                      # YYYY-MM-DD
 
@@ -16,6 +16,7 @@ code_text_language: en        # 식별자·메타데이터·로그 문자열의 
 data_comment_files: []        # 사람이 읽는 설명 칸이 있는 설정·데이터 파일. 예: [Config/Tags/*.ini]
 
 queue_dir: .claude/ko-review/queue   # 설명 변경 목록 폴더. 공개 저장소면 git 에서 빼는 폴더를 고른다
+queue_scope: []               # 목록에 등록할 수 있는 설명 파일의 경로 패턴(fnmatch, `/` 경로). 비우면 제한 없음. exclude 에 걸리면 제외. 예: [Plugins/*/Source/*, Source/*, docs/manual/*, Config/Tags/*.ini]
 writer: Claude                # 설명을 작성하고 목록에 남기는 쪽
 reviewer: Codex               # 대기 항목을 검토하는 쪽
 terms_file: .claude/ko-review/terms.json   # 프로젝트 전용 금지어·표기 목록. 없으면 비움

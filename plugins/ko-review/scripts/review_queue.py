@@ -7,11 +7,13 @@
 
 프로젝트 루트: --root, 환경 변수 CLAUDE_PROJECT_DIR, 현재 폴더의 git 최상위, 현재 폴더 순으로 정한다.
 목록 폴더: --queue-dir, 프로필(.claude/ko-review/profile.md)의 queue_dir, 기본값 순으로 정한다.
+등록 범위: 프로필의 queue_scope 패턴에 맞고 exclude 에 걸리지 않는 설명 파일만 등록한다. queue_scope 가 비면 제한하지 않는다.
 """
 
 import argparse
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from fnmatch import fnmatchcase
 import hashlib
 import json
 import os
@@ -34,6 +36,8 @@ LEGACY_KINDS = {"manual": "doc", "tag-devcomment": "data-comment"}
 
 ROOT = Path.cwd()
 QUEUES = ROOT / DEFAULT_QUEUE_DIR
+QUEUE_SCOPE = []
+EXCLUDE = []
 
 
 def now():
@@ -76,6 +80,28 @@ def profile_value(root, key):
             value = re.sub(r"\s+#.*$", "", match.group(1)).strip().strip("'\"")
             return value or None
     return None
+
+
+def profile_list(root, key):
+    """`key: [a, b]` 한 줄을 목록으로 읽는다. 괄호가 없으면 값 하나짜리 목록, 칸이 없으면 빈 목록이다."""
+    value = profile_value(root, key)
+    if not value:
+        return []
+    if value.startswith("[") and value.endswith("]"):
+        value = value[1:-1]
+    return [item.strip().strip("'\"") for item in value.split(",") if item.strip().strip("'\"")]
+
+
+def matches(path, patterns):
+    # 패턴이 폴더 이름이면 그 아래 파일도 맞는 것으로 본다. fnmatch 의 * 는 / 도 넘는다.
+    return any(fnmatchcase(path, p) or fnmatchcase(path, p.rstrip("/") + "/*") for p in patterns)
+
+
+def in_queue_scope(path):
+    """queue_scope 가 비면 모든 경로를 받는다. exclude 는 queue_scope 가 있을 때만 적용한다."""
+    if not QUEUE_SCOPE:
+        return True
+    return matches(path, QUEUE_SCOPE) and not matches(path, EXCLUDE)
 
 
 def project_path(value):
@@ -253,7 +279,7 @@ def issue_ref(value):
 
 
 def main():
-    global ROOT, QUEUES
+    global ROOT, QUEUES, QUEUE_SCOPE, EXCLUDE
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("command", choices=("start", "scope", "capture", "register", "no-impact",
                                             "pending", "snapshot", "begin", "finish"))
@@ -274,6 +300,8 @@ def main():
 
     ROOT = find_root(args.root)
     QUEUES = ROOT / (args.queue_dir or profile_value(ROOT, "queue_dir") or DEFAULT_QUEUE_DIR)
+    QUEUE_SCOPE = profile_list(ROOT, "queue_scope")
+    EXCLUDE = profile_list(ROOT, "exclude")
 
     with edit_queue(args.task, create=args.command == "start") as data:
         if args.command == "start":
@@ -308,6 +336,9 @@ def main():
                 if item["kind"] not in KINDS:
                     raise ValueError("Unknown entry kind; use one of " + ", ".join(KINDS))
                 item["selector"] = normalize_selector(item["selector"])
+                # 근거 경로는 제한하지 않는다. 검토 대상인 설명 파일만 범위를 확인한다.
+                if not in_queue_scope(item["selector"]["path"]):
+                    raise ValueError("Description file is outside profile queue_scope; record it with no-impact")
                 if item["selector"]["path"] not in data["taskPaths"]:
                     raise ValueError("Description file must be in taskPaths; add it before editing")
                 item["evidence"] = [normalize_selector(s) for s in item.get("evidence", [])]
@@ -328,10 +359,14 @@ def main():
             covered = {e["selector"]["path"] for e in data["entries"]}
             covered.update(s["path"] for e in data["entries"] for s in e["evidence"])
             covered.update(n["path"] for n in data["noImpact"] if n["sha256"] == file_hash(n["path"]))
+            waiting = [e for e in data["entries"] if e["status"] != "reviewed"]
+            # 범위가 생기기 전에 등록된 항목은 지우지 않고 따로 알린다. 정리는 사람이 정한다.
             print(json.dumps({"taskId": data["taskId"], "changes": data["changes"],
                               "unassignedChanges": [c for c in data["changes"] if c["path"] not in covered],
                               "noImpact": data["noImpact"],
-                              "entries": [e for e in data["entries"] if e["status"] != "reviewed"]},
+                              "entries": [e for e in waiting if in_queue_scope(e["selector"]["path"])],
+                              "outOfScopeEntries": [e for e in waiting
+                                                    if not in_queue_scope(e["selector"]["path"])]},
                              ensure_ascii=False, indent=2))
         elif args.command == "no-impact":
             if not args.path or not args.note:
