@@ -112,6 +112,7 @@ Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이
    python "${CLAUDE_PLUGIN_ROOT}/scripts/tech_inventory.py" "<프로젝트 루트>" --project-file "<project_file>" [--engine-root "<engine.root>"] [--mod-marker "<radar.engine_mod_marker>" --mod-dirs "<폴더1>" "<폴더2>"] [--source-roots "<폴더1>" "<폴더2>"] --stale-days <stale_after_days> --previous "<report_dir>/_state/radar-inventory.md" --date <오늘> --revision "<기준 리비전>" --out "<report_dir>/_state/radar-inventory.md"
    ```
    - `<report_dir>` 가 상대 경로면 `<프로젝트 루트>` 를 앞에 붙여 절대 경로로 넣는다. 폴더 목록(`radar.engine_mod_dirs`, `source_roots`)은 항목마다 따옴표로 감싼다. `--mod-dirs` 의 상대 경로는 엔진 폴더 기준이고, 거기 없으면 프로젝트 루트 기준이다.
+   - `source_roots` 에 `Plugins/*/Source` 같은 패턴이 있으면 따옴표째 넘긴다. 스크립트가 맞는 폴더로 펼치고, 맞는 폴더가 없는 패턴과 없는 폴더는 결과 끝에 "주의"로 적는다.
    - `source_roots` 가 비어 있으면 스크립트가 프로젝트 파일 옆 `Source`·`Plugins` 를 쓴다. 그 폴더는 결과 끝 "사용 흔적 탐색" 줄에 나오며, 뒤 단계의 코드 검색도 같은 폴더로 한다.
    - 수정 표시 규칙이 정규식이 아니라 주석 글자 그대로면 `--literal` 을 붙인다.
    - 결과에 "엔진 폴더를 못 찾아"가 나오면 플러그인의 성숙도 표시와 엔진 기본 켜짐 값이 빠진 목록이다. 대화 실행에서는 엔진 폴더(런처 설치본이면 설치 폴더)를 한 번 묻고, 답을 프로필 `engine.root` 에 `[사용자]` 출처로 적은 뒤(`updated` 도 오늘로) `--engine-root` 로 다시 돌린다. 무인 실행에서는 "확인 못 한 것"에 적는다.

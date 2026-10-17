@@ -26,7 +26,7 @@ engine:
   source_build:               # true 면 소스 빌드(커스텀 엔진)
   root:                       # 엔진 폴더 경로. 소스 빌드가 아니어도(런처 설치본) 적는다. 콘솔 명령·설정 이름이 실제로 있는지 엔진 소스에서 확인할 때 쓴다
 
-source_roots: []              # 게임 코드 폴더 (design · radar · perf · td 공용)
+source_roots: []              # 게임 코드 폴더 (design · radar · perf · td 공용). `Plugins/*/Source` 같은 패턴을 쓸 수 있다
 project_file:                 # 프로젝트 파일. 예: Game/MyGame.uproject
 
 vcs: git                      # git / p4 / 기타

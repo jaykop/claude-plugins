@@ -165,7 +165,7 @@ web-scout 지시문 틀은 `${CLAUDE_SKILL_DIR}/reference/evidence.md` §6 의 �
 | 바뀌는 범위 세기 | 안이 둘 이상일 때 | 안마다 바뀌는 범위를 검색식과 개수로 센다(choice-rules.md §3 의 "바뀌는 범위" 칸) |
 
 메인이 직접 하는 일(`python` 이 없으면 `python3`, 두 스크립트 모두 `--out` 없이 표준 출력으로만 받는다):
-- 의존이나 include 수가 판정을 가르면 모듈 지도를 만든다. 값을 여러 개 받는 인자(`--source-roots`, `--extra-roots`, `--exclude`)는 값마다 따옴표로 감싼다.
+- 의존이나 include 수가 판정을 가르면 모듈 지도를 만든다. 값을 여러 개 받는 인자(`--source-roots`, `--extra-roots`, `--exclude`)는 값마다 따옴표로 감싼다. `--source-roots`·`--extra-roots` 의 `Plugins/*/Source` 같은 패턴은 스크립트가 펼친다.
   ```
   python "${CLAUDE_SKILL_DIR}/scripts/module_graph.py" "<프로젝트 루트>" --project-file "<project_file>" [--source-roots "<폴더1>" "<폴더2>"] [--extra-roots "<폴더1>" "<폴더2>"] [--engine-root "<engine.root>"] [--exclude "<제외 경로1>" ...] [--includes]
   ```

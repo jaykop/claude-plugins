@@ -23,6 +23,7 @@
 """
 
 import argparse
+import glob
 import json
 import os
 import re
@@ -72,6 +73,31 @@ class Budget:
 
 def norm(path):
     return os.path.normpath(os.path.abspath(path))
+
+
+_GLOB_CHARS = re.compile(r"[*?\[]")
+
+
+def expand_roots(patterns, base):
+    """폴더 인자를 절대 경로 목록으로 바꾼다. 와일드카드(*, ?, [])가 든 항목은 맞는 폴더들로 펼친다.
+
+    프로필 폴더 칸에는 `Plugins/*/Source` 같은 패턴을 적을 수 있다. SKILL.md 가 값마다 따옴표로 감싸 넘기라고
+    정해서 셸이 펼치지 않으므로 여기서 펼친다. 반환은 (폴더 목록, 맞는 폴더가 없는 패턴 목록)이다.
+    패턴이 아닌 항목은 폴더가 없어도 그대로 돌려주고, 없는 폴더는 호출한 쪽이 기록한다.
+    """
+    out, unmatched = [], []
+    for s in patterns:
+        if not _GLOB_CHARS.search(s):
+            out.append(norm(s if os.path.isabs(s) else os.path.join(base, s)))
+            continue
+        # 기준 폴더 이름에 대괄호가 있어도 패턴으로 읽히지 않게 이스케이프한다
+        pat = s if os.path.isabs(s) else os.path.join(glob.escape(base), s)
+        hits = sorted(norm(p) for p in glob.glob(pat) if os.path.isdir(p))
+        if hits:
+            out += hits
+        else:
+            unmatched.append(s)
+    return list(dict.fromkeys(out)), unmatched
 
 
 def show(path, base):
@@ -367,7 +393,7 @@ def main():
     ap = argparse.ArgumentParser(description="언리얼 프로젝트의 모듈 의존 지도를 만든다. 읽기만 한다.")
     ap.add_argument("project_root", help="프로젝트 루트 폴더. 결과의 경로는 이 폴더 기준 상대 경로다")
     ap.add_argument("--project-file", help="프로젝트 파일(.uproject). 상대 경로면 프로젝트 루트 기준. 없으면 깊이 3 까지 찾는다")
-    ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들. 없으면 프로젝트 파일 옆 Source 와 Plugins")
+    ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들. 와일드카드를 쓸 수 있다(예: 'Plugins/*/Source'). 없으면 프로젝트 파일 옆 Source 와 Plugins")
     ap.add_argument("--extra-roots", nargs="*", default=[], help="Build.cs 를 더 찾을 폴더들 (도구·서버 모듈 등). 항목마다 따옴표로 감싼다")
     ap.add_argument("--engine-root", help="엔진 폴더. 주면 엔진 모듈의 종류(런타임·에디터)를 읽어 에디터 의존 검사에 쓴다")
     ap.add_argument("--exclude", nargs="*", default=[],
@@ -394,10 +420,14 @@ def main():
     notes = []
     failed = False
 
-    roots = [norm(s if os.path.isabs(s) else os.path.join(root, s)) for s in args.source_roots]
-    if not roots:
+    roots, unmatched = expand_roots(args.source_roots, root)
+    # 인자를 줬는데 맞는 폴더가 하나도 없으면 기본 폴더로 바꾸지 않는다. 범위가 몰래 바뀌지 않게 하기 위해서다
+    if not args.source_roots:
         roots = [norm(os.path.join(project_dir, "Source")), norm(os.path.join(project_dir, "Plugins"))]
-    roots += [norm(s if os.path.isabs(s) else os.path.join(root, s)) for s in args.extra_roots]
+    extra, unmatched_extra = expand_roots(args.extra_roots, root)
+    roots += extra
+    for s in unmatched + unmatched_extra:
+        notes.append("패턴 '{}' 에 맞는 폴더가 없음".format(s))
     excludes = [norm(s if os.path.isabs(s) else os.path.join(root, s)) for s in args.exclude]
 
     # 모듈 정보: 프로젝트 파일 + 플러그인 파일

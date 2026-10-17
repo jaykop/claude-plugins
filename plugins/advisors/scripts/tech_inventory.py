@@ -27,6 +27,7 @@ radar 와 td 가 함께 쓰므로 플러그인 공용 폴더(scripts/)에 둔다
 import argparse
 import concurrent.futures
 import datetime
+import glob
 import hashlib
 import json
 import os
@@ -102,6 +103,31 @@ class Budget:
 
 def norm(path):
     return os.path.normpath(os.path.abspath(path))
+
+
+_GLOB_CHARS = re.compile(r"[*?\[]")
+
+
+def expand_roots(patterns, base):
+    """폴더 인자를 절대 경로 목록으로 바꾼다. 와일드카드(*, ?, [])가 든 항목은 맞는 폴더들로 펼친다.
+
+    프로필 폴더 칸에는 `Plugins/*/Source` 같은 패턴을 적을 수 있다. SKILL.md 가 값마다 따옴표로 감싸 넘기라고
+    정해서 셸이 펼치지 않으므로 여기서 펼친다. 반환은 (폴더 목록, 맞는 폴더가 없는 패턴 목록)이다.
+    패턴이 아닌 항목은 폴더가 없어도 그대로 돌려주고, 없는 폴더는 호출한 쪽이 기록한다.
+    """
+    out, unmatched = [], []
+    for s in patterns:
+        if not _GLOB_CHARS.search(s):
+            out.append(norm(s if os.path.isabs(s) else os.path.join(base, s)))
+            continue
+        # 기준 폴더 이름에 대괄호가 있어도 패턴으로 읽히지 않게 이스케이프한다
+        pat = s if os.path.isabs(s) else os.path.join(glob.escape(base), s)
+        hits = sorted(norm(p) for p in glob.glob(pat) if os.path.isdir(p))
+        if hits:
+            out += hits
+        else:
+            unmatched.append(s)
+    return list(dict.fromkeys(out)), unmatched
 
 
 def show(path, roots):
@@ -575,7 +601,7 @@ def main():
     ap.add_argument("--mod-end", help="--mod-list 에서 블록 끝 줄을 찾는 정규식 (예: 'MYGAME_END'). --literal 이면 글자 그대로. 없으면 끝 줄과 줄 수는 '모름'")
     ap.add_argument("--mod-tag-re", default=r"\[([^\]]+)\]",
                     help="--mod-list 에서 시작 표시 뒤 글에서 주제 태그를 뽑는 정규식. 첫 번째 캡처 그룹을 태그로 쓴다 (기본: 대괄호 안 글)")
-    ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들 (사용 흔적 검색). 없으면 프로젝트 파일 옆 Source 와 Plugins")
+    ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들 (사용 흔적 검색). 와일드카드를 쓸 수 있다(예: 'Plugins/*/Source'). 없으면 프로젝트 파일 옆 Source 와 Plugins")
     ap.add_argument("--extra-key", action="append", default=[], help="더 볼 설정 이름 정규식 (여러 번 줄 수 있음)")
     ap.add_argument("--previous", help="직전 radar-inventory.md. 주면 ID 를 이어 쓰고, 입력 지문이 같고 --stale-days 안이면 다시 만들지 않는다")
     ap.add_argument("--stale-days", type=int, help="직전 목록의 마지막 갱신일에서 이 일수가 지나면 입력 지문이 같아도 다시 만든다 (프로필 stale_after_days)")
@@ -674,9 +700,16 @@ def main():
 
     notes = []
     # 게임 코드 폴더: 사용 흔적 검색과 입력 지문이 같은 폴더를 쓴다
-    source_roots = [norm(s if os.path.isabs(s) else os.path.join(root, s)) for s in args.source_roots]
-    if not source_roots:
+    source_roots, unmatched = expand_roots(args.source_roots, root)
+    for s in unmatched:
+        notes.append("--source-roots 패턴 '{}' 에 맞는 폴더가 없음".format(s))
+    # 인자를 줬는데 맞는 폴더가 하나도 없으면 기본 폴더로 바꾸지 않는다. 범위가 몰래 바뀌지 않게 하기 위해서다
+    if not args.source_roots:
         source_roots = [norm(os.path.join(project_dir, "Source")), norm(os.path.join(project_dir, "Plugins"))]
+    for s in source_roots:
+        if not os.path.isdir(s):
+            # list_build_cs 는 없는 폴더를 말없이 건너뛴다. 그러면 "사용 흔적 없음"이 확인 실패와 구별되지 않는다
+            notes.append("없는 게임 코드 폴더: " + show(s, roots_for_show))
     build_files, b_hit = list_build_cs(source_roots, 30)
     if b_hit:
         notes.append("Build.cs 찾기가 {} 로 중단됨 — '사용 흔적 없음' 은 확인 실패일 수 있고, "
