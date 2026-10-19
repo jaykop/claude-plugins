@@ -6,7 +6,8 @@
 |---|---|---|
 | next-task | `/workflow:next-task` | 오늘 시간에 맞는 다음 이슈 고르기, 새 이슈 초안·게시, 다시 채점 |
 | feature-impl | `/workflow:feature-impl` | 규모(Small/Large)와 종류(feature/improvement/bug)를 판별해 구현하고 체크포인트로 마무리 |
-| feature-doc-sync | `/workflow:feature-doc-sync` | 영향받는 manual·devlog·plan 갱신, 이슈 결과 초안, 설명 변경 목록 정리 |
+| feature-doc-sync | `/workflow:feature-doc-sync` | 영향받는 manual·devlog·plan 갱신(또는 문서 지시서 작성과 쓴 결과 대조), 이슈 결과 초안, 설명 변경 목록 정리 |
+| doc-draft | `/workflow:doc-draft` | 문서 지시서의 사실만으로 manual·devlog·plan 을 쓰고, 대조에서 지적받은 문단을 다시 쓰기 |
 | commit-doc-review | `/workflow:commit-doc-review` | 커밋 직전 빠진 문서 확인, `Docs-Reviewed:` 트레일러 |
 | context-handoff | `/workflow:context-handoff` | 작업별 인계 메모 저장·갱신 |
 
@@ -38,6 +39,16 @@ codex plugin marketplace add jaykop/claude-plugins
 그다음 Codex 앱의 플러그인 화면에서 `workflow` 를 설치한다. 업데이트 방법은 [리포 README](../../README.md#업데이트) 를 따른다.
 
 주석·문서 설명의 교차 검토까지 쓰려면 [ko-review](../ko-review/README.md) 도 설치하고 프로필에서 `description_review: true` 로 켠다.
+
+### 문서를 다른 AI 에게 쓰게 하기
+
+프로필 `doc_writer: codex` 로 두면 문서 작성을 나눈다. 구현한 AI 는 대화와 구현을 알기 때문에 사실을 모으고, 다른 AI 는 문장을 쓴다.
+
+1. 구현한 쪽이 `feature-doc-sync` 에서 문서 대신 지시서(`<threads_dir>/<작업 ID>.docbrief.md`, 양식 [shared/docbrief-template.md](shared/docbrief-template.md))를 쓴다. 지시서에는 사실·결정·확인 상태·미확정 사항만 근거와 함께 적고, 문장은 쓰지 않는다.
+2. 쓰는 쪽이 `doc-draft` 로 지시서의 사실만 써서 문서를 만든다. 지시서에 없는 동작·한계는 쓰지 않는다.
+3. 구현한 쪽이 쓴 결과를 지시서·코드와 대조한다. 문장은 고치지 않고 틀린 위치만 적어 한 번 다시 쓰게 한다. 그 뒤에도 남은 문제는 사용자에게 보여 준다.
+
+언제, 어떤 명령으로 다른 AI 에게 넘길지는 플러그인이 정하지 않는다. 프로젝트 지침에 적는다.
 
 ## 프로젝트 설정
 
@@ -79,10 +90,10 @@ Codex 에서 같은 동작이 필요하면 프로젝트의 `.codex/hooks.json` �
 plugins/workflow/
 ├─ .claude-plugin/plugin.json   Claude Code 매니페스트
 ├─ .codex-plugin/plugin.json    Codex 매니페스트 (같은 skills/ 를 쓴다)
-├─ skills/        next-task, feature-impl, feature-doc-sync, commit-doc-review, context-handoff
+├─ skills/        next-task, feature-impl, feature-doc-sync, doc-draft, commit-doc-review, context-handoff
 ├─ hooks/         hooks.json, run-py.sh, commit_gate.py, handoff_reminder.py
 ├─ scripts/       issue_priority.py, profile_reader.py
-└─ shared/        프로필 양식, 개인 프로필 양식, 등급 체계, 인계 메모 양식
+└─ shared/        프로필 양식, 개인 프로필 양식, 등급 체계, 인계 메모 양식, 문서 지시서 양식
 ```
 
 ## 필요한 것

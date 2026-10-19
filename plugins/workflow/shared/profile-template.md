@@ -49,6 +49,7 @@ test_setup_mcp:               # 테스트 셋업을 대신할 수 있는 MCP 서
 
 # ── 연동 ────────────────────────────────────────────
 description_review: false     # true 면 ko-review 플러그인의 설명 변경 기록(record)을 작업 흐름에 넣는다
+doc_writer: claude            # claude / codex. codex 면 feature-doc-sync 가 manual·devlog·plan 대신 문서 지시서를 쓰고, 다른 AI 가 doc-draft 로 쓴 결과를 대조한다
 handoff_reminder_turns: 25    # 이 턴 수마다 context-handoff 를 권한다. 0 이면 끈다
 ---
 
