@@ -16,6 +16,7 @@ code_text_language: en        # 식별자·메타데이터·로그 문자열의 
 data_comment_files: []        # 사람이 읽는 설명 칸이 있는 설정·데이터 파일. 예: [Config/Tags/*.ini]
 
 queue_dir: .claude/ko-review/queue   # 설명 변경 목록 폴더. 공개 저장소면 git 에서 빼는 폴더를 고른다
+queue_archive_dir:            # close 로 닫은 목록을 옮길 폴더. {year}·{quarter}(예: 2026-Q4) 사용 가능. 비우면 제자리에 둔다. 예: docs/archive/{quarter}/queues
 queue_scope: []               # 목록에 등록할 수 있는 설명 파일의 경로 패턴(fnmatch, `/` 경로). 비우면 제한 없음. exclude 에 걸리면 제외. 예: [Plugins/*/Source/*, Source/*, docs/manual/*, Config/Tags/*.ini]
 writer: Claude                # 설명을 작성하고 목록에 남기는 쪽
 reviewer: Codex               # 대기 항목을 검토하는 쪽

@@ -3,11 +3,13 @@
 
 작성하는 AI 는 start · scope · capture · register · no-impact 로 바꾼 설명과 근거 구현을 남기고,
 검토하는 AI 는 pending · begin · snapshot · finish 로 대기 항목을 교정한 결과를 남긴다.
+작업을 커밋한 뒤에는 작성하는 AI 가 retire 로 사라진 설명을 폐기하고 close 로 목록을 닫는다.
 목록 형식은 플러그인의 shared/queue-format.md 를 따른다.
 
 프로젝트 루트: --root, 환경 변수 CLAUDE_PROJECT_DIR, 현재 폴더의 git 최상위, 현재 폴더 순으로 정한다.
 목록 폴더: --queue-dir, 프로필(.claude/ko-review/profile.md)의 queue_dir, 기본값 순으로 정한다.
 등록 범위: 프로필의 queue_scope 패턴에 맞고 exclude 에 걸리지 않는 설명 파일만 등록한다. queue_scope 가 비면 제한하지 않는다.
+보관 폴더: --archive-dir, 프로필의 queue_archive_dir 순으로 정한다. 없으면 닫은 목록을 제자리에 둔다.
 """
 
 import argparse
@@ -143,6 +145,9 @@ def edit_queue(task, create=False):
     try:
         original = path.read_bytes() if path.exists() else None
         if create and original is not None:
+            if json.loads(original.decode("utf-8")).get("closed"):
+                raise ValueError("Queue for this task is closed; use a new task ID, "
+                                 "or set queue_archive_dir so closed queues move out")
             raise ValueError("Queue already exists; reuse it instead of resetting")
         if not create and original is None:
             raise ValueError("Queue does not exist; run start first")
@@ -231,6 +236,9 @@ def fingerprints(value):
 
 def refresh(data):
     for entry in data["entries"]:
+        # 폐기한 항목은 설명이 사라졌거나 다른 작업으로 넘어간 것이므로 다시 대기로 돌리지 않는다.
+        if entry["status"] == "retired":
+            continue
         try:
             current = snapshot(entry)
             entry.pop("locationError", None)
@@ -271,6 +279,43 @@ def capture(data):
     refresh(data)
 
 
+def ensure_open(data):
+    # 닫힌 목록은 그 작업의 커밋으로 끝난 기록이다. 이후의 변경은 새 작업의 목록이 맡는다.
+    if data.get("closed"):
+        raise ValueError("Queue is closed; record later changes in a new task queue")
+
+
+def archive_folder(explicit):
+    """보관 폴더를 정한다. {year}·{quarter} 는 닫는 날의 연도와 분기(예: 2026-Q4)다. 없으면 None."""
+    pattern = explicit or profile_value(ROOT, "queue_archive_dir")
+    if not pattern:
+        return None
+    today = datetime.now().astimezone()
+    quarter = f"{today.year}-Q{(today.month - 1) // 3 + 1}"
+    return project_path(pattern.format(year=today.year, quarter=quarter))
+
+
+def archive_queue(task, folder):
+    """닫은 목록과 같은 작업의 항목 파일(<task>.items*.json)을 보관 폴더로 옮기고 새 경로를 돌려준다."""
+    source = queue_path(task)
+    lock = source.with_suffix(source.suffix + ".lock")
+    fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    try:
+        files = [source, *sorted(QUEUES.glob(f"{task}.items*.json"))]
+        # 같은 작업을 여러 번 닫으면 보관 폴더에 앞선 목록이 있으므로 번호를 붙여 덮어쓰지 않는다.
+        number, suffix = 1, ""
+        while any((folder / (task + suffix + path.name[len(task):])).exists() for path in files):
+            number += 1
+            suffix = f".{number}"
+        folder.mkdir(parents=True, exist_ok=True)
+        for path in files:
+            os.replace(path, folder / (task + suffix + path.name[len(task):]))
+        return folder / (task + suffix + source.name[len(task):])
+    finally:
+        os.close(fd)
+        lock.unlink()
+
+
 def issue_ref(value):
     # 기존 목록과 맞추려고 숫자만 있으면 정수로 둔다. 다른 트래커의 키(ABC-12)는 문자열로 둔다.
     if value is None:
@@ -282,7 +327,7 @@ def main():
     global ROOT, QUEUES, QUEUE_SCOPE, EXCLUDE
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("command", choices=("start", "scope", "capture", "register", "no-impact",
-                                            "pending", "snapshot", "begin", "finish"))
+                                            "pending", "snapshot", "begin", "finish", "retire", "close"))
     parser.add_argument("task")
     parser.add_argument("--root", help="Project root (default: CLAUDE_PROJECT_DIR or git top level)")
     parser.add_argument("--queue-dir", help="Queue folder relative to the root (default: profile queue_dir)")
@@ -296,6 +341,9 @@ def main():
     parser.add_argument("--status", choices=("reviewed", "needs-decision"), default="reviewed")
     parser.add_argument("--note")
     parser.add_argument("--description-hash", help="Expected hash of the final, edited description block")
+    parser.add_argument("--allow-unresolved", action="store_true",
+                        help="Let close keep entries that are not reviewed or retired")
+    parser.add_argument("--archive-dir", help="Folder for closed queues, {year}/{quarter} allowed (default: profile queue_archive_dir)")
     args = parser.parse_args()
 
     ROOT = find_root(args.root)
@@ -303,7 +351,11 @@ def main():
     QUEUE_SCOPE = profile_list(ROOT, "queue_scope")
     EXCLUDE = profile_list(ROOT, "exclude")
 
+    closed_queue = False
     with edit_queue(args.task, create=args.command == "start") as data:
+        # 닫힌 목록에서는 읽기 명령만 받는다.
+        if args.command not in ("start", "pending", "snapshot"):
+            ensure_open(data)
         if args.command == "start":
             if not args.paths:
                 raise ValueError("start requires explicit file paths")
@@ -354,12 +406,16 @@ def main():
                     data["entries"][data["entries"].index(existing)] = item
                 else:
                     data["entries"].append(item)
+        elif args.command == "pending" and data.get("closed"):
+            # 닫힌 목록은 현재 내용과 다시 맞추지 않는다. 맞추면 이후 작업의 변경으로 항목이 다시 대기가 된다.
+            print(json.dumps({"taskId": data["taskId"], "closed": data["closed"], "entries": [],
+                              "outOfScopeEntries": []}, ensure_ascii=False, indent=2))
         elif args.command == "pending":
             capture(data)
             covered = {e["selector"]["path"] for e in data["entries"]}
             covered.update(s["path"] for e in data["entries"] for s in e["evidence"])
             covered.update(n["path"] for n in data["noImpact"] if n["sha256"] == file_hash(n["path"]))
-            waiting = [e for e in data["entries"] if e["status"] != "reviewed"]
+            waiting = [e for e in data["entries"] if e["status"] not in ("reviewed", "retired")]
             # 범위가 생기기 전에 등록된 항목은 지우지 않고 따로 알린다. 정리는 사람이 정한다.
             print(json.dumps({"taskId": data["taskId"], "changes": data["changes"],
                               "unassignedChanges": [c for c in data["changes"] if c["path"] not in covered],
@@ -383,6 +439,8 @@ def main():
         elif args.command == "begin":
             refresh(data)
             entry = get_entry(data, args.id)
+            if entry["status"] == "retired":
+                raise ValueError("Entry is retired; it is no longer reviewed")
             if entry.get("locationError"):
                 raise ValueError(entry["locationError"])
             # 이름을 주지 않으면 프로필의 검토 담당 이름을 쓴다. 검토 스킬이 인자를 빠뜨려도 기록이 익명이 되지 않게 한다.
@@ -409,6 +467,40 @@ def main():
             entry["review"] = {"reviewer": ticket["reviewer"], "finishedAt": now(),
                                "snapshot": current, "note": args.note, "status": args.status}
             entry.pop("ticket")
+        elif args.command == "retire":
+            if not args.id or not args.note:
+                raise ValueError("retire requires --id and --note")
+            entry = get_entry(data, args.id)
+            if entry.get("ticket"):
+                raise ValueError("Entry is under review; finish it before retiring")
+            # 지난 상태와 위치 오류를 남겨 왜 폐기했는지 나중에 따라갈 수 있게 한다.
+            entry["retired"] = {"at": now(), "note": args.note, "previousStatus": entry["status"],
+                                "locationError": entry.pop("locationError", None)}
+            entry["status"] = "retired"
+        elif args.command == "close":
+            if not args.note:
+                raise ValueError("close requires --note")
+            busy = [e["id"] for e in data["entries"] if e.get("ticket")]
+            if busy:
+                raise ValueError("Entries are under review; finish them before closing: " + ", ".join(busy))
+            capture(data)
+            unresolved = [{"id": e["id"], "status": e["status"],
+                           **({"locationError": e["locationError"]} if e.get("locationError") else {})}
+                          for e in data["entries"] if e["status"] not in ("reviewed", "retired")]
+            if unresolved and not args.allow_unresolved:
+                # 이 경우 목록을 저장하지 않는다. 남은 항목을 보여 주고 처리하거나 확인받게 한다.
+                print(json.dumps({"taskId": data["taskId"], "unresolved": unresolved},
+                                 ensure_ascii=False, indent=2))
+                raise ValueError("Unresolved entries remain; review or retire them, or pass --allow-unresolved")
+            data["closed"] = {"at": now(), "commit": data["headCommit"], "note": args.note,
+                              "unresolved": unresolved}
+            closed_queue = True
+    if closed_queue:
+        folder = archive_folder(args.archive_dir)
+        if folder is not None:
+            moved = archive_queue(args.task, folder)
+            print(f"Closed and archived: {moved.relative_to(ROOT).as_posix()}")
+            return
     if args.command != "pending":
         print(f"Saved: {queue_path(args.task).relative_to(ROOT).as_posix()}")
 

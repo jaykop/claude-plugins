@@ -1,8 +1,8 @@
 ---
 name: record
 description: "설명 변경 목록의 작성 쪽 절차. 코드 주석·문서·설정 파일 설명을 바꾸거나, 로직 변경이 기존 설명에 영향을 줄 때 수정 전 파일 상태를 기록하고, 수정 뒤 바꾼 설명의 위치와 근거 구현을 등록해 다른 AI 가 부분 검토할 수 있게 남긴다. 예: '이번 작업 설명 변경 기록해 줘', '설명 검토 목록 시작해'. 해당하지 않는 경우 — 대기 항목을 검토·교정하는 일(review 스킬), 문장 교정 자체(polish 스킬)."
-when_to_use: "주석·문서·설정 설명을 고치는 작업을 시작할 때(수정 전), 구현을 마쳤거나 사용자 빌드 확인을 기다리기 직전, 다른 작업 흐름 스킬이 설명 변경 기록을 요구할 때."
-argument-hint: "[start|scope|capture|register|no-impact|pending] <task>"
+when_to_use: "주석·문서·설정 설명을 고치는 작업을 시작할 때(수정 전), 구현을 마쳤거나 사용자 빌드 확인을 기다리기 직전, 작업을 커밋하고 검토 넘기기를 마친 뒤(목록 닫기), 다른 작업 흐름 스킬이 설명 변경 기록을 요구할 때."
+argument-hint: "[start|scope|capture|register|no-impact|pending|retire|close] <task>"
 allowed-tools: Read, Glob, Grep, Write(./.claude/ko-review/**), Bash(python *review_queue.py*), Bash(python3 *review_queue.py*), Bash(git status *), Bash(git diff *)
 ---
 
@@ -26,7 +26,7 @@ python "<플러그인 폴더>/scripts/review_queue.py" <명령> <task> ...
 ## 시작 전
 
 1. 프로필(`<프로젝트 루트>/.claude/ko-review/profile.md`)을 읽는다. 없으면 목록을 쓸지 묻고, 쓰기로 하면 양식(`shared/profile-template.md`)으로 만든다. 이때 `queue_dir` 은 반드시 확인받는다. 공개 저장소라면 git 에서 빠지는 폴더여야 한다.
-2. `git status --short` 와 작업 메모를 읽는다. 작업 ID 는 이슈가 있으면 `<번호>-<slug>`, 없으면 `<slug>` 다. 같은 작업의 목록이 이미 있으면 새로 만들지 않고 이어 쓴다.
+2. `git status --short` 와 작업 메모를 읽는다. 작업 ID 는 이슈가 있으면 `<번호>-<slug>`, 없으면 `<slug>` 다. 같은 작업의 열린 목록이 이미 있으면 새로 만들지 않고 이어 쓴다. 닫힌 목록은 다시 열지 않는다. 보관 폴더로 옮겨졌으면 같은 ID 로 새로 `start` 한다.
 3. **파일을 고치기 전에** 고칠 파일을 명시적으로 나열해 시작 상태를 남긴다. 폴더 전체를 넘기지 않는다.
 
    ```
@@ -47,6 +47,16 @@ python "<플러그인 폴더>/scripts/review_queue.py" <명령> <task> ...
    - 같은 id 를 다시 등록하면 그 항목은 다시 대기가 된다. 검토 뒤 설명이나 근거를 또 고쳤을 때 쓴다.
 3. 설명에 영향이 없는 변경은 `no-impact <task> --path <파일> --note "이유"` 로 남긴다.
 4. `pending <task>` 출력의 `unassignedChanges` 와 실제 변경 구간을 비교해 빠진 기록을 채운다. 이 알림은 파일 단위다. 파일에 항목이 하나 있다고 그 파일의 모든 변경이 등록됐다고 보지 않는다.
+
+## 커밋한 뒤 닫기
+
+목록은 그 작업의 커밋 전 검토를 위한 기록이다. 작업을 커밋하고 프로젝트가 정한 검토 넘기기를 마쳤으면 목록을 닫는다. 닫힌 목록은 이후 다른 작업의 변경으로 다시 대기가 되지 않는다. 자세한 규칙은 `queue-format.md` 의 "목록 수명" 단락에 있다.
+
+1. `pending <task>` 로 남은 항목을 본다.
+2. 위치 오류 항목(`locationError`)을 처리한다. 파일 이름이나 문장이 바뀌어 위치만 어긋났으면 목록의 경로·anchor 를 고친다. 설명 자체가 지워졌거나 다른 작업의 설명으로 넘어갔으면 `retire <task> --id <id> --note "<이유와 대체 작업>"` 로 폐기한다.
+3. `needs-decision` 항목은 프로젝트의 이슈 댓글 초안이나 작업 메모로 옮긴다. 판단은 사용자가 한다.
+4. `close <task> --note "<커밋과 검토 결과 요약>"` 로 닫는다. 남은 대기 항목이 있으면 도구가 거절하고 그 항목을 출력한다. 남긴 채 닫는 것은 사용자에게 항목을 보여 주고 확인받은 뒤 `--allow-unresolved` 를 붙여서만 한다.
+5. 프로필 `queue_archive_dir` 이 있으면 목록과 항목 파일이 보관 폴더로 옮겨진다. 완료 보고에 옮겨진 경로를 적는다.
 
 ## 지키는 것
 

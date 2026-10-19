@@ -29,8 +29,8 @@ allowed-tools: Read, Glob, Grep, Edit, Bash(python *review_queue.py*), Bash(pyth
 
 - 프로젝트 지침과 사용자가 정한 범위를 따른다. `git status --short` 와 그 작업의 메모를 읽는다.
 - 목록 폴더는 프로필(`<프로젝트 루트>/.claude/ko-review/profile.md`)의 `queue_dir`, 없으면 `.claude/ko-review/queue` 다.
-- 작업을 지정받았으면 `<queue_dir>/<task>.descriptions.json` 을 쓴다. 대기 목록 전체를 요청받았으면 그 폴더의 `*.descriptions.json` 만 찾아 작업별 `taskId` 와 대기 항목 수를 요약하고 대기 항목부터 처리한다. 완료된 목록의 소스까지 읽지 않는다.
-- `<도구> pending <task>` 로 현재 내용과 기록을 맞춘다. 설명·근거가 바뀌었거나 위치가 사라진 항목은 이 명령이 대기로 돌린다. `unassignedChanges` 는 파일 단위의 등록 누락 알림이다. 파일 안의 모든 변경 구간이 등록됐다는 보장이 아니다.
+- 작업을 지정받았으면 `<queue_dir>/<task>.descriptions.json` 을 쓴다. 대기 목록 전체를 요청받았으면 그 폴더의 `*.descriptions.json` 만 찾아 작업별 `taskId` 와 대기 항목 수를 요약하고 대기 항목부터 처리한다. 완료된 목록의 소스까지 읽지 않는다. `closed` 칸이 있는 목록은 닫힌 기록이므로 검토하지 않는다. 보관 폴더(프로필 `queue_archive_dir`)도 찾지 않는다.
+- `<도구> pending <task>` 로 현재 내용과 기록을 맞춘다. 설명·근거가 바뀌었거나 위치가 사라진 항목은 이 명령이 대기로 돌린다. `retired` 항목은 작성 쪽이 폐기한 것이므로 출력되지 않고, 검토하지 않는다. `unassignedChanges` 는 파일 단위의 등록 누락 알림이다. 파일 안의 모든 변경 구간이 등록됐다는 보장이 아니다.
 - `outOfScopeEntries` 는 프로필 `queue_scope` 밖의 대기 항목이다. 검토하지 않고, 목록 경로와 항목 id 를 완료 보고에 적기만 한다. 지우거나 완료로 기록하지 않는다.
 - 항목·위치가 없으면 지정받은 커밋·파일 범위로만 진행한다. 목록이 없다는 이유로 전체 프로젝트 검토나 기록 복원을 시작하지 않는다. 시작 전 변경이나 작성자의 기록이 모호하면 확인할 수 있는 항목만 진행하고 남은 범위를 알린다.
 
