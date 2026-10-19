@@ -287,6 +287,60 @@ def cmd_risks(args):
     emit(args, {"today": today, "active": active, "closed_count": closed}, lines)
 
 
+# ── debts ────────────────────────────────────────────────
+
+DEBT_CLOSED = ("갚음", "받아들임")
+
+
+def cmd_debts(args):
+    report_dir = os.path.normpath(args.report_dir)
+    path = os.path.join(report_dir, "_state", "td-debt.md")
+    rows, _ = read_table(path)
+    if rows is None:
+        emit(args, {"error": "no-debt-file", "path": path}, ["기술 부채 기록 없음: " + path])
+        return
+    today = today_of(args)
+    soon = dt.timedelta(days=args.soon_days)
+
+    out = []
+    for r in rows:
+        rid = r.get("ID", "")
+        if not rid.startswith("TD-B"):
+            continue
+        state = r.get("상태", "")
+        when = r.get("결정 시점", "")
+        due = parse_date(when)
+        if any(state.startswith(c) for c in DEBT_CLOSED) or state.startswith("갚는 중"):
+            flag = ""  # 결정이 끝난 부채는 알리지 않는다
+        elif state.startswith("조건 대기") or when.startswith("조건"):
+            flag = "조건 대기"
+        elif due is None:
+            flag = "결정 시점 없음"  # 권고·결정 시점을 채우기 전에 등록된 부채
+        elif due < today:
+            flag = "결정 시점 지남 {}일".format((today - due).days)
+        elif due - today <= soon:
+            flag = "결정 시점 {}일 남음".format((due - today).days) if due > today else "결정 시점 오늘"
+        else:
+            flag = "-"
+        out.append({"id": rid, "kind": r.get("종류", ""), "where": r.get("위치", ""), "rank": r.get("순위", ""),
+                    "advice": r.get("권고", ""), "decide_by": due, "when": when, "state": state, "flag": flag})
+
+    alert = [o for o in out if o["flag"].startswith("결정 시점")]
+    lines = ["오늘: {} / 알림: 상태가 '열림'이고 결정 시점이 지났거나 {}일 안이거나 비어 있는 부채".format(today, args.soon_days),
+             "| ID | 순위 | 종류 | 위치 | 권고 | 결정 시점 | 상태 | 알림 |", "|---|---|---|---|---|---|---|---|"]
+    for o in sorted(out, key=lambda o: (o["flag"] in ("", "-", "조건 대기"), o["decide_by"] or dt.date.min, o["id"])):
+        if o["flag"] == "":
+            continue
+        lines.append("| {} | {} | {} | {} | {} | {} | {} | {} |".format(
+            o["id"], o["rank"], o["kind"], o["where"].replace("|", "/"), o["advice"].replace("|", "/") or "-",
+            o["when"] or "-", o["state"], o["flag"]))
+    done = sum(1 for o in out if o["flag"] == "")
+    waiting = sum(1 for o in out if o["flag"] == "조건 대기")
+    lines.append("")
+    lines.append("알릴 부채 {}건, 조건 대기 {}건, 결정 끝남(갚는 중·갚음·받아들임) {}건".format(len(alert), waiting, done))
+    emit(args, {"today": today, "debts": out, "alert_count": len(alert)}, lines)
+
+
 # ── issues ───────────────────────────────────────────────
 
 def gh_json(argv):
@@ -316,7 +370,7 @@ def cmd_issues(args):
     today = today_of(args)
 
     milestones = gh_json(["api", "repos/{}/milestones?state=open&per_page=100".format(repo)]) or []
-    fields = "number,title,labels,milestone,updatedAt"
+    fields = "number,title,labels,milestone,updatedAt,createdAt"
     open_issues = gh_json(["issue", "list", "--repo", repo, "--state", "open", "--limit", str(args.limit), "--json", fields]) or []
     closed = []
     if since:
@@ -357,7 +411,7 @@ def cmd_issues(args):
             "must": args.must_label in ls if args.must_label else False,
             "blocked": args.blocked_label in ls if args.blocked_label else False,
             "in_progress": args.progress_label in ls if args.progress_label else False,
-            "hours": hours(i), "labels": ls,
+            "hours": hours(i), "labels": ls, "created": parse_date(i.get("createdAt") or ""),
             "_key": ms_key(i) + (order_rank(i), 0 if (args.must_label in ls) else 1, i["number"]),
         })
     rows.sort(key=lambda r: r["_key"])
@@ -405,6 +459,21 @@ def cmd_issues(args):
     if len(rows) > args.top:
         lines.append("(나머지 {}건 생략. --top 으로 늘린다)".format(len(rows) - args.top))
     if since:
+        # 점검 사이에 마일스톤으로 들어온 이슈. 계획에 없던 유입을 범위 판단에 올리려고 따로 보인다
+        new_rows = [r for r in rows if r["created"] and r["created"] >= since]
+        new_rows += [{"number": c["number"], "title": c["title"],
+                      "milestone": (c.get("milestone") or {}).get("title") or "백로그",
+                      "must": args.must_label in labels(c) if args.must_label else False,
+                      "hours": hours(c), "closed": True}
+                     for c in closed if (parse_date(c.get("createdAt") or "") or dt.date.min) >= since]
+        lines.append("")
+        lines.append("## {} 이후 새로 생긴 이슈 ({}건)".format(since, len(new_rows)))
+        lines.append("| # | 제목 | 마일스톤 | 규모(h) | 필수 | 이미 닫힘 |")
+        lines.append("|---|---|---|---|---|---|")
+        for r in sorted(new_rows, key=lambda r: (r["milestone"], r["number"])):
+            lines.append("| {} | {} | {} | {} | {} | {} |".format(
+                r["number"], r["title"].replace("|", "/"), r["milestone"],
+                r["hours"] if r["hours"] is not None else "-", "예" if r["must"] else "", "예" if r.get("closed") else ""))
         lines.append("")
         lines.append("## {} 이후 닫힌 이슈 ({}건)".format(since, len(closed)))
         for c in sorted(closed, key=lambda c: c.get("closedAt") or ""):
@@ -415,6 +484,7 @@ def cmd_issues(args):
 
     for r in rows:
         r.pop("_key", None)
+        r.pop("created", None)
     emit(args, {"today": today, "since": since, "milestones": summary, "open": rows, "closed_since": closed}, lines)
 
 
@@ -449,6 +519,13 @@ def main():
     r.add_argument("--milestone-date", help="결정 시점이 '마일스톤'으로만 적힌 위험에 쓸 날짜")
     r.add_argument("--json", action="store_true")
     r.set_defaults(func=cmd_risks)
+
+    d = sub.add_parser("debts", help="기술 부채 기록(_state/td-debt.md)의 결정 시점 알림")
+    d.add_argument("report_dir")
+    d.add_argument("--today")
+    d.add_argument("--soon-days", type=int, default=7, help="결정 시점이 이 날수 안이면 알린다")
+    d.add_argument("--json", action="store_true")
+    d.set_defaults(func=cmd_debts)
 
     i = sub.add_parser("issues", help="GitHub 마일스톤·이슈 현황 (gh 읽기 명령만)")
     i.add_argument("--repo", required=True, help="owner/repo")
