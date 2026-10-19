@@ -34,7 +34,8 @@
 - `reviewed`·`retired` 가 아닌 항목이 남아 있으면 그 항목을 출력하고 거절한다. 남긴 채 닫으려면 `--allow-unresolved` 를 붙인다. 남은 항목은 `closed.unresolved` 에 그대로 기록된다.
 - 닫힌 목록은 `scope`·`capture`·`register`·`no-impact`·`begin`·`finish`·`retire`·`close` 를 거절한다. `pending`·`snapshot` 만 받는다. 같은 작업 ID 로 `start` 하려면 닫힌 목록이 보관 폴더로 옮겨져 있어야 한다.
 - 다시 열지 않는다. 이후 같은 설명을 바꾸는 작업은 자기 목록에 새로 등록한다. 오래 가는 작업은 커밋마다 닫고, 다음 단계에서 같은 ID 로 새로 `start` 한다.
-- 보관 폴더는 `--archive-dir`, 프로필 `queue_archive_dir` 순으로 정한다. 둘 다 없으면 닫힌 목록을 제자리에 둔다. 폴더 이름에는 닫는 날을 기준으로 `{year}`(예: `2026`), `{quarter}`(예: `2026-Q4`)를 쓸 수 있다. 목록과 같은 작업의 항목 파일(`<task>.items*.json`)을 함께 옮긴다. 보관 폴더에 같은 이름이 있으면 `<task>.2.descriptions.json` 처럼 번호를 붙인다.
+- 보관 폴더는 `--archive-dir`, 프로필 `queue_archive_dir` 순으로 정한다. 둘 다 없으면 닫힌 목록을 제자리에 둔다. 폴더 이름에는 닫는 날을 기준으로 `{year}`(예: `2026`), `{quarter}`(예: `2026-Q4`)를 쓸 수 있다. 보관 폴더에 같은 이름이 있으면 `<task>.2.descriptions.json` 처럼 번호를 붙인다.
+- 같은 작업의 등록 입력 파일(`<task>.items*.json`)은 닫을 때 지운다. `register` 가 항목 내용을 목록에 모두 옮겼고, 닫은 작업은 다시 등록하지 않기 때문이다. 보관 폴더를 쓰지 않아도 지운다.
 - 닫기 전에 위치 오류 항목은 anchor 를 바로잡아 검토를 받거나, 설명이 사라졌으면 `retire` 한다. 판단을 기다리는 항목(`needs-decision`)은 프로젝트의 이슈나 작업 메모로 옮긴다.
 
 ## 등록 범위

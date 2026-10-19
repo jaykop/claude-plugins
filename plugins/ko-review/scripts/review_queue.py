@@ -295,22 +295,29 @@ def archive_folder(explicit):
     return project_path(pattern.format(year=today.year, quarter=quarter))
 
 
+def remove_item_files(task):
+    """닫은 작업의 등록 입력 파일(<task>.items*.json)을 지우고 지운 경로를 돌려준다."""
+    # register 가 항목 내용을 목록에 모두 옮기고, 닫은 작업은 다시 등록하지 않으므로 입력 파일은 남길 이유가 없다.
+    removed = sorted(QUEUES.glob(f"{task}.items*.json"))
+    for path in removed:
+        path.unlink()
+    return removed
+
+
 def archive_queue(task, folder):
-    """닫은 목록과 같은 작업의 항목 파일(<task>.items*.json)을 보관 폴더로 옮기고 새 경로를 돌려준다."""
+    """닫은 목록을 보관 폴더로 옮기고 새 경로를 돌려준다."""
     source = queue_path(task)
     lock = source.with_suffix(source.suffix + ".lock")
     fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     try:
-        files = [source, *sorted(QUEUES.glob(f"{task}.items*.json"))]
         # 같은 작업을 여러 번 닫으면 보관 폴더에 앞선 목록이 있으므로 번호를 붙여 덮어쓰지 않는다.
-        number, suffix = 1, ""
-        while any((folder / (task + suffix + path.name[len(task):])).exists() for path in files):
+        number, target = 1, folder / source.name
+        while target.exists():
             number += 1
-            suffix = f".{number}"
+            target = folder / f"{task}.{number}{source.name[len(task):]}"
         folder.mkdir(parents=True, exist_ok=True)
-        for path in files:
-            os.replace(path, folder / (task + suffix + path.name[len(task):]))
-        return folder / (task + suffix + source.name[len(task):])
+        os.replace(source, target)
+        return target
     finally:
         os.close(fd)
         lock.unlink()
@@ -496,6 +503,8 @@ def main():
                               "unresolved": unresolved}
             closed_queue = True
     if closed_queue:
+        for path in remove_item_files(args.task):
+            print(f"Removed input: {path.relative_to(ROOT).as_posix()}")
         folder = archive_folder(args.archive_dir)
         if folder is not None:
             moved = archive_queue(args.task, folder)
