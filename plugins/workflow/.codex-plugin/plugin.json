@@ -1,6 +1,6 @@
 {
   "name": "workflow",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "이슈 기반 작업 흐름 — 다음 작업 고르기·이슈 만들기, 규모별 구현 절차, 문서 반영, 커밋 전 문서 검토, 세션 인계 메모. 프로젝트 값은 각 프로젝트의 .claude/workflow/profile.md 에서 읽는다.",
   "author": {
     "name": "jaykop"
