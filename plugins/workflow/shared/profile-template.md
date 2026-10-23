@@ -12,6 +12,9 @@ instructions: [AGENTS.md]     # 프로젝트 지침 파일. 이 플러그인의 
 scope_sections: []            # 범위·구조·모듈 경계가 적힌 지침의 위치. 예: ["AGENTS.md 프로젝트와 현재 범위", "AGENTS.md 모듈 경계"]
 coding_rules: []              # 코딩 규칙이 적힌 위치. 스킬은 규칙을 복사하지 않고 매번 이 위치를 읽는다
 source_roots: []              # 코드 탐색 범위. 예: [Plugins/*/Source, Source]
+risk_paths:                   # 위험 등급을 정하는 경로(glob). 어디에도 걸리지 않는 코드 변경은 mid. 경로와 무관한 기준은 feature-impl Step 0-C
+  high: []                    # 예: [Source/**/Save*/**, .github/workflows/**, Config/Default*.ini]
+  low: []                     # 예: [Docs/**, Tools/Scripts/**]
 
 # ── 이슈 트래커 ─────────────────────────────────────
 tracker: github               # github / none
