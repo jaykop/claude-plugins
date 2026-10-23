@@ -6,6 +6,12 @@ script="$1"
 shift
 [ -f "$script" ] || exit 0
 
+# 두 훅 모두 프로필이 없으면 하는 일이 없으므로 파이썬을 띄우기 전에 거른다.
+# CLAUDE_PROJECT_DIR 가 없을 때는 루트를 정하지 않고 스크립트의 판단(profile_reader.project_root)에 맡긴다.
+if [ -n "$CLAUDE_PROJECT_DIR" ] && [ ! -f "$CLAUDE_PROJECT_DIR/.claude/workflow/profile.md" ]; then
+  exit 0
+fi
+
 for py in python3 python; do
   # Windows 의 python3 바로 가기는 실행돼도 스토어 안내만 띄우므로 실제로 돌아가는지 확인한다.
   if command -v "$py" >/dev/null 2>&1 && "$py" -c "import sys" >/dev/null 2>&1; then
