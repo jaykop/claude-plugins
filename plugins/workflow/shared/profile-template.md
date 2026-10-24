@@ -49,6 +49,7 @@ archive_dir: .claude/workflow/archive   # 완료한 인계 메모 보관 폴더
 verification: user            # user: 빌드·테스트·검사는 사용자 담당 / agent: 스킬이 필요하면 실행
 build_commands: []            # 사용자가 직접 쓰는 빌드 명령 (안내용)
 test_setup_mcp:               # 테스트 셋업을 대신할 수 있는 MCP 서버 이름. 예: unreal-mcp. 없으면 비움
+test_candidates: []           # feature-impl 결정 카드에 올릴 자동화 테스트 후보의 기준. 비우면 후보 절을 뺀다. 예: ["입출력으로 확인할 수 있는 로직"]
 agent_review: true            # false 면 feature-impl 의 에이전트 리뷰(읽기 전용)를 건너뛴다. 칸이 없으면 켜진 것으로 본다
 review_guide:                 # 에이전트 리뷰가 읽는 리뷰 지침(프로젝트의 실패 유형). 예: REVIEW.md. 양식 shared/review-guide-template.md
 
