@@ -49,7 +49,14 @@ EDITOR_USE = re.compile(r"(?<![\w.])(Editor[A-Z]\w*)(?!\w)")
 GUARD_GD = re.compile(r"^[ \t]*(?:el)?if\b(.*)$")
 LOAD_CALL = re.compile(r"(?:\bload|\bload_threaded_request|ResourceLoader\.\w+|GD\.Load(?:<[^>]*>)?)\s*\(\s*$")
 # 순환 의존과 층 판정에서 빼는 참조 종류: 실행할 때만 읽거나, 무엇을 하는 글인지 모르는 것
-LOOSE_KINDS = {"동적 로드", "경로 문자열"}
+LOOSE_KINDS = {"동적 로드", "경로 문자열", "C# using(여러 모듈)"}
+CS_TYPE_RE = re.compile(r"\b(?:class|struct|record|interface|enum)\s+([A-Z]\w{2,})")
+# C# 이름이 형으로 쓰인 자리만 센다. 같은 이름의 enum 멤버·속성·메서드(예: 'Awards = 15,')는 세지 않는다
+CS_TYPE_BEFORE = re.compile(r"(?:\bnew|\btypeof\s*\(|\bnameof\s*\(|\bis|\bas|<|:|\bwhere\s+\w+\s*:)\s*$")
+CS_TYPE_AFTER = re.compile(
+    r"(?:\s*\.\s*[A-Za-z_]"                                          # 정적 멤버 접근 Name.Member (match 로 그 자리에 붙인다)
+    r"|\s*[<>]"                                                      # 제네릭 형 Name<T>, 형 인자 List<Name>
+    r"|\??(?:\s*\[\s*,*\s*\])*\??\s+@?[A-Za-z_]\w*\s*(?:=>|[=;,)\{\]]))")  # 선언 'Name x =', 'Name x;', 매개변수, 속성
 
 
 def walk(root, budget, max_depth=30):
@@ -137,6 +144,13 @@ def run(args):
     roots, unmatched = mg.expand_roots(args.source_roots, root)
     if not args.source_roots:
         roots = [project_dir]
+        # 게임과 함께 빌드되는 C# 프로젝트가 res:// 밖에 있으면 그 폴더도 읽는다(언리얼의 Source·Plugins 기본값과 같은 뜻)
+        outside = sorted({mg.norm(os.path.dirname(p)) for p, _ in gp.csproj_closure(project_dir)
+                          if not mg.norm(p).startswith(project_dir + os.sep)})
+        roots += outside
+        if outside:
+            notes.append("res:// 밖에서 게임과 함께 빌드되는 C# 프로젝트 폴더도 읽었다(ProjectReference): " +
+                         ", ".join(mg.show(d, root) for d in outside))
     extra, unmatched_extra = mg.expand_roots(args.extra_roots, root)
     roots += extra
     for s in unmatched + unmatched_extra:
@@ -206,6 +220,7 @@ def run(args):
 
     # 선언: class_name, namespace, 에디터 전용 파일
     classes, spaces, editor_files = {}, {}, {}
+    cs_types = {}  # C# 형 이름 → 선언한 모듈 집합
     stripped = {}
     for fp, t in texts.items():
         ext = os.path.splitext(fp)[1].lower()
@@ -219,7 +234,9 @@ def run(args):
             m = EDITOR_BASE_GD.search(nc)
         else:
             for m2 in NAMESPACE_RE.finditer(nc):
-                spaces.setdefault(m2.group(1), unit_of(fp))
+                spaces.setdefault(m2.group(1), set()).add(unit_of(fp))
+            for m2 in CS_TYPE_RE.finditer(ns):
+                cs_types.setdefault(m2.group(1), {}).setdefault(unit_of(fp), fp)
             m = EDITOR_BASE_CS.search(ns)
         if m:
             editor_files[fp] = "{} 상속".format(m.group(1))
@@ -242,6 +259,7 @@ def run(args):
     # 간선
     edges = []        # (모듈, 대상 모듈, 종류, 위치, 원본 파일, 대상 파일)
     missing = {}      # 가리키는 파일이 없는 경로 → [위치]
+    formatted = []    # 형식 문자열로 만드는 경로의 위치
     uid_fail = []
 
     def add(src_fp, target_fp, kind, text, pos, ref=None):
@@ -251,7 +269,11 @@ def run(args):
             uid_fail.append("{}: {}".format(where, ref))
             return
         if ref and not os.path.exists(target_fp):
-            missing.setdefault(ref, []).append(where)
+            if "%" in ref or "{" in ref:
+                formatted.append(where)  # 코드가 값을 채워 만드는 경로(예: res://a/%s.png)
+            else:
+                in_tests = any(p.lower() in ("test", "tests") for p in os.path.relpath(src_fp, project_dir).split(os.sep))
+                missing.setdefault(ref, []).append(where + (" (테스트)" if in_tests else ""))
         edges.append((unit_of(src_fp), unit_of(target_fp), kind, where, src_fp, target_fp))
 
     def resolve(ref):
@@ -265,6 +287,51 @@ def run(args):
         alt = "|".join(re.escape(n) for n in sorted(globals_, key=len, reverse=True))
         name_re = re.compile(r"(?<![\w.$])(" + alt + r")(?!\w)")
     editor_uses = []  # (파일, 줄, 무엇, 조건)
+    # C# 파일은 자기 프로젝트(.csproj)와 그 프로젝트가 ProjectReference 로 잇는 프로젝트의 형만 볼 수 있다.
+    # 이름만 같은 다른 프로젝트의 형(예: 게임 쪽 형 이름이 순수 라이브러리 코드에 나옴)은 참조가 아니다
+    proj_of_dir, reach = {}, {}
+
+    def proj_of(fp):
+        d = os.path.dirname(fp)
+        trail = []
+        while d not in proj_of_dir:
+            trail.append(d)
+            try:
+                found = sorted(f for f in os.listdir(d) if f.lower().endswith(".csproj"))
+            except OSError:
+                found = []
+            parent = os.path.dirname(d)
+            if found or parent == d or not d.startswith(root):
+                proj_of_dir[d] = mg.norm(os.path.join(d, found[0])) if found else None
+                break
+            d = parent
+        for t_ in trail:
+            proj_of_dir[t_] = proj_of_dir[d]
+        return proj_of_dir[d]
+
+    def reachable(p):
+        if p not in reach:
+            seen, stack = set(), [p]
+            while stack:
+                q = stack.pop()
+                if q in seen:
+                    continue
+                seen.add(q)
+                stack += [mg.norm(r) for r, _ in gp.csproj_info(q)[1]]
+            reach[p] = seen
+        return reach[p]
+
+    def cs_visible(src_fp, dst_fp):
+        a, b = proj_of(src_fp), proj_of(dst_fp)
+        return a is None or b is None or b in reachable(a)
+
+    # 한 모듈에서만 선언한 C# 형 이름만 센다. 여러 모듈이 같은 이름을 선언하면(partial 포함) 어느 쪽인지 모른다
+    cs_unique = {n: next(iter(us.items())) for n, us in cs_types.items() if len(us) == 1}
+    cs_ambiguous = sum(1 for us in cs_types.values() if len(us) > 1)
+    cs_re = None
+    if cs_unique:
+        alt = "|".join(re.escape(n) for n in sorted(cs_unique, key=len, reverse=True))
+        cs_re = re.compile(r"(?<![\w.$@])(" + alt + r")(?!\w)")
 
     for fp, t in sorted(texts.items()):
         if not budget.ok():
@@ -314,11 +381,24 @@ def run(args):
                     kind = "autoload 사용"
                 add(fp, target, kind, ns, m.start())
         if ext == ".cs":
+            own = unit_of(fp)
             for m in USING_RE.finditer(ns):
-                u = next((spaces[s] for s in spaces if m.group(1) == s or m.group(1).startswith(s + ".")), None)
-                if u:
-                    line = ns.count("\n", 0, m.start()) + 1
-                    edges.append((unit_of(fp), u, "C# using", "{}:{}".format(mg.show(fp, root), line), fp, None))
+                hits = [s for s in spaces if m.group(1) == s or m.group(1).startswith(s + ".")]
+                if not hits:
+                    continue
+                targets = spaces[max(hits, key=len)] - {own}
+                kind = "C# using" if len(spaces[max(hits, key=len)]) == 1 else "C# using(여러 모듈)"
+                line = ns.count("\n", 0, m.start()) + 1
+                for u in sorted(targets):
+                    edges.append((own, u, kind, "{}:{}".format(mg.show(fp, root), line), fp, None))
+            if cs_re:
+                for m in cs_re.finditer(ns):
+                    u, target = cs_unique[m.group(1)]
+                    line_head = ns[ns.rfind("\n", 0, m.start()) + 1:m.start()]
+                    if not (CS_TYPE_BEFORE.search(line_head) or CS_TYPE_AFTER.match(ns, m.end(), m.end() + 120)):
+                        continue
+                    if u != own and cs_visible(fp, target):
+                        add(fp, target, "C# 형 사용", ns, m.start())
         if fp not in editor_files:
             lines = t.splitlines()
             for m in EDITOR_USE.finditer(ns):
@@ -346,7 +426,11 @@ def run(args):
 
     def unit_kind(u):
         if u not in unit_files:
-            return "읽은 파일 없음(가리키는 곳만 있음)"
+            if os.path.isdir(unit_dir(u)):
+                return "에셋 폴더(코드·씬 파일 없음)"
+            return "없는 폴더(가리키는 곳만 있음)"
+        if outside_unit(u):
+            return "res:// 밖 코드"
         if u.startswith("addons/"):
             d = os.path.join(project_dir, *u.split("/"))
             if os.path.isfile(os.path.join(d, "plugin.cfg")):
@@ -358,7 +442,15 @@ def run(args):
         return "게임 폴더"
 
     def unit_dir(u):
-        return os.path.join(project_dir, *u.split("/")) if u != "(루트)" else project_dir
+        """모듈 폴더. res:// 밖 모듈(unit_of 가 프로젝트 루트 기준으로 이름을 붙인 것)은 프로젝트 루트 아래에서 찾는다."""
+        if u == "(루트)":
+            return project_dir
+        inside = os.path.join(project_dir, *u.split("/"))
+        outside = os.path.join(root, *u.split("/"))
+        return inside if os.path.isdir(inside) or not os.path.isdir(outside) else outside
+
+    def outside_unit(u):
+        return u != "(루트)" and not mg.norm(unit_dir(u)).startswith(project_dir + os.sep)
 
     project = set(unit_files) | {e[1] for e in edges}
     skipped = {u for u in project if u != "(루트)" and any(
@@ -383,7 +475,10 @@ def run(args):
         sum(f.endswith((".tscn", ".tres")) for f in texts), sum(f.endswith((".gdshader", ".gdshaderinc")) for f in texts),
         len(project), len(edges), sum(1 for e in edges if e[0] != e[1])))
     print("- class_name {} 개, autoload {} 개, 에디터 전용 파일 {} 개를 찾았다".format(len(classes), len(autoloads), len(editor_files)))
-    print("- C# 은 res:// 경로와 namespace using 만 센다. C# 클래스 이름으로 쓰는 것과 이진 리소스(.res, .scn) 안의 참조는 세지 못한다")
+    if any(f.endswith(".cs") for f in texts):
+        print("- C# 은 res:// 경로, namespace using, 형 이름(class·struct·record·interface·enum)을 센다. 형 이름은 한 모듈에서만 선언한 "
+              "{} 개만 셌고, 여러 모듈이 같은 이름을 선언한 {} 개는 어느 쪽인지 몰라 뺐다".format(len(cs_unique), cs_ambiguous))
+    print("- 이진 리소스(.res, .scn) 안의 참조와 GDExtension 이 등록한 클래스는 세지 못한다")
     if skipped:
         print("- 판정 절에서 뺀 모듈 {} 개(--exclude): {}".format(len(skipped), ", ".join(sorted(skipped))))
     for n in notes:
@@ -399,7 +494,8 @@ def run(args):
         in_m.setdefault(d, set()).add(s)
     for u in sorted(project):
         print("| {} | {} | {} | {} | {} | {} |".format(
-            mg.md(u) + (" (제외)" if u in skipped else ""), "애드온" if u.startswith("addons/") else "프로젝트",
+            mg.md(u) + (" (제외)" if u in skipped else ""),
+            "애드온" if u.startswith("addons/") else ("res:// 밖" if outside_unit(u) else "프로젝트"),
             unit_kind(u), len(unit_files.get(u, [])), len(out_m[u]), len(in_m[u])))
 
     print("\n## 모듈 사이 간선")
@@ -503,7 +599,8 @@ def run(args):
             print("- " + mg.SEARCH_FAIL)
 
     print("\n## 가리키는 파일이 없는 res:// 경로 (상위 {})".format(args.top))
-    print("코드에서 만든 경로의 앞부분이거나, 옮기거나 지운 파일을 아직 가리키는 곳이다.")
+    print("옮기거나 지운 파일을 아직 가리키는 곳이다. '(테스트)' 는 테스트 폴더에서 일부러 없는 경로를 넣은 것일 수 있다. "
+          "형식 문자열(%s, {{}})로 만드는 경로 {} 곳은 값이 정해지지 않아 세지 않았다.".format(len(formatted)))
     if missing:
         for ref, wheres in sorted(missing.items(), key=lambda kv: (-len(kv[1]), kv[0]))[:args.top]:
             print("- {} — {} 곳 (처음: {})".format(ref, len(wheres), wheres[0]))

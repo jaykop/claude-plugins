@@ -165,6 +165,49 @@ def csproj_sdk_version(path):
     return m.group(1) if m else None
 
 
+_PKG_RE = re.compile(r"<PackageReference\b[^>]*\bInclude\s*=\s*\"([^\"]+)\"([^>]*)>", re.I)
+_PKG_VER_RE = re.compile(r"\bVersion\s*=\s*\"([^\"]*)\"", re.I)
+_PROJREF_RE = re.compile(r"<ProjectReference\b[^>]*\bInclude\s*=\s*\"([^\"]+)\"", re.I)
+TEST_PACKAGES = ("xunit", "nunit", "mstest.testframework", "microsoft.net.test.sdk", "gdunit4.api", "gdunit4.test.adapter")
+
+
+def csproj_info(path):
+    """C# 프로젝트 파일에서 (패키지 목록, 참조 프로젝트 목록, 테스트 프로젝트인지).
+    패키지 = (이름, 버전, 줄), 참조 프로젝트 = (절대 경로, 줄). 못 읽으면 ([], [], False)."""
+    text = read_text(path)
+    if text is None:
+        return [], [], False
+    line_of = lambda pos: text.count("\n", 0, pos) + 1
+    pkgs = []
+    for m in _PKG_RE.finditer(text):
+        v = _PKG_VER_RE.search(m.group(2))
+        pkgs.append((m.group(1), v.group(1) if v else "", line_of(m.start())))
+    base = os.path.dirname(path)
+    refs = [(os.path.normpath(os.path.join(base, m.group(1).replace("\\", os.sep))), line_of(m.start()))
+            for m in _PROJREF_RE.finditer(text)]
+    is_test = bool(re.search(r"<IsTestProject>\s*true\s*</IsTestProject>", text, re.I)) or \
+        any(p[0].lower() in TEST_PACKAGES for p in pkgs)
+    return pkgs, refs, is_test
+
+
+def csproj_closure(project_dir):
+    """Godot 프로젝트의 C# 프로젝트 파일과, 그것이 ProjectReference 로 이어지는 프로젝트 파일 전부(테스트 프로젝트는 뺀다).
+    결과: [(경로, 패키지 목록)]. 게임에 함께 빌드되는 코드의 범위다."""
+    out, seen = [], set()
+    stack = list(csproj_files(project_dir))
+    while stack:
+        p = os.path.normpath(stack.pop())
+        if p in seen or not os.path.isfile(p):
+            continue
+        seen.add(p)
+        pkgs, refs, is_test = csproj_info(p)
+        if is_test:
+            continue
+        out.append((p, pkgs))
+        stack += [r for r, _ in refs]
+    return sorted(out)
+
+
 def engine_source_version(engine_root):
     """Godot 엔진 소스 트리의 version.py 에서 (버전, 경로). 소스 트리가 아니면 (None, None)."""
     if not engine_root:

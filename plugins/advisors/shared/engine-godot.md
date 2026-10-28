@@ -20,8 +20,8 @@
 | 엔진 버전 파일 `Engine/Build/Build.version` | 커스텀 빌드면 엔진 소스의 `version.py`. 아니면 C# 프로젝트 파일(`*.csproj`)의 `Godot.NET.Sdk/<버전>`, 그것도 없으면 `project.godot` 의 `config/features` 버전 | `config/features` 에는 마이너 버전까지만 있다(패치 번호 모름). 스크립트가 이 순서로 읽는다 |
 | 소스 빌드 여부(`EngineAssociation`) | 프로젝트 파일에 적히지 않는다 | `engine.source_build` 는 추측하지 않고 사용자에게 묻는다 |
 | `engine.root`(엔진 소스·설치 폴더) | 커스텀 빌드일 때만 Godot 엔진 소스 폴더(`version.py` 가 있는 곳). 공식 배포판이면 비워 둔다 | 비어 있으면 엔진 클래스·설정·명령줄 이름은 대상 버전의 공식 문서와 공개 소스 저장소의 그 버전 태그로 확인한다 |
-| 게임 코드 폴더 `Source`, `Plugins/*/Source` | `project.godot` 가 있는 폴더(res://) 전체 | 외부 애드온(`addons/<이름>`)은 판정에서 뺄 때 `--exclude` 로 준다 |
-| 플러그인 `.uplugin` | `addons/<이름>/plugin.cfg`(에디터 플러그인), `*.gdextension`(GDExtension), 둘 다 없는 `addons/<이름>`(스크립트 애드온) | 엔진에 들어 있는 기능(렌더러, 물리 엔진 등)은 플러그인이 아니라 설정이다 |
+| 게임 코드 폴더 `Source`, `Plugins/*/Source` | `project.godot` 가 있는 폴더(res://) 전체. C# 이면 게임 프로젝트가 ProjectReference 로 잇는 res:// 밖 프로젝트(예: 순수 시뮬레이션 라이브러리)도 게임 코드다 | 외부 애드온(`addons/<이름>`)은 판정에서 뺄 때 `--exclude` 로 준다. res:// 밖 C# 프로젝트는 모듈 지도와 기술 목록이 저절로 읽고, `profile_scan.py` 가 경로를 알려 준다. 다른 코드 검색에도 넣으려면 `source_roots` 에 적는다 |
+| 플러그인 `.uplugin` | `addons/<이름>/plugin.cfg`(에디터 플러그인), `*.gdextension`(GDExtension), 둘 다 없는 `addons/<이름>`(스크립트 애드온), C# 프로젝트의 NuGet 패키지(PackageReference) | 엔진에 들어 있는 기능(렌더러, 물리 엔진 등)은 플러그인이 아니라 설정이다. 테스트 프로젝트의 패키지는 게임에 들지 않아 기술 목록에서 뺀다 |
 | 프로젝트 파일의 플러그인 켜짐·꺼짐 | `project.godot` 의 `[editor_plugins] enabled` | 에디터 플러그인을 꺼도 그 애드온의 런타임 스크립트는 쓸 수 있다. GDExtension 과 스크립트 애드온은 켜고 끄는 칸이 없다 |
 | 플러그인 성숙도 표시(`IsExperimentalVersion`, `IsBetaVersion`) | 애드온 파일에는 없다 | 엔진 기능의 실험 표시는 대상 버전 공식 문서의 클래스 설명 원문으로 확인한다(엔진 소스면 `doc/classes/*.xml` 의 실험 표시 — 확인 필요) |
 | 모듈과 `*.Build.cs` 의존 선언 | 없다 | td 의 모듈 지도는 폴더를 모듈로, 파일 안의 참조를 간선으로 센다(§4) |
@@ -32,7 +32,7 @@
 | 네트워크 복제, 원격 호출 | 고수준 멀티플레이어(`MultiplayerAPI`, `@rpc`, `MultiplayerSynchronizer`, `MultiplayerSpawner` — 확인 필요) | 권한 검사는 `is_multiplayer_authority()` 같은 호출을 찾는다(확인 필요) |
 | 쿡·패키징 | 내보내기(`export_presets.cfg`) | 대상 플랫폼은 `export_presets.cfg` 의 `platform` |
 | 측정 파일 폴더 `Saved/Profiling` | 정해진 곳이 없다 | `perf.profiling_dir` 은 사용자에게 묻는다 |
-| 자동화 테스트(Automation Spec 등) | GUT, gdUnit4(GDScript·C#) | `profile_scan.py` 가 `extends GutTest`, `extends GdUnitTestSuite`, `[TestSuite]` 로 찾는다 |
+| 자동화 테스트(Automation Spec 등) | GUT, gdUnit4(GDScript·C#), 자체 러너, .NET 테스트 프로젝트(xUnit·NUnit·MSTest) | `profile_scan.py` 가 알려진 틀(`extends GutTest`, `extends GdUnitTestSuite`, `[TestSuite]`), 자체 러너 후보와 그 안의 `test_` 함수 수, .NET 테스트 프로젝트와 테스트 표시(`[Fact]`, `[Theory]`, `[Test]` 등) 수를 따로 낸다. 엔진 없이 도는 순수 C# 라이브러리의 테스트는 .NET 테스트 프로젝트에 있는 일이 많다 |
 
 ## 3. 기술 동향 고문(radar)
 
@@ -53,7 +53,7 @@
   - 3: 언리얼 성숙도 표시 대신, 우리가 쓰는 엔진 기능 가운데 공식 문서에 실험 기능으로 적힌 것이 대상 버전에서 어떻게 바뀌는지 본다.
   - 4: 커스텀 빌드일 때만. 애드온을 고쳐 쓰면("엔진을 고쳐서 씀") 그 애드온도 여기서 센다.
   - 5: `project.godot` 의 `config_version` 이 바뀌는 버전(3 → 4 처럼 큰 이전)은 따로 "막힘 후보"로 적고 이전 안내 문서를 1차 근거로 둔다.
-  - 7: 애드온마다 대상 버전 지원을 그 애드온 저장소·애셋 라이브러리에서 본다. `plugin.cfg` 에는 지원 버전 칸이 없다. GDExtension 은 `compatibility_minimum`·`compatibility_maximum`(확인 필요)과 공급사 자료를 함께 본다.
+  - 7: NuGet 패키지는 대상 버전의 `Godot.NET.Sdk` 가 요구하는 .NET 버전과 맞는지 패키지 공개 자료로 본다. 애드온마다 대상 버전 지원을 그 애드온 저장소·애셋 라이브러리에서 본다. `plugin.cfg` 에는 지원 버전 칸이 없다. GDExtension 은 `compatibility_minimum`·`compatibility_maximum`(확인 필요)과 공급사 자료를 함께 본다.
   - C# 프로젝트면 `Godot.NET.Sdk` 버전과 그 버전이 요구하는 .NET 버전도 항목 2 에 넣는다.
 
 ## 4. TD 고문(td)
@@ -61,7 +61,9 @@
 - **모듈 지도**(SKILL.md, audit-scopes.md §1): 명령은 그대로다. 결과 머리가 "— Godot"이면 Godot 판이다.
   - 모듈은 폴더다. `addons/<이름>` 은 애드온 하나, 그 밖은 프로젝트 폴더 바로 아래 폴더 하나다. 더 잘게 보려면 `--unit-depth 2` 를 준다.
   - 코드가 `scripts/` 같은 폴더 하나에 몰린 프로젝트(Godot 에서 흔하다)는 모듈이 하나로 뭉친다. 결과 머리에 "--unit-depth N 로 다시 돌릴 것" 주의가 있으면 그 값으로 다시 돌리고, 리포트에는 다시 돌린 결과를 쓴다. 쓴 `--unit-depth` 값은 TD 기록 판정 기준 표에 적어 다음 점검도 같은 값으로 돌린다.
-  - 간선은 참조 종류(preload, extends, class_name 사용, autoload 사용, 씬·리소스 참조, 셰이더 include, C# using, 동적 로드, 경로 문자열)마다 묶어 센다. 순환 의존과 층 판정에서는 동적 로드와 경로 문자열을 뺀다.
+  - 간선은 참조 종류(preload, extends, class_name 사용, autoload 사용, 씬·리소스 참조, 셰이더 include, C# using, C# 형 사용, 동적 로드, 경로 문자열)마다 묶어 센다. 순환 의존과 층 판정에서는 동적 로드, 경로 문자열, 여러 모듈에 걸친 namespace 의 using 을 뺀다.
+  - C# 형 사용은 한 모듈에서만 선언한 형 이름이 형으로 쓰인 자리(선언, `new`, `typeof`, 정적 접근, 제네릭 인자)만 센다. 자기 C# 프로젝트와 ProjectReference 로 잇는 프로젝트의 형만 센다. 이름이 같은 형을 여러 모듈이 선언하면 세지 않고 결과 머리에 그 수를 적는다.
+  - res:// 밖 C# 프로젝트 폴더의 모듈은 소속 칸이 "res:// 밖"이고, 이름은 프로젝트 루트 기준 폴더다(예: `core/Match`).
   - `--engine-root`, `--includes` 는 쓰지 않는다. 주면 무시하고 "주의"로 적는다.
   - 판정 표 바꿔 읽기:
 
@@ -100,6 +102,7 @@
      - 이미 뺀 방식(선례): `@export`, `\[Export\]`, `Resource` 를 상속한 데이터 클래스와 `.tres`, `ProjectSettings\.get_setting`, `.json`·`.csv` 데이터 파일
   6. 자동 시험
      - 테스트 수: `extends\s+(GutTest|GdUnitTestSuite)` 파일의 `func\s+test_`, `\[TestSuite\]` 파일의 `\[TestCase\]`
+     - .NET 테스트 프로젝트(`profile_scan.py` 결과): 프로젝트마다 `\[\s*(Fact|Theory|Test|TestCase|TestMethod|DataTestMethod)\s*[\](]` 수. 테스트 프로젝트가 참조하는 프로젝트(ProjectReference)가 그 테스트가 덮는 모듈이다
      - 자체 테스트 러너: 알려진 틀을 쓰지 않고 `extends Node` 스크립트와 씬으로 직접 만든 러너가 흔하다. `profile_scan.py` 결과의 "자체 러너 후보"(테스트 폴더나 `test_*.gd`·`run_all.gd` 같은 이름)와 "--headless 실행"(실행 스크립트·CI 설정의 줄)을 analyst 에 넘겨, 러너마다 확인 함수 호출 수와 실패를 종료 코드로 내는지(`get_tree\(\)\.quit\(` 에 넘기는 값)를 받는다. 결과는 "알려진 틀 기준 N 개, 자체 러너 M 개(확인 N 곳)"처럼 나눠 적는다. 알려진 틀이 0 이어도 자체 러너가 있으면 "없음"으로 분류하지 않는다
      - 화면 없이 돌리는 명령이 적힌 곳(프로젝트 스크립트와 CI 설정): `--headless`, `--script`·`-s`, `--quit`, `--quit-after`, GUT·gdUnit4 명령줄 실행 스크립트(확인 필요), `extends\s+(SceneTree|MainLoop)` 스크립트. 명령은 실행하지 않는다
 

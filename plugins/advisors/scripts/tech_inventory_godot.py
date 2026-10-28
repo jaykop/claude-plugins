@@ -222,6 +222,56 @@ def scan_usage(source_roots, units, classes, spaces, budget, max_bytes):
     return hits, counts, ", ".join(memo)
 
 
+def nuget_rows(closure, source_roots, roots_for_show, max_bytes):
+    """C# 프로젝트의 NuGet 패키지마다 한 행. 패키지 이름으로 시작하는 namespace 를 using 하거나 그 이름으로 직접 부르면 '사용 중'.
+    결과: (행 목록 [이름, 상태, 근거], 주의 한 줄 또는 None)."""
+    pkgs = {}
+    for cp, plist in closure:
+        for name, ver, line in plist:
+            pkgs.setdefault(name, []).append((cp, ver, line))
+    if not pkgs:
+        return [], None
+    dirs = list(dict.fromkeys([os.path.dirname(p) for p, _ in closure] + list(source_roots)))
+    budget = ti.Budget(60, 300000)
+    found = {}
+    alt = "|".join(re.escape(n) for n in sorted(pkgs, key=len, reverse=True))
+    use_re = re.compile(r"(?<![\w.])(" + alt + r")(?=[.;\s])")
+    seen = set()
+    for d in dirs:
+        for path, depth, sub, files in ti.walk(d, 30, budget, skip_names=gp.GODOT_GENERATED_DIRS | {"bin"}):
+            for f in files:
+                fp = ti.norm(os.path.join(path, f))
+                if not f.endswith(".cs") or fp in seen:
+                    continue
+                seen.add(fp)
+                try:
+                    if os.path.getsize(fp) > max_bytes:
+                        continue
+                except OSError:
+                    continue
+                text = gp.read_text(fp)
+                if not text:
+                    continue
+                _, ns = gp.strip_code(text, ".cs")
+                for m in use_re.finditer(ns):
+                    found.setdefault(m.group(1), (fp, ns.count("\n", 0, m.start()) + 1))
+    rows = []
+    for name, decl in sorted(pkgs.items()):
+        ev = ["NuGet 패키지 " + "; ".join("{}:{} Version={}".format(ti.show(cp, roots_for_show), line, ver or "-") for cp, ver, line in decl)]
+        hit = found.get(name)
+        if hit:
+            status = STATUS[3]
+            ev.append("namespace 사용: {}:{}".format(ti.show(hit[0], roots_for_show), hit[1]))
+        else:
+            status = STATUS[2]
+            ev.append("패키지 이름으로 시작하는 using·직접 호출 없음 — 패키지 이름과 namespace 가 다르거나 다른 패키지가 끌어 쓰는 것일 수 있다")
+        rows.append(["NuGet " + name, status, "; ".join(ev)])
+    note = None
+    if budget.hit:
+        note = "NuGet 패키지 사용 흔적 검색이 {} 로 중단됨 — '켜짐·사용 흔적 없음' 은 확인 실패일 수 있음".format(budget.hit)
+    return rows, note
+
+
 def norm_name(s):
     return re.sub(r"[^a-z0-9]", "", s.lower())
 
@@ -286,6 +336,9 @@ def run(args, root, today, marker_re, exts):
     if os.path.isfile(presets):
         fp_paths.append(presets)
     fp_paths += csprojs
+    # 게임과 함께 빌드되는 C# 프로젝트(ProjectReference 로 이어진 것, res:// 밖 포함)와 그 NuGet 패키지
+    closure = gp.csproj_closure(project_dir)
+    fp_paths += [p for p, _ in closure if p not in csprojs]
     descriptors = sorted({p for u in units for p in ([u["cfg"]] if u["cfg"] else []) + u["gdext"]})
     fp_paths += descriptors
     fp_extra = ["godot", args.mod_marker or "", str(args.literal)] + list(args.mod_dirs) + args.extra_key
@@ -422,7 +475,7 @@ def run(args, root, today, marker_re, exts):
     if facts["autoloads"]:
         engine_rows.append(("autoload", ", ".join(a["name"] for a in facts["autoloads"]), "{} [autoload]".format(pf)))
     engine_rows.append(("입력 지문", fp, "엔진 version.py + project.godot + export_presets.cfg + C# 프로젝트 파일 {} 개 + plugin.cfg·.gdextension {} 개 + 인자의 SHA-256 앞 16자".format(
-        len(csprojs), len(descriptors))))
+        len(set(csprojs) | {p for p, _ in closure}), len(descriptors))))
 
     # 플러그인·기능
     rows = []
@@ -466,6 +519,10 @@ def run(args, root, today, marker_re, exts):
             ev.append("폴더 밖 게임 코드·씬·리소스에 res:// 경로·class_name·namespace·autoload·설정 섹션 없음 — "
                       "에디터 도구만 더하거나 GDExtension 클래스 이름으로만 쓰는 경우는 텍스트로 확인 못 함")
         rows.append([u["name"], status, "; ".join(e for e in ev if e)])
+    pkg_rows, pkg_note = nuget_rows(closure, source_roots, roots_for_show, args.max_bytes)
+    rows += pkg_rows
+    if pkg_note:
+        notes.append(pkg_note)
     for ref in enabled_refs:
         if any(gp.plugin_ref_matches(ref, u["name"]) for u in units if u["cfg"]):
             continue
@@ -535,6 +592,10 @@ def run(args, root, today, marker_re, exts):
     for name, help_text in STATUS_HELP:
         out.append("- {}: {}".format(name, help_text))
     out.append("")
+    if pkg_rows:
+        out.append("- NuGet 행: 게임과 함께 빌드되는 C# 프로젝트의 PackageReference 다. 늘 켜져 있으므로 '사용 중' 아니면 '켜짐·사용 흔적 없음' 이다. "
+                   "사용 흔적은 패키지 이름으로 시작하는 namespace 의 using 이나 직접 호출만 본다")
+        out.append("")
     out.append("목록에 없다는 것만으로 \"없음\"이라고 하지 않는다. 엔진에 들어 있는 기능(렌더러, 물리 엔진 등)은 플러그인이 아니라 아래 설정 표에서 본다.")
     out.append("")
     out.append("## 주요 렌더링·네트워크 설정")
@@ -557,6 +618,10 @@ def run(args, root, today, marker_re, exts):
     out.append("- 사용 흔적 탐색: {} 의 {} 파일. 애드온 자기 폴더 안의 흔적은 치지 않는다. 표시 문자열(대사 등) 안의 class_name 은 치지 않는다".format(
         ", ".join(ti.show(s, roots_for_show) for s in source_roots), " ".join(sorted(SCAN_EXT))))
     out.append("- 설정 탐색: {} 의 [섹션] 키. 기능 태그별 값(예: rendering_method.mobile)도 넣었다. 적히지 않은 설정은 엔진 기본값이라 표에 없다".format(pf))
+    if closure:
+        out.append("- C# 프로젝트: {} — 게임의 C# 프로젝트 파일과 ProjectReference 로 이어진 프로젝트(테스트 프로젝트는 뺐다). "
+                   "NuGet 패키지 행은 이 프로젝트들의 PackageReference 이고, 사용 흔적은 그 폴더와 게임 코드 폴더의 .cs 에서 찾았다".format(
+                       ", ".join(ti.show(p, roots_for_show) for p, _ in closure)))
     out.append("- 사용 흔적은 텍스트로 보이는 것만이다. GDExtension 이 등록한 클래스, 에디터에서만 쓰는 도구, 이진 리소스(.res, .scn) 안의 참조는 보지 못한다")
     if mod_results:
         out.append("- 엔진 수정 블록 분포 (블록이 많은 폴더, 셀 폴더 아래 세 단계까지):")

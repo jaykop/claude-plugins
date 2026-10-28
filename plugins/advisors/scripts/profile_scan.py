@@ -34,6 +34,9 @@ GODOT_TEST_PATTERNS = re.compile(
 )
 # 알려진 틀 밖의 자체 테스트 러너 후보 이름 (test_*.gd, *_test.gd, run_tests.gd 등)
 GODOT_TEST_NAME = re.compile(r"^(test_.*|.*_tests?|run_(all|tests?)|tests?_runner)\.gd$")
+GODOT_TEST_FUNC = re.compile(rb"^[ \t]*func[ \t]+test_", re.M)
+# .NET 테스트 틀의 테스트 표시(xUnit Fact·Theory, NUnit Test·TestCase, MSTest TestMethod)
+DOTNET_TEST_ATTR = re.compile(rb"\[[ \t]*(Fact|Theory|Test|TestCase|TestMethod|DataTestMethod)[ \t]*[\](]")
 # --headless 실행 명령을 찾을 실행 스크립트·CI 설정
 RUN_SCRIPT_EXT = (".sh", ".bat", ".cmd", ".ps1", ".yml", ".yaml", ".toml", ".py", ".json")
 
@@ -222,6 +225,8 @@ def godot_info(gpath, engine_hint):
     info["autoloads"] = [a["name"] for a in facts["autoloads"]]
     plats, _ = gp.export_platforms(gdir)
     info["export_platforms"] = sorted({p for _, p, _ in plats})
+    # 게임과 함께 빌드되는 C# 프로젝트 가운데 res:// 밖에 있는 것: 비워 둔 source_roots 에는 들지 않는다
+    info["outside_csproj"] = [p for p, _ in gp.csproj_closure(gdir) if not p.startswith(gdir + os.sep)]
     return info
 
 
@@ -250,6 +255,9 @@ def print_godot_info(info, root):
         print("  - 내보내기 플랫폼(export_presets.cfg): " + ", ".join(info["export_platforms"]))
     print("  - 측정 파일 폴더: Godot 은 정해진 폴더가 없다 — 사용자에게 확인")
     print("  - source_roots 후보: 프로젝트 폴더(res://) 전체. addons 는 외부 애드온이면 뺀다")
+    for p in info["outside_csproj"]:
+        print("  - res:// 밖에서 게임과 함께 빌드되는 C# 프로젝트(ProjectReference): {} — 모듈 지도는 이 폴더를 저절로 읽지만, "
+              "다른 코드 검색 범위에 넣으려면 source_roots 에 적는다".format(p))
     if os.path.dirname(info["path"]) != root:
         print("  - 주의: project.godot 가 프로젝트 루트가 아니라 하위 폴더에 있다. 비워 두면 그 바깥 코드(도구 스크립트 등)는 범위 밖이다. "
               "같이 볼 폴더가 있으면 source_roots 에 프로젝트 폴더와 함께 적는다")
@@ -419,6 +427,37 @@ def main():
                                 out["godot_headless_cmds"].append("{}:{}".format(fp, no))
                 except OSError:
                     continue
+    # 자체 러너 후보 안의 test_ 함수 수와 .NET 테스트 프로젝트(xUnit·NUnit·MSTest·gdUnit4Net). 둘 다 res:// 밖에 있을 수 있다
+    out["godot_test_funcs"] = 0
+    for fp in out["godot_test_candidates"]:
+        try:
+            with open(fp, "rb") as f:
+                out["godot_test_funcs"] += len(GODOT_TEST_FUNC.findall(f.read(2_000_000)))
+        except OSError:
+            continue
+    out["dotnet_test_projects"] = []
+    if out["godot_projects"]:
+        for path, depth, dirs, files in walk(root, 4, tbudget, skip_plugins=False):
+            for name in files:
+                if not name.lower().endswith(".csproj"):
+                    continue
+                pkgs, refs, is_test = gp.csproj_info(os.path.join(path, name))
+                if not is_test:
+                    continue
+                count = 0
+                for sub, d2, dirs2, files2 in walk(path, 10, tbudget, skip_plugins=False):
+                    if {"bin", "obj"} & set(os.path.relpath(sub, path).split(os.sep)):
+                        continue
+                    for f2 in files2:
+                        if f2.endswith(".cs"):
+                            try:
+                                with open(os.path.join(sub, f2), "rb") as fh:
+                                    count += len(DOTNET_TEST_ATTR.findall(fh.read(2_000_000)))
+                            except OSError:
+                                continue
+                out["dotnet_test_projects"].append({
+                    "path": os.path.join(path, name), "tests": count,
+                    "frameworks": [p[0] for p in pkgs if p[0].lower() in gp.TEST_PACKAGES]})
     if tbudget.hit:
         out["notes"].append("테스트 코드 검색이 {} 로 중단됨 — 0건이어도 '없음'으로 단정하지 말 것.".format(tbudget.hit))
 
@@ -474,9 +513,12 @@ def main():
         print("- 자동화 테스트 파일: 찾지 못함 (검색한 폴더: " + ", ".join(out["test_scan_dirs"]) + ")")
     if out["godot_projects"]:
         cands, cmds = out["godot_test_candidates"], out["godot_headless_cmds"]
-        print("- Godot 테스트: 알려진 틀(GUT·gdUnit4·WAT) 기준 {} 개, 자체 러너 후보 {} 개, --headless 실행 명령 {} 곳. "
-              "알려진 틀 밖의 테스트 수는 세지 못한다 — 후보가 있으면 '테스트 없음'으로 읽지 말고 사용자에게 확인".format(
-                  len(out["test_files"]), len(cands), len(cmds)))
+        print("- Godot 테스트: 알려진 틀(GUT·gdUnit4·WAT) 기준 {} 개, 자체 러너 후보 {} 개(그 안의 test_ 함수 {} 개), "
+              ".NET 테스트 프로젝트 {} 개, --headless 실행 명령 {} 곳. "
+              "자체 러너의 확인 수는 세지 못한다 — 후보가 있으면 '테스트 없음'으로 읽지 말고 사용자에게 확인".format(
+                  len(out["test_files"]), len(cands), out["godot_test_funcs"], len(out["dotnet_test_projects"]), len(cmds)))
+        for t in out["dotnet_test_projects"]:
+            print("  - .NET 테스트 프로젝트: {} ({}, 테스트 표시 {} 개)".format(t["path"], ", ".join(t["frameworks"]) or "IsTestProject", t["tests"]))
         for fp in cands[:10]:
             print("  - 자체 러너 후보: " + fp)
         for loc in cmds[:10]:
