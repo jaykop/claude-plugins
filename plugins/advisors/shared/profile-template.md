@@ -25,6 +25,7 @@ engine:
   name:                       # 예: Unreal Engine, Godot Engine
   version:                    # 예: 5.6.1, 4.3.0
   source_build:               # true 면 소스 빌드(커스텀 엔진)
+  run_wrapper:                # Godot 만: Godot 를 띄우는 프로젝트 명령의 앞부분(잠금·출력 받기 래퍼나 콘솔판 실행 파일). 고문이 측정 계획·테스트 명세에 Godot 명령을 적을 때 앞에 붙인다. 예: 'python tools/godot_run.py --timeout=300 --'
   root:                       # 엔진 폴더 경로. 언리얼은 소스 빌드가 아니어도(런처 설치본) 적는다. 콘솔 명령·설정 이름이 실제로 있는지 엔진 소스에서 확인할 때 쓴다. Godot 은 커스텀 빌드일 때만 엔진 소스 폴더(version.py 가 있는 곳)
 
 source_roots: []              # 게임 코드 폴더 (design · radar · perf · td 공용). `Plugins/*/Source` 같은 패턴을 쓸 수 있다. Godot 은 비우면 project.godot 가 있는 폴더 전체다. 그 폴더가 하위 폴더(예: game/)면 바깥 코드는 범위 밖이므로, 같이 볼 때는 프로젝트 폴더와 바깥 폴더를 모두 적는다
@@ -91,7 +92,7 @@ market:
 
 # ── 최적화 고문 ───────────────────────────────────────
 perf:
-  budgets: {}                 # 플랫폼별 목표. 예: {PC-min: {fps: 60, frame_ms: 16.6, memory_gb: 8}}
+  budgets: {}                 # 플랫폼별 목표. 예: {PC-min: {fps: 60, frame_ms: 16.6, memory_gb: 8}}. 처리 시간이 예산인 게임은 {PC: {day_ms: 300, match_ms: 30}} 처럼 쓴다
   scenarios: []               # 대표 측정 장면. 예: [{id: S01, map: ..., 설명: 적 20명 전투}]
   profiling_dir:              # 측정 파일(.utrace, .csv)을 두는 폴더. 상대 경로면 프로젝트 루트 기준. Godot 은 측정용 스크립트가 CSV 를 남기는 폴더
   measured_by:                # 측정 주체. 사용자 / 빌드 머신 / 에디터 자동화

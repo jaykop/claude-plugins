@@ -38,6 +38,7 @@
    python "<플러그인 폴더>/scripts/profile_scan.py" "<프로젝트 루트>"
    ```
    `python` 이 없으면 `python3` 로 실행한다. 결과(버전 관리 종류, 엔진 종류, 프로젝트 파일, 엔진 버전, 문서가 많은 폴더 등)는 `[파일]` 출처로 채운다. 엔진 종류가 "둘 다"로 나오면 묻는다. Godot 이면 칸마다 넣을 값은 `<플러그인 폴더>/shared/engine-godot.md` §6 에 있다.
+   - 문서 폴더 칸(`design.roots`, `design.exclude`, `design.archive_dirs`, `td.rule_docs`, `td.record_roots`)을 채우기 전에, 프로젝트에 문서 색인(예: `docs/README.md`, `AGENTS.md`)이 정본과 레거시를 나눠 두었는지 본다. 나눠 두었으면 그 목록을 따른다. 파일 머리의 상태 표시(예: "확정")보다 색인이 이긴다. 레거시는 `design.exclude` 나 `design.archive_dirs` 로 보내고, 정본 목록에 있어도 본문이 지금 없는 경로를 가리키면 프로필 메모에 "일부 낡음"으로 적는다. 정본끼리 실행 명령이나 규칙이 다르면 색인이 먼저 읽으라고 한 문서를 따른다.
 3. 남은 칸 중 **공통 칸과, 지금 부른 고문의 "필요한 프로필 값"에 적힌 칸만** 묻는다(0-C 의 "Step 0 에서 묻지 않음" 예외는 같다). 나머지 칸은 그 칸이 필요한 고문을 처음 부를 때 묻는다. 한 번에 다 묻고, 모르는 값은 비워 둬도 된다고 알려 준다.
 4. 특히 다음은 추측으로 채우지 않는다: `decision_owners`, `user_role`, `team_size`, `search_banned_terms`, `search_banned_combos`, `design.principles_status`, `perf.budgets`.
 5. 저장 위치는 `<프로젝트 루트>/.claude/advisors/profile.md`. 버전 관리에 올릴지는 사용자에게 맡긴다. git 프로젝트이고 `share_scope` 가 personal 이면 `.gitignore` 에 넣을지 묻는다.

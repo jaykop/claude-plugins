@@ -37,6 +37,8 @@ GODOT_TEST_NAME = re.compile(r"^(test_.*|.*_tests?|run_(all|tests?)|tests?_runne
 GODOT_TEST_FUNC = re.compile(rb"^[ \t]*func[ \t]+test_", re.M)
 # .NET 테스트 틀의 테스트 표시(xUnit Fact·Theory, NUnit Test·TestCase, MSTest TestMethod)
 DOTNET_TEST_ATTR = re.compile(rb"\[[ \t]*(Fact|Theory|Test|TestCase|TestMethod|DataTestMethod)[ \t]*[\](]")
+# Godot 실행 래퍼 후보(잠금·출력 받기를 맡는 스크립트) 이름. engine.run_wrapper 후보로 알린다
+GODOT_WRAPPER_NAME = re.compile(r"^(godot_?(run|lock|launch|wrapper)|run_?godot)\w*\.(py|sh|ps1|cmd|bat)$")
 # --headless 실행 명령을 찾을 실행 스크립트·CI 설정
 RUN_SCRIPT_EXT = (".sh", ".bat", ".cmd", ".ps1", ".yml", ".yaml", ".toml", ".py", ".json")
 
@@ -398,6 +400,7 @@ def main():
                 break
     # 알려진 틀 밖의 자체 테스트 러너 후보: 테스트 폴더나 이름의 .gd, 그리고 실행 스크립트·CI 설정의 --headless 실행
     out["godot_test_candidates"], out["godot_headless_cmds"] = [], []
+    out["godot_doc_cmds"], out["godot_wrappers"] = [], []
     known = set(out["test_files"])
     for gpath in out["godot_projects"]:
         gdir = os.path.dirname(gpath)
@@ -414,17 +417,28 @@ def main():
     # 실행 명령은 저장소 쪽(프로젝트 루트)에서 찾는다. project.godot 가 하위 폴더에 있어도 CI 설정은 위에 있다
     if out["godot_projects"]:
         for path, depth, dirs, files in walk(root, 4, tbudget, skip_plugins=False):
-            if os.path.relpath(path, root).split(os.sep)[0] == "addons":
+            relparts = os.path.relpath(path, root).split(os.sep)
+            # 옛 기록 폴더(_history, archive, legacy)의 명령은 지금 실행법이 아니다
+            if relparts[0] == "addons" or any(p.startswith("_") or p.lower() in ("archive", "legacy") for p in relparts):
                 continue
             for name in files:
-                if not (name.lower().endswith(RUN_SCRIPT_EXT) or name in ("Makefile", "justfile")):
-                    continue
+                low = name.lower()
                 fp = os.path.join(path, name)
+                if GODOT_WRAPPER_NAME.match(low):
+                    out["godot_wrappers"].append(fp)
+                is_doc = low.endswith(".md")
+                if not (is_doc or low.endswith(RUN_SCRIPT_EXT) or name in ("Makefile", "justfile")):
+                    continue
                 try:
                     with open(fp, "rb") as f:
+                        fenced = False
                         for no, line in enumerate(f.read(1_000_000).splitlines(), 1):
-                            if b"--headless" in line:
-                                out["godot_headless_cmds"].append("{}:{}".format(fp, no))
+                            if is_doc and line.lstrip().startswith(b"```"):
+                                fenced = not fenced
+                                continue
+                            # 문서는 코드 블록 안의 줄만 실행 명령으로 본다. 본문·주석의 언급은 세지 않는다
+                            if b"--headless" in line and (fenced or not is_doc):
+                                out["godot_doc_cmds" if is_doc else "godot_headless_cmds"].append("{}:{}".format(fp, no))
                 except OSError:
                     continue
     # 자체 러너 후보 안의 test_ 함수 수와 .NET 테스트 프로젝트(xUnit·NUnit·MSTest·gdUnit4Net). 둘 다 res:// 밖에 있을 수 있다
@@ -523,6 +537,13 @@ def main():
             print("  - 자체 러너 후보: " + fp)
         for loc in cmds[:10]:
             print("  - --headless 실행: " + loc)
+        docs = out["godot_doc_cmds"]
+        if docs:
+            print("  - 문서 코드 블록의 --headless 실행 명령 {} 곳 (정본 문서의 실행법 후보):".format(len(docs)))
+            for loc in docs[:10]:
+                print("    - " + loc)
+        for fp in out["godot_wrappers"][:5]:
+            print("  - Godot 실행 래퍼 후보(engine.run_wrapper): " + fp)
     for n in out["notes"]:
         print("- 주의: " + n)
     return 0
