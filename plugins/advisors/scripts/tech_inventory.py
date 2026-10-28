@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """언리얼 프로젝트의 기술 목록(radar-inventory.md)을 만든다.
 
+Godot 프로젝트(--engine godot, 또는 project.godot 만 있을 때)는 tech_inventory_godot.py 가 같은 형식으로 만든다.
+--mod-only 와 수정 블록 세기는 두 엔진이 이 파일의 함수를 함께 쓴다. 아래 설명은 언리얼 기준이다.
+
 읽기만 한다. 프로젝트·엔진 파일을 고치지 않는다. 결과는 --out 으로 받은 경로에만 쓰고, 없으면 표준 출력으로 낸다.
 
 모으는 것
@@ -50,6 +53,8 @@ PLUGIN_BODY_DIRS = {
     "Documentation", "Extras", "Tests",
 }
 DEFAULT_MOD_EXT = ".h,.hpp,.hh,.inl,.c,.cc,.cpp,.cs,.usf,.ush,.ini,.py"
+# Godot 엔진 소스(C++·셰이더·빌드 스크립트)와 애드온(GDScript·C#·셰이더)
+DEFAULT_MOD_EXT_GODOT = ".h,.hpp,.inc,.c,.cc,.cpp,.cs,.glsl,.py,.gd,.gdshader,.gdshaderinc"
 DEFAULT_KEYS = [
     r"r\.DynamicGlobalIlluminationMethod",
     r"r\.ReflectionMethod",
@@ -586,22 +591,84 @@ def print_mod_list(res, marker_re, end_re, tag_re, args, roots_for_show):
             print("- {}:{} — 시작 표시 없는 끝 줄".format(show(fp, roots_for_show), no))
 
 
+def run_mod_only(args, mod_dirs, marker_re, exts, today, roots_for_show):
+    """--mod-only: 목록을 만들지 않고 수정 블록 수(와 --mod-list 면 블록 목록)만 낸다. 엔진 종류와 상관없다."""
+    if not marker_re or not mod_dirs:
+        print("오류: --mod-only 에는 --mod-marker 와 --mod-dirs 가 필요하다")
+        return 2
+    end_re = tag_re = None
+    if args.mod_list:
+        try:
+            if args.mod_end:
+                end_re = re.compile((re.escape(args.mod_end) if args.literal else args.mod_end).encode("utf-8"))
+            tag_re = re.compile(args.mod_tag_re) if args.mod_tag_re else None
+        except re.error as e:
+            print("오류: --mod-end 나 --mod-tag-re 정규식이 잘못됐다 — {}".format(e))
+            return 2
+        if tag_re is not None and tag_re.groups < 1:
+            print(r"오류: --mod-tag-re 에는 태그를 담을 캡처 그룹이 하나 있어야 한다 (예: '\[([^\]]+)\]')")
+            return 2
+    res = count_mod_blocks(mod_dirs, marker_re, exts, args.seconds, args.max_files, args.max_bytes, end_re=end_re)
+    print("# 엔진 수정 블록 수 (읽기 전용, {})".format(today))
+    print("- 패턴: {}{} — 시작 표시가 걸린 줄 수를 센다".format(args.mod_marker, " (글자 그대로)" if args.literal else " (정규식)"))
+    for d, n, fail, hits, memo in res:
+        with_start = {fp: c for fp, c in hits.items() if c}
+        print("- {}: {}{}".format(show(d, roots_for_show), fail if fail else "{} 개, 파일 {} 개".format(n, len(with_start)),
+                                  " ({})".format(memo) if memo else ""))
+        for fp, c in sorted(with_start.items(), key=lambda x: -x[1])[:15]:
+            print("  - {} : {}".format(show(fp, roots_for_show), c))
+    if args.mod_list:
+        print_mod_list(res, marker_re, end_re, tag_re, args, roots_for_show)
+    return 0
+
+
+def resolve_mod_dirs(mod_args, engine_root, root):
+    """수정 블록을 셀 폴더. 상대 경로는 엔진 폴더 기준으로 먼저 보고, 없으면 프로젝트 루트 기준으로 본다."""
+    out = []
+    for d in mod_args:
+        if os.path.isabs(d):
+            out.append(norm(d))
+            continue
+        cands = [os.path.join(b, d) for b in (engine_root, root) if b]
+        out.append(norm(next((c for c in cands if os.path.isdir(c)), cands[0])))
+    return out
+
+
+def detect_engine(root, project_file):
+    """--engine auto 일 때 엔진 종류. 프로젝트 파일을 줬으면 그 이름으로, 아니면 .uproject 가 없고 project.godot 가 있을 때만 godot."""
+    if project_file:
+        return "godot" if os.path.basename(project_file).lower() == "project.godot" else "unreal"
+    ups, _ = find_uproject(root, None)
+    if ups:
+        return "unreal"
+    budget = Budget(15, 100000)
+    for path, depth, dirs, files in walk(root, 3, budget, skip_names=GENERATED_DIRS | {".godot", "addons"}):
+        if "project.godot" in files:
+            return "godot"
+    return "unreal"
+
+
 def main():
     ap = argparse.ArgumentParser(
-        description="언리얼 프로젝트의 기술 목록(radar-inventory.md)을 만든다. 프로젝트·엔진 파일은 읽기만 한다.")
+        description="언리얼·Godot 프로젝트의 기술 목록(radar-inventory.md)을 만든다. 프로젝트·엔진 파일은 읽기만 한다.")
     ap.add_argument("project_root", nargs="?", default="", help="프로젝트 루트 폴더 (근거 위치를 이 폴더 기준 상대 경로로 적는다). 없거나 빈 값이면 현재 폴더")
-    ap.add_argument("--project-file", help="프로젝트 파일(.uproject) 경로. 상대 경로면 프로젝트 루트 기준. 없으면 깊이 3 까지 찾는다")
-    ap.add_argument("--engine-root", help="엔진 폴더(안에 Build/Build.version 이 있는 폴더). 없으면 프로젝트 파일 위쪽에서 찾는다")
+    ap.add_argument("--engine", choices=("auto", "unreal", "godot"), default="auto",
+                    help="엔진 종류 (프로필 engine.kind). auto 면 프로젝트 파일 이름이나 폴더의 .uproject·project.godot 로 정한다 (기본 auto)")
+    ap.add_argument("--project-file", help="프로젝트 파일(.uproject 또는 project.godot) 경로. 상대 경로면 프로젝트 루트 기준. 없으면 깊이 3 까지 찾는다")
+    ap.add_argument("--engine-root", help="엔진 폴더. 언리얼은 안에 Build/Build.version 이 있는 폴더(없으면 프로젝트 파일 위쪽에서 찾는다), "
+                                          "Godot 은 version.py 가 있는 엔진 소스 폴더(커스텀 빌드일 때만)")
     ap.add_argument("--mod-marker", help="엔진 수정 블록의 시작 줄을 찾는 정규식 (예: 'MYGAME_BEGIN')")
     ap.add_argument("--literal", action="store_true", help="--mod-marker 를 정규식이 아니라 글자 그대로 찾는다")
     ap.add_argument("--mod-dirs", nargs="*", default=[], help="수정 블록을 셀 폴더들. 상대 경로면 엔진 폴더 기준, 거기 없으면 프로젝트 루트 기준")
-    ap.add_argument("--mod-ext", default=DEFAULT_MOD_EXT, help="수정 블록을 찾을 파일 확장자, 쉼표로 구분 (기본: {})".format(DEFAULT_MOD_EXT))
+    ap.add_argument("--mod-ext", help="수정 블록을 찾을 파일 확장자, 쉼표로 구분 (기본: 언리얼 {}, Godot {})".format(
+        DEFAULT_MOD_EXT, DEFAULT_MOD_EXT_GODOT))
     ap.add_argument("--mod-only", action="store_true", help="목록은 만들지 않고 --mod-dirs 의 수정 블록 수만 출력한다")
     ap.add_argument("--mod-list", action="store_true", help="--mod-only 와 함께: 블록마다 파일:줄, 끝 줄, 줄 수, 짝, 주제 태그, 수정 사유(시작 표시 뒤의 글)를 낸다")
     ap.add_argument("--mod-end", help="--mod-list 에서 블록 끝 줄을 찾는 정규식 (예: 'MYGAME_END'). --literal 이면 글자 그대로. 없으면 끝 줄과 줄 수는 '모름'")
     ap.add_argument("--mod-tag-re", default=r"\[([^\]]+)\]",
                     help="--mod-list 에서 시작 표시 뒤 글에서 주제 태그를 뽑는 정규식. 첫 번째 캡처 그룹을 태그로 쓴다 (기본: 대괄호 안 글)")
-    ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들 (사용 흔적 검색). 와일드카드를 쓸 수 있다(예: 'Plugins/*/Source'). 없으면 프로젝트 파일 옆 Source 와 Plugins")
+    ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들 (사용 흔적 검색). 와일드카드를 쓸 수 있다(예: 'Plugins/*/Source'). "
+                                                                  "없으면 언리얼은 프로젝트 파일 옆 Source 와 Plugins, Godot 은 project.godot 가 있는 폴더 전체")
     ap.add_argument("--extra-key", action="append", default=[], help="더 볼 설정 이름 정규식 (여러 번 줄 수 있음)")
     ap.add_argument("--previous", help="직전 radar-inventory.md. 주면 ID 를 이어 쓰고, 입력 지문이 같고 --stale-days 안이면 다시 만들지 않는다")
     ap.add_argument("--stale-days", type=int, help="직전 목록의 마지막 갱신일에서 이 일수가 지나면 입력 지문이 같아도 다시 만든다 (프로필 stale_after_days)")
@@ -628,8 +695,14 @@ def main():
         except re.error as e:
             print("오류: --mod-marker 정규식이 잘못됐다 — {}".format(e))
             return 2
+    engine = args.engine if args.engine != "auto" else detect_engine(root, args.project_file)
+    mod_ext = args.mod_ext or (DEFAULT_MOD_EXT_GODOT if engine == "godot" else DEFAULT_MOD_EXT)
     exts = {e.strip().lower() if e.strip().startswith(".") else "." + e.strip().lower()
-            for e in args.mod_ext.split(",") if e.strip()}
+            for e in mod_ext.split(",") if e.strip()}
+
+    if engine == "godot":
+        import tech_inventory_godot
+        return tech_inventory_godot.run(args, root, today, marker_re, exts)
 
     ups, up_hit = find_uproject(root, args.project_file)
     if not ups:
@@ -652,46 +725,13 @@ def main():
     if engine_root and not (engine_root == root or engine_root.startswith(root + os.sep)):
         roots_for_show.insert(0, ("<엔진>", engine_root))
 
-    mod_dirs = []
-    for d in args.mod_dirs:
-        if os.path.isabs(d):
-            mod_dirs.append(norm(d))
-            continue
-        # 상대 경로는 엔진 폴더 기준으로 먼저 보고, 없으면 프로젝트 루트 기준으로 본다
-        cands = [os.path.join(b, d) for b in (engine_root, root) if b]
-        mod_dirs.append(norm(next((c for c in cands if os.path.isdir(c)), cands[0])))
+    mod_dirs = resolve_mod_dirs(args.mod_dirs, engine_root, root)
 
     if (args.mod_list or args.mod_end) and not args.mod_only:
         print("오류: --mod-list 와 --mod-end 는 --mod-only 와 함께 쓴다")
         return 2
     if args.mod_only:
-        if not marker_re or not mod_dirs:
-            print("오류: --mod-only 에는 --mod-marker 와 --mod-dirs 가 필요하다")
-            return 2
-        end_re = tag_re = None
-        if args.mod_list:
-            try:
-                if args.mod_end:
-                    end_re = re.compile((re.escape(args.mod_end) if args.literal else args.mod_end).encode("utf-8"))
-                tag_re = re.compile(args.mod_tag_re) if args.mod_tag_re else None
-            except re.error as e:
-                print("오류: --mod-end 나 --mod-tag-re 정규식이 잘못됐다 — {}".format(e))
-                return 2
-            if tag_re is not None and tag_re.groups < 1:
-                print(r"오류: --mod-tag-re 에는 태그를 담을 캡처 그룹이 하나 있어야 한다 (예: '\[([^\]]+)\]')")
-                return 2
-        res = count_mod_blocks(mod_dirs, marker_re, exts, args.seconds, args.max_files, args.max_bytes, end_re=end_re)
-        print("# 엔진 수정 블록 수 (읽기 전용, {})".format(today))
-        print("- 패턴: {}{} — 시작 표시가 걸린 줄 수를 센다".format(args.mod_marker, " (글자 그대로)" if args.literal else " (정규식)"))
-        for d, n, fail, hits, memo in res:
-            with_start = {fp: c for fp, c in hits.items() if c}
-            print("- {}: {}{}".format(show(d, roots_for_show), fail if fail else "{} 개, 파일 {} 개".format(n, len(with_start)),
-                                      " ({})".format(memo) if memo else ""))
-            for fp, c in sorted(with_start.items(), key=lambda x: -x[1])[:15]:
-                print("  - {} : {}".format(show(fp, roots_for_show), c))
-        if args.mod_list:
-            print_mod_list(res, marker_re, end_re, tag_re, args, roots_for_show)
-        return 0
+        return run_mod_only(args, mod_dirs, marker_re, exts, today, roots_for_show)
 
     data, err = read_json(uproject)
     if err:

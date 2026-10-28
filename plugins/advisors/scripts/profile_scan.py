@@ -2,7 +2,7 @@
 """프로젝트 폴더에서 고문 프로필에 넣을 값을 찾아 출력한다.
 
 읽기만 한다. 파일을 만들거나 고치지 않는다.
-찾는 것: 버전 관리 종류, 언리얼 프로젝트 파일(.uproject), 엔진 버전, 문서가 많은 폴더, 테스트 코드 흔적.
+찾는 것: 버전 관리 종류, 엔진 종류(언리얼 .uproject / Godot project.godot), 엔진 버전, 문서가 많은 폴더, 테스트 코드 흔적.
 """
 
 import argparse
@@ -13,17 +13,24 @@ import subprocess
 import sys
 import time
 
+import godot_project as gp
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 SKIP_DIRS = {
     ".git", ".svn", ".vs", ".vscode", ".idea", "node_modules", "__pycache__",
     "Binaries", "Intermediate", "Saved", "DerivedDataCache", "Build", ".claude",
+    ".godot", ".import", ".mono",
 }
 # 엔진 소스·템플릿·샘플 안의 .uproject 는 프로젝트가 아니다
 SKIP_NESTED = {"Engine", "Templates", "Samples", "FeaturePacks"}
 TEST_PATTERNS = re.compile(
     rb"IMPLEMENT_SIMPLE_AUTOMATION_TEST|IMPLEMENT_COMPLEX_AUTOMATION_TEST|BEGIN_DEFINE_SPEC|TEST_CLASS\s*\("
+)
+# Godot 테스트 틀: GUT, gdUnit4(GDScript·C#), WAT
+GODOT_TEST_PATTERNS = re.compile(
+    rb"^\s*extends\s+(GutTest|GdUnitTestSuite|WAT\.Test)\b|^\s*\[TestSuite\]", re.M
 )
 
 
@@ -170,10 +177,81 @@ def find_engine_version(uproject_path, engine_hint):
     return None, None
 
 
+def godot_info(gpath, engine_hint):
+    """project.godot 하나에서 프로필 값 후보를 모은다."""
+    facts = gp.project_facts(gpath)
+    info = {"path": gpath}
+    if "error" in facts:
+        info["error"] = "읽기 실패: " + facts["error"]
+        return info
+    gdir = os.path.dirname(gpath)
+    info["config_version"] = facts["config_version"]
+    info["features"] = facts["features"]
+    sdk = [(p, gp.csproj_sdk_version(p)) for p in gp.csproj_files(gdir)]
+    info["csproj"] = [{"path": p, "sdk_version": v} for p, v in sdk]
+    sv, spath = gp.engine_source_version(engine_hint)
+    if sv:
+        info["engine_version"], info["engine_version_source"] = sv, spath
+    elif any(v for _, v in sdk):
+        p, v = next((p, v) for p, v in sdk if v)
+        info["engine_version"], info["engine_version_source"] = v, p + " Godot.NET.Sdk"
+    elif facts["feature_version"]:
+        info["engine_version"] = facts["feature_version"] + " (패치 번호 모름)"
+        info["engine_version_source"] = gpath + " config/features"
+    elif gp.godot_major_guess(facts):
+        info["engine_version"] = gp.godot_major_guess(facts) + " (config_version {} 로 짐작)".format(facts["config_version"])
+        info["engine_version_source"] = gpath + " config_version"
+    else:
+        info["engine_version"] = "모름 — config/features 에 버전이 없음"
+    info["source_build_guess"] = bool(sv)
+    addons = []
+    adir = os.path.join(gdir, "addons")
+    if os.path.isdir(adir):
+        for name in sorted(os.listdir(adir)):
+            d = os.path.join(adir, name)
+            if not os.path.isdir(d):
+                continue
+            has_cfg = os.path.isfile(os.path.join(d, "plugin.cfg"))
+            on = any(gp.plugin_ref_matches(r, name) for r in facts["enabled_plugins"])
+            addons.append({"name": name, "editor_plugin": has_cfg, "enabled": on if has_cfg else None})
+    info["addons"] = addons
+    info["autoloads"] = [a["name"] for a in facts["autoloads"]]
+    plats, _ = gp.export_platforms(gdir)
+    info["export_platforms"] = sorted({p for _, p, _ in plats})
+    return info
+
+
+def print_godot_info(info):
+    print("- Godot 프로젝트 파일: " + info["path"])
+    if "error" in info:
+        print("  - " + info["error"])
+        return
+    print("  - config_version: {} / config/features: {}".format(info["config_version"] or "없음", ", ".join(info["features"]) or "없음"))
+    print("  - 엔진 버전: {}{}".format(info["engine_version"], " ({})".format(info["engine_version_source"]) if info.get("engine_version_source") else ""))
+    print("  - 소스 빌드: " + ("예로 보임 (--engine-root 가 엔진 소스 트리)" if info["source_build_guess"]
+                            else "모름 — Godot 프로젝트 파일에는 적히지 않는다. 사용자에게 확인"))
+    for c in info["csproj"]:
+        print("  - C# 프로젝트: {} (Godot.NET.Sdk {})".format(c["path"], c["sdk_version"] or "못 읽음"))
+    if info["addons"]:
+        parts = []
+        for a in info["addons"]:
+            kind = ("에디터 플러그인 켜짐" if a["enabled"] else "에디터 플러그인 꺼짐") if a["editor_plugin"] else "plugin.cfg 없음"
+            parts.append("{}({})".format(a["name"], kind))
+        print("  - addons: " + ", ".join(parts))
+    else:
+        print("  - addons: 없음")
+    if info["autoloads"]:
+        print("  - autoload: " + ", ".join(info["autoloads"]))
+    if info["export_platforms"]:
+        print("  - 내보내기 플랫폼(export_presets.cfg): " + ", ".join(info["export_platforms"]))
+    print("  - 측정 파일 폴더: Godot 은 정해진 폴더가 없다 — 사용자에게 확인")
+    print("  - source_roots 후보: 프로젝트 폴더(res://) 전체. addons 는 외부 애드온이면 뺀다")
+
+
 def main():
     ap = argparse.ArgumentParser(description="고문 프로필에 넣을 값을 프로젝트 폴더에서 찾아 출력한다 (읽기 전용).")
     ap.add_argument("project_root", nargs="?", default="", help="프로젝트 루트 폴더. 없거나 빈 값이면 현재 폴더")
-    ap.add_argument("--engine-root", help="엔진 소스 폴더를 알면 지정 (Build.version 탐색용)")
+    ap.add_argument("--engine-root", help="엔진 소스 폴더를 알면 지정 (언리얼은 Build.version, Godot 은 version.py 탐색용)")
     ap.add_argument("--max-depth", type=int, default=4, help="폴더 탐색 깊이 (기본 4)")
     ap.add_argument("--seconds", type=float, default=20.0, help="탐색 시간 상한 초 (기본 20)")
     ap.add_argument("--max-entries", type=int, default=200000, help="탐색 항목 수 상한 (기본 200000)")
@@ -185,7 +263,8 @@ def main():
         print("오류: 폴더가 없다 — " + root)
         return 2
 
-    out = {"project_root": root, "vcs": [], "uprojects": [], "doc_folders": [], "test_files": [], "notes": []}
+    out = {"project_root": root, "vcs": [], "uprojects": [], "godot_projects": [], "doc_folders": [], "test_files": [],
+           "notes": []}
     out["vcs"] = [{"type": k, "evidence": v} for k, v in detect_vcs(root)]
 
     budget = Budget(args.seconds, args.max_entries)
@@ -196,6 +275,9 @@ def main():
             low = name.lower()
             if low.endswith(".uproject"):
                 out["uprojects"].append(os.path.join(path, name))
+            elif name == "project.godot" and os.sep + "addons" + os.sep not in path + os.sep:
+                # 애드온 안의 예제 프로젝트는 이 프로젝트가 아니다
+                out["godot_projects"].append(os.path.join(path, name))
             elif low.endswith(".md"):
                 rel = os.path.relpath(path, root)
                 top = rel.split(os.sep)[:2]
@@ -249,6 +331,11 @@ def main():
             info["profiling_dir"] = None
         out.setdefault("uproject_info", []).append(info)
 
+    for gpath in out["godot_projects"]:
+        out.setdefault("godot_info", []).append(godot_info(gpath, args.engine_root))
+    kinds = (["unreal"] if out["uprojects"] else []) + (["godot"] if out["godot_projects"] else [])
+    out["engine_kind"] = kinds[0] if len(kinds) == 1 else ("둘 다 — 사용자에게 확인" if kinds else "모름")
+
     out["doc_folders"] = sorted(([k, n] for k, n in md_count.items() if n >= 5), key=lambda x: -x[1])[:15]
 
     # 테스트 코드 흔적: 프로젝트 파일 옆 Source 폴더를 먼저 보고, 프로젝트 파일이 없을 때만 찾은 Source 폴더를 본다
@@ -257,7 +344,8 @@ def main():
         sd = os.path.join(os.path.dirname(info["path"]), "Source")
         if os.path.isdir(sd):
             project_sources.append(sd)
-    scan_dirs = project_sources or source_dirs[:5]
+    # Godot 프로젝트만 있으면 언리얼 Source 폴더를 찾아 보지 않는다
+    scan_dirs = project_sources or ([] if out["godot_projects"] else source_dirs[:5])
     out["test_scan_dirs"] = scan_dirs
     tbudget = Budget(max(5.0, args.seconds / 2), 50000)
     for sd in scan_dirs:
@@ -269,6 +357,25 @@ def main():
                 try:
                     with open(fp, "rb") as f:
                         if TEST_PATTERNS.search(f.read(2_000_000)):
+                            out["test_files"].append(fp)
+                except OSError:
+                    continue
+            if len(out["test_files"]) >= 30:
+                break
+    # Godot: 프로젝트 폴더의 .gd·.cs 에서 테스트 틀을 찾는다. addons 안(테스트 틀 자체와 그 예제)은 보지 않는다
+    for gpath in out["godot_projects"]:
+        gdir = os.path.dirname(gpath)
+        out["test_scan_dirs"].append(gdir + " (addons 제외)")
+        for path, depth, dirs, files in walk(gdir, 10, tbudget, skip_plugins=False):
+            if os.path.relpath(path, gdir).split(os.sep)[0] == "addons":
+                continue
+            for name in files:
+                if not name.endswith((".gd", ".cs")):
+                    continue
+                fp = os.path.join(path, name)
+                try:
+                    with open(fp, "rb") as f:
+                        if GODOT_TEST_PATTERNS.search(f.read(2_000_000)):
                             out["test_files"].append(fp)
                 except OSError:
                     continue
@@ -288,9 +395,13 @@ def main():
             print("- 버전 관리: {} ({})".format(v["type"], v["evidence"]))
     else:
         print("- 버전 관리: 찾지 못함 — 사용자에게 확인")
+    print("- 엔진 종류 (engine.kind): " + out["engine_kind"])
     infos = out.get("uproject_info", [])
-    if not infos:
+    if not infos and not out["godot_projects"]:
         print("- 언리얼 프로젝트 파일: 찾지 못함 (깊이 {} 까지)".format(args.max_depth))
+        print("- Godot 프로젝트 파일(project.godot): 찾지 못함 (깊이 {} 까지)".format(args.max_depth))
+    for g in out.get("godot_info", []):
+        print_godot_info(g)
     for info in infos:
         print("- 프로젝트 파일: " + info["path"])
         if "error" in info:

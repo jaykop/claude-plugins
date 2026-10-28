@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """언리얼 프로젝트의 모듈 의존 지도를 만든다 (TD 고문 구조 점검의 '모듈 의존' 범위).
 
+Godot 프로젝트(--engine godot, 또는 project.godot 만 있을 때)는 godot_graph.py 가 만든다. 아래 설명은 언리얼 기준이다.
+
 읽기만 한다. 프로젝트·엔진 파일을 고치지 않고, 결과는 표준 출력으로만 낸다.
 
 읽는 것
@@ -389,8 +391,22 @@ def layer_draft(nodes, adj):
     return sorted((k, sorted(v)) for k, v in levels.items())
 
 
+def engine_kind(root, args):
+    """--engine auto 면 프로젝트 파일 이름으로, 그것도 없으면 .uproject 가 없고 project.godot 가 있을 때만 godot."""
+    if args.engine != "auto":
+        return args.engine
+    if args.project_file:
+        return "godot" if os.path.basename(args.project_file).lower() == "project.godot" else "unreal"
+    if find_uproject(root, None):
+        return "unreal"
+    for path, files in walk(root, Budget(20), max_depth=3):
+        if "project.godot" in files:
+            return "godot"
+    return "unreal"
+
+
 def main():
-    ap = argparse.ArgumentParser(description="언리얼 프로젝트의 모듈 의존 지도를 만든다. 읽기만 한다.")
+    ap = argparse.ArgumentParser(description="언리얼·Godot 프로젝트의 모듈 의존 지도를 만든다. 읽기만 한다.")
     ap.add_argument("project_root", help="프로젝트 루트 폴더. 결과의 경로는 이 폴더 기준 상대 경로다")
     ap.add_argument("--project-file", help="프로젝트 파일(.uproject). 상대 경로면 프로젝트 루트 기준. 없으면 깊이 3 까지 찾는다")
     ap.add_argument("--source-roots", nargs="*", default=[], help="게임 코드 폴더들. 와일드카드를 쓸 수 있다(예: 'Plugins/*/Source'). 없으면 프로젝트 파일 옆 Source 와 Plugins")
@@ -405,12 +421,21 @@ def main():
     ap.add_argument("--top", type=int, default=20, help="순위 표의 줄 수 (기본 20)")
     ap.add_argument("--seconds", type=float, default=120.0,
                     help="Build.cs·엔진 읽기 시간 상한 초 (기본 120). include 세기는 이 값의 절반을 따로 쓴다")
+    ap.add_argument("--engine", choices=("auto", "unreal", "godot"), default="auto",
+                    help="엔진 종류 (프로필 engine.kind). auto 면 프로젝트 파일 이름이나 폴더의 .uproject·project.godot 로 정한다. "
+                         "godot 이면 godot_graph.py 가 지도를 만든다")
+    ap.add_argument("--unit-depth", type=int, default=1,
+                    help="Godot 만: addons 밖 모듈을 프로젝트 폴더 아래 몇 단계 폴더로 나눌지 (기본 1)")
+    ap.add_argument("--max-bytes", type=int, default=4_000_000, help="Godot 만: 이보다 큰 파일은 읽지 않는다 (기본 4MB)")
     args = ap.parse_args()
 
     root = norm(args.project_root)
     if not os.path.isdir(root):
         print("오류: 프로젝트 루트 폴더가 없다 — " + root)
         return 2
+    if engine_kind(root, args) == "godot":
+        import godot_graph
+        return godot_graph.run(args)
     uproject = find_uproject(root, args.project_file)
     if not uproject:
         print("오류: 프로젝트 파일을 정하지 못했다. --project-file 로 지정할 것")
