@@ -27,7 +27,7 @@ engine:
   source_build:               # true 면 소스 빌드(커스텀 엔진)
   root:                       # 엔진 폴더 경로. 언리얼은 소스 빌드가 아니어도(런처 설치본) 적는다. 콘솔 명령·설정 이름이 실제로 있는지 엔진 소스에서 확인할 때 쓴다. Godot 은 커스텀 빌드일 때만 엔진 소스 폴더(version.py 가 있는 곳)
 
-source_roots: []              # 게임 코드 폴더 (design · radar · perf · td 공용). `Plugins/*/Source` 같은 패턴을 쓸 수 있다. Godot 은 비우면 프로젝트 폴더 전체
+source_roots: []              # 게임 코드 폴더 (design · radar · perf · td 공용). `Plugins/*/Source` 같은 패턴을 쓸 수 있다. Godot 은 비우면 project.godot 가 있는 폴더 전체다. 그 폴더가 하위 폴더(예: game/)면 바깥 코드는 범위 밖이므로, 같이 볼 때는 프로젝트 폴더와 바깥 폴더를 모두 적는다
 project_file:                 # 프로젝트 파일. 예: Game/MyGame.uproject, project.godot
 
 vcs: git                      # git / p4 / 기타

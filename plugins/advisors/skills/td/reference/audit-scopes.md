@@ -13,6 +13,7 @@
    python "<스킬 폴더>/scripts/module_graph.py" "<프로젝트 루트>" --project-file "<project_file>" [--source-roots "<폴더1>" "<폴더2>"] [--extra-roots "<폴더1>" "<폴더2>"] [--engine-root "<engine.root>"] [--exclude "<제외 경로1>" "<제외 경로2>"] --includes [--layer "<층 이름>=<모듈1>,<모듈2>" ...] [--layer-draft]
    ```
    - `--layer` 는 TD 기록의 층 규칙(TD-L) 행을 아래 층부터 순서대로 준다. 행이 없으면 빼고 `--layer-draft` 를 준다.
+   - Godot 이면 결과 머리에 "--unit-depth N 로 다시 돌릴 것" 주의가 있을 때 그 값으로 다시 돌린다(engine-godot.md §4).
    - 간선은 Build.cs 나 프로젝트 파일에 적힌 의존 선언 하나다. 같은 두 모듈이라도 Public 과 동적 로드로 따로 적혀 있으면 둘로 센다.
    - `--engine-root` 가 없으면 엔진 모듈의 종류를 몰라 런타임 → 에디터 의존 검사가 프로젝트 모듈끼리만 된다. 결과의 "종류를 몰라 검사하지 못한 의존 대상 모듈" 수를 "확인 못 한 것"에 옮긴다.
    - 결과 끝 "해석 못 한 줄"에 걸린 의존(일부만 해석한 줄 포함)은 표에 없다. 그 모듈의 간선 수는 최소값으로 읽는다.

@@ -60,6 +60,7 @@
 
 - **모듈 지도**(SKILL.md, audit-scopes.md §1): 명령은 그대로다. 결과 머리가 "— Godot"이면 Godot 판이다.
   - 모듈은 폴더다. `addons/<이름>` 은 애드온 하나, 그 밖은 프로젝트 폴더 바로 아래 폴더 하나다. 더 잘게 보려면 `--unit-depth 2` 를 준다.
+  - 코드가 `scripts/` 같은 폴더 하나에 몰린 프로젝트(Godot 에서 흔하다)는 모듈이 하나로 뭉친다. 결과 머리에 "--unit-depth N 로 다시 돌릴 것" 주의가 있으면 그 값으로 다시 돌리고, 리포트에는 다시 돌린 결과를 쓴다. 쓴 `--unit-depth` 값은 TD 기록 판정 기준 표에 적어 다음 점검도 같은 값으로 돌린다.
   - 간선은 참조 종류(preload, extends, class_name 사용, autoload 사용, 씬·리소스 참조, 셰이더 include, C# using, 동적 로드, 경로 문자열)마다 묶어 센다. 순환 의존과 층 판정에서는 동적 로드와 경로 문자열을 뺀다.
   - `--engine-root`, `--includes` 는 쓰지 않는다. 주면 무시하고 "주의"로 적는다.
   - 판정 표 바꿔 읽기:
@@ -99,6 +100,7 @@
      - 이미 뺀 방식(선례): `@export`, `\[Export\]`, `Resource` 를 상속한 데이터 클래스와 `.tres`, `ProjectSettings\.get_setting`, `.json`·`.csv` 데이터 파일
   6. 자동 시험
      - 테스트 수: `extends\s+(GutTest|GdUnitTestSuite)` 파일의 `func\s+test_`, `\[TestSuite\]` 파일의 `\[TestCase\]`
+     - 자체 테스트 러너: 알려진 틀을 쓰지 않고 `extends Node` 스크립트와 씬으로 직접 만든 러너가 흔하다. `profile_scan.py` 결과의 "자체 러너 후보"(테스트 폴더나 `test_*.gd`·`run_all.gd` 같은 이름)와 "--headless 실행"(실행 스크립트·CI 설정의 줄)을 analyst 에 넘겨, 러너마다 확인 함수 호출 수와 실패를 종료 코드로 내는지(`get_tree\(\)\.quit\(` 에 넘기는 값)를 받는다. 결과는 "알려진 틀 기준 N 개, 자체 러너 M 개(확인 N 곳)"처럼 나눠 적는다. 알려진 틀이 0 이어도 자체 러너가 있으면 "없음"으로 분류하지 않는다
      - 화면 없이 돌리는 명령이 적힌 곳(프로젝트 스크립트와 CI 설정): `--headless`, `--script`·`-s`, `--quit`, `--quit-after`, GUT·gdUnit4 명령줄 실행 스크립트(확인 필요), `extends\s+(SceneTree|MainLoop)` 스크립트. 명령은 실행하지 않는다
 
 ## 5. 최적화 고문(perf)
@@ -107,6 +109,26 @@
   - 에디터 디버거의 프로파일러·비주얼 프로파일러·모니터는 화면 도구다. 화면에 뜬 숫자는 근거로 쓰지 않는다(measure.md §5). 파일로 남긴 값만 쓴다.
   - 프레임별 CSV: 게임 안에서 `Performance.get_monitor()` 값을 프레임마다 CSV 한 행으로 쓰는 측정용 스크립트(보통 autoload)가 있으면, 머리 행 하나와 프레임 행들인 CSV 라서 `csv_profile_stat.py` 로 그대로 집계한다. 측정 시간 모니터 값의 단위(초인지 ms 인지)는 대상 버전 문서로 확인하고(확인 필요), `--budget-ms`·`--hitch-ms` 와 비교하려면 ms 로 쓴 열을 고른다. 그런 스크립트가 없으면 측정 계획에 "측정용 스크립트 명세"(남길 모니터 이름, 열 이름, 단위, 파일 위치)를 넣고 `code_change_entry` 나 사용자에게 넘긴다. 고문이 스크립트를 쓰지 않는다(rules.md §7).
   - 렌더링 CPU·GPU 시간은 `RenderingServer` 의 뷰포트 렌더 시간 측정 기능(확인 필요)으로 같은 CSV 에 넣는다.
+  - 측정용 스크립트 명세의 기본형은 아래다. 측정 계획에 그대로 옮기고, 프로젝트에 맞게 열을 빼거나 더한다. 모니터·메서드 이름과 단위는 모두 확인 필요라서, 명세를 넘길 때 "대상 버전 문서로 이름과 단위를 확인할 것"을 함께 적는다.
+
+    | 열 이름 | 값 | 단위 |
+    |---|---|---|
+    | `Frame` | 기록 시작 뒤 프레임 번호 | 개 |
+    | `FrameTime` | `_process` 의 `delta` × 1000 | ms |
+    | `ProcessTime` | `Performance.TIME_PROCESS` × 1000 | ms |
+    | `PhysicsTime` | `Performance.TIME_PHYSICS_PROCESS` × 1000 | ms |
+    | `RenderCpuTime` | 뷰포트의 측정 렌더 CPU 시간 | ms |
+    | `RenderGpuTime` | 뷰포트의 측정 렌더 GPU 시간 | ms |
+    | `DrawCalls` | `Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME` | 개 |
+    | `Objects` | `Performance.OBJECT_COUNT` | 개 |
+    | `Nodes` | `Performance.OBJECT_NODE_COUNT` | 개 |
+    | `StaticMemMB` | `Performance.MEMORY_STATIC` ÷ 1048576 | MB |
+
+    - 머리 행 한 줄 뒤에 프레임마다 한 행을 쓴다. `csv_profile_stat.py` 가 그대로 읽는다(`--stats "FrameTime,ProcessTime,PhysicsTime,RenderCpuTime,RenderGpuTime"`).
+    - 파일 이름에 시나리오 ID 와 반복 번호를 넣는다(예: `S01_r1.csv`). 점검 기록의 "측정 파일 이름 규칙"이 이것을 읽는다.
+    - 저장 위치는 `perf.profiling_dir` 이다. 게임은 실행 중에 `user://` 에 쓰는 것이 보통이므로, 측정이 끝나면 그 폴더로 옮기는 방법도 명세에 적는다.
+    - 측정 조건(수직 동기화, 프레임 상한, 해상도, 렌더러, 빌드 종류)은 파일 끝에 남기지 말고 측정 조건 표에 사람이 적는다. `csv_profile_stat.py` 의 메타데이터 행 형식을 따로 맞추지 않아도 된다.
+    - 워밍업 프레임은 기록 뒤 `--skip-frames` 로 뺀다.
   - 명령줄 측정 조건: 수직 동기화 끄기, 고정 프레임(`--fixed-fps`), FPS 출력(`--print-fps`), 시작 시간 측정(`--benchmark`, `--benchmark-file`) — 모두 확인 필요.
   - GPU 캡처는 외부 그래픽 디버거로 한다. C# 의 GC 와 할당은 .NET 진단 도구로 잰다.
   - `profile_scan.py` 의 측정 파일 폴더 줄은 "정해진 폴더가 없다"로 나온다. 그때만 `perf.profiling_dir` 을 묻는다.
@@ -129,7 +151,7 @@
 | `engine.source_build` | 사용자에게 묻는다 |
 | `engine.root` | 커스텀 빌드일 때만 엔진 소스 폴더 |
 | `project_file` | `project.godot` 의 경로 |
-| `source_roots` | 비우면 프로젝트 폴더 전체. 게임 코드 폴더만 보려면 그 폴더들을 적는다 |
+| `source_roots` | 비우면 `project.godot` 가 있는 폴더 전체. 게임 코드 폴더만 보려면 그 폴더들을 적는다. `project.godot` 가 하위 폴더(예: `game/`)에 있으면 그 바깥 코드(도구 스크립트 등)는 범위 밖이다. 같이 보려면 `source_roots` 에 바깥 폴더까지 모두 적는다(이때 프로젝트 폴더도 함께 적는다) |
 | `radar.engine_mod_dirs` | 커스텀 빌드면 엔진 소스 아래 폴더(상대 경로는 `engine.root` 기준), 고쳐 쓰는 애드온이면 `addons/<이름>`(프로젝트 루트 기준) |
 | `perf.profiling_dir` | 측정용 스크립트가 CSV 를 남기는 폴더 |
 | `perf.test_command` | GUT·gdUnit4 의 명령줄 실행 명령 |

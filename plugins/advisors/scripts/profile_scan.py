@@ -32,6 +32,10 @@ TEST_PATTERNS = re.compile(
 GODOT_TEST_PATTERNS = re.compile(
     rb"^\s*extends\s+(GutTest|GdUnitTestSuite|WAT\.Test)\b|^\s*\[TestSuite\]", re.M
 )
+# 알려진 틀 밖의 자체 테스트 러너 후보 이름 (test_*.gd, *_test.gd, run_tests.gd 등)
+GODOT_TEST_NAME = re.compile(r"^(test_.*|.*_tests?|run_(all|tests?)|tests?_runner)\.gd$")
+# --headless 실행 명령을 찾을 실행 스크립트·CI 설정
+RUN_SCRIPT_EXT = (".sh", ".bat", ".cmd", ".ps1", ".yml", ".yaml", ".toml", ".py", ".json")
 
 
 class Budget:
@@ -221,7 +225,7 @@ def godot_info(gpath, engine_hint):
     return info
 
 
-def print_godot_info(info):
+def print_godot_info(info, root):
     print("- Godot 프로젝트 파일: " + info["path"])
     if "error" in info:
         print("  - " + info["error"])
@@ -246,6 +250,9 @@ def print_godot_info(info):
         print("  - 내보내기 플랫폼(export_presets.cfg): " + ", ".join(info["export_platforms"]))
     print("  - 측정 파일 폴더: Godot 은 정해진 폴더가 없다 — 사용자에게 확인")
     print("  - source_roots 후보: 프로젝트 폴더(res://) 전체. addons 는 외부 애드온이면 뺀다")
+    if os.path.dirname(info["path"]) != root:
+        print("  - 주의: project.godot 가 프로젝트 루트가 아니라 하위 폴더에 있다. 비워 두면 그 바깥 코드(도구 스크립트 등)는 범위 밖이다. "
+              "같이 볼 폴더가 있으면 source_roots 에 프로젝트 폴더와 함께 적는다")
 
 
 def main():
@@ -381,6 +388,37 @@ def main():
                     continue
             if len(out["test_files"]) >= 30:
                 break
+    # 알려진 틀 밖의 자체 테스트 러너 후보: 테스트 폴더나 이름의 .gd, 그리고 실행 스크립트·CI 설정의 --headless 실행
+    out["godot_test_candidates"], out["godot_headless_cmds"] = [], []
+    known = set(out["test_files"])
+    for gpath in out["godot_projects"]:
+        gdir = os.path.dirname(gpath)
+        for path, depth, dirs, files in walk(gdir, 10, tbudget, skip_plugins=False):
+            rel = os.path.relpath(path, gdir).split(os.sep)
+            if rel[0] == "addons":
+                continue
+            in_test_dir = any(p.lower() in ("test", "tests") for p in rel)
+            for name in files:
+                low = name.lower()
+                fp = os.path.join(path, name)
+                if low.endswith(".gd") and fp not in known and (in_test_dir or GODOT_TEST_NAME.match(low)):
+                    out["godot_test_candidates"].append(fp)
+    # 실행 명령은 저장소 쪽(프로젝트 루트)에서 찾는다. project.godot 가 하위 폴더에 있어도 CI 설정은 위에 있다
+    if out["godot_projects"]:
+        for path, depth, dirs, files in walk(root, 4, tbudget, skip_plugins=False):
+            if os.path.relpath(path, root).split(os.sep)[0] == "addons":
+                continue
+            for name in files:
+                if not (name.lower().endswith(RUN_SCRIPT_EXT) or name in ("Makefile", "justfile")):
+                    continue
+                fp = os.path.join(path, name)
+                try:
+                    with open(fp, "rb") as f:
+                        for no, line in enumerate(f.read(1_000_000).splitlines(), 1):
+                            if b"--headless" in line:
+                                out["godot_headless_cmds"].append("{}:{}".format(fp, no))
+                except OSError:
+                    continue
     if tbudget.hit:
         out["notes"].append("테스트 코드 검색이 {} 로 중단됨 — 0건이어도 '없음'으로 단정하지 말 것.".format(tbudget.hit))
 
@@ -401,7 +439,7 @@ def main():
         print("- 언리얼 프로젝트 파일: 찾지 못함 (깊이 {} 까지)".format(args.max_depth))
         print("- Godot 프로젝트 파일(project.godot): 찾지 못함 (깊이 {} 까지)".format(args.max_depth))
     for g in out.get("godot_info", []):
-        print_godot_info(g)
+        print_godot_info(g, root)
     for info in infos:
         print("- 프로젝트 파일: " + info["path"])
         if "error" in info:
@@ -434,6 +472,15 @@ def main():
             print("  - " + fp)
     else:
         print("- 자동화 테스트 파일: 찾지 못함 (검색한 폴더: " + ", ".join(out["test_scan_dirs"]) + ")")
+    if out["godot_projects"]:
+        cands, cmds = out["godot_test_candidates"], out["godot_headless_cmds"]
+        print("- Godot 테스트: 알려진 틀(GUT·gdUnit4·WAT) 기준 {} 개, 자체 러너 후보 {} 개, --headless 실행 명령 {} 곳. "
+              "알려진 틀 밖의 테스트 수는 세지 못한다 — 후보가 있으면 '테스트 없음'으로 읽지 말고 사용자에게 확인".format(
+                  len(out["test_files"]), len(cands), len(cmds)))
+        for fp in cands[:10]:
+            print("  - 자체 러너 후보: " + fp)
+        for loc in cmds[:10]:
+            print("  - --headless 실행: " + loc)
     for n in out["notes"]:
         print("- 주의: " + n)
     return 0

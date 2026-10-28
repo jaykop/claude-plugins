@@ -335,6 +335,14 @@ def run(args):
     unit_files = {}
     for fp in texts:
         unit_files.setdefault(unit_of(fp), []).append(fp)
+    # 코드가 폴더 하나(예: scripts/)에 몰리면 모듈이 하나로 뭉쳐 순환·층 판정이 뜻을 잃는다
+    code_count = {u: sum(f.endswith((".gd", ".cs")) for f in fs) for u, fs in unit_files.items()}
+    total_code = sum(code_count.values())
+    if total_code >= 10:
+        top_unit, top_n = max(code_count.items(), key=lambda kv: kv[1])
+        if top_n / total_code >= 0.6:
+            notes.append("코드 파일(.gd·.cs) {} 개 가운데 {} 개({:.0f}%)가 모듈 '{}' 하나에 있다. 순환 의존과 층 판정이 뭉개지므로 "
+                         "--unit-depth {} 로 다시 돌릴 것".format(total_code, top_n, 100.0 * top_n / total_code, top_unit, depth + 1))
 
     def unit_kind(u):
         if u not in unit_files:
