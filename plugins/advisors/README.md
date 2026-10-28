@@ -11,6 +11,8 @@
 | PM 고문 | `/advisors:pm` | 다음 작업 / 주간 점검 / 마일스톤 계획 / 마일스톤 회고 / 범위 판단 / 플레이테스트 계획 | 트래커와 작업 가능 시간으로 다음 작업을 고르고, 마일스톤 용량·위험·회고를 관리하고, 다른 고문의 정기 점검과 플레이테스트 주기를 한 표로 관리 |
 | TD(테크니컬 디렉터) 고문 | `/advisors:td` | 설계 검토 / 구조 점검 | 우리 코드·로컬 엔진 소스·팀 문서에서 답이 나오는 기술 판단. 엔진 기능 대 자체 구현, 구조 선택, 새 기능의 구조, 되풀이되는 버그의 구조, 기획 기능의 기술 타당성, 모듈 의존, 엔진 수정 블록, 기술 부채, 에이전트 검증 가능성(난수 경로·상태 재현·텍스트 출력 등). 웹은 조건이 맞을 때 1차 출처만 찾고 커뮤니티 글은 읽지 않는다 |
 
+언리얼과 Godot 프로젝트를 읽는다. 고문 문서는 언리얼 기준으로 쓰여 있고, Godot 프로젝트(`project.godot`)에서는 고문이 [shared/engine-godot.md](shared/engine-godot.md) 대로 낱말·명령·단계를 바꿔 읽는다. 엔진 종류는 프로필 `engine.kind` 로 정하고, 처음 프로필을 만들 때 자동으로 채운다.
+
 명령 이름을 외우지 않아도 된다. "이 아이디어 넣어도 될까?", "요즘 언리얼 소식 정리해 줘", "우리 게임 시장성 어때?", "전투 중 프레임 떨어지는 원인 찾아 줘", "이번 주 점검해 줘", "이 두 구조 중 뭐가 나아?" 같은 말로도 해당 고문이 불린다.
 
 기술 질문은 답이 어디에 있는지로 가른다. 우리 코드·로컬 엔진 소스·팀 문서에 있으면 TD 고문, 바깥(새 발표, 다른 엔진 버전, 외부 제품)에 있으면 기술 동향 고문이다. 기술 이름이 나왔다는 것만으로 기술 동향 고문이 아니다. 이미 쓰는 기술을 우리 코드에서 어떻게 쓸지, 자체 구현을 엔진 기능으로 옮길지는 TD 고문이다. 우리가 쓰는 엔진 기능의 알려진 버그만 묻는다면 기술 동향 고문이다. 기능 하나를 두고는 재미·원칙은 기획 고문, 만들 수 있는지·어느 구조로 만들지는 TD 고문, 이번 마일스톤에 넣을지·언제 할지는 PM 고문이 본다. 고문 사이 기준과 "우리 트리"의 뜻은 [shared/routing.md](shared/routing.md) 에 있다.
@@ -26,7 +28,7 @@
 
 2. 프로젝트 폴더에서 Claude Code 를 열고 아무 고문이나 부른다.
 3. 고문이 "이 프로젝트에 고문 프로필이 없어요. 만들까요?"라고 묻는다. 동의하면:
-   - 프로젝트 파일에서 알 수 있는 값(버전 관리 종류, 엔진 버전, 켜진 플러그인, 문서 폴더, 테스트 파일, 측정 파일 폴더)은 자동으로 채운다.
+   - 프로젝트 파일에서 알 수 있는 값(버전 관리 종류, 엔진 종류, 엔진 버전, 켜진 플러그인, 문서 폴더, 테스트 파일, 측정 파일 폴더)은 자동으로 채운다.
    - 공통 값과 지금 부른 고문의 값만 묻는다. 다른 고문의 값은 그 고문을 처음 부를 때 묻는다.
    - 모르는 값은 비워 둬도 된다. 그 값이 필요한 단계만 건너뛰고 리포트에 "확인 못 한 것"으로 남긴다.
 
@@ -155,14 +157,15 @@ plugins/advisors/
 │  ├─ market/    시장 동향 고문 (SKILL.md, reference/, scripts/steam_reviews.py, market_calc.py)
 │  ├─ perf/      최적화 고문 (SKILL.md, reference/, scripts/csv_profile_stat.py)
 │  ├─ pm/        PM 고문 (SKILL.md, reference/, scripts/pm_calc.py)
-│  └─ td/        TD 고문 (SKILL.md, reference/, scripts/module_graph.py)
+│  └─ td/        TD 고문 (SKILL.md, reference/, scripts/module_graph.py, godot_graph.py)
 ├─ agents/
 │  ├─ web-scout.md   웹 수집 전용
 │  └─ analyst.md     파일 읽기 전용
-├─ shared/           고문 공통 규칙·양식, 고문 고르는 기준(routing.md)
+├─ shared/           고문 공통 규칙·양식, 고문 고르는 기준(routing.md), Godot 바꿔 읽기(engine-godot.md)
 ├─ evals/            시험 질문 (claude plugin eval 형식, 고문별 폴더)
 ├─ scripts/          profile_scan.py (프로필 자동 채우기), due_check.py (때가 된 점검 찾기),
-│                    tech_inventory.py (기술 목록·엔진 수정 블록 — radar·td), vcs_churn.py (변경 이력 — perf·td)
+│                    tech_inventory.py (기술 목록·엔진 수정 블록 — radar·td. Godot 판은 tech_inventory_godot.py),
+│                    godot_project.py (Godot 설정 파일 읽기), vcs_churn.py (변경 이력 — perf·td)
 └─ hooks/            세션 시작 알림
 ```
 
@@ -194,4 +197,5 @@ plugins/advisors/
 - **PM 고문의 이슈 순서는 라벨만 본 초안이다.** 선행 관계(Blocked by)는 읽지 않는다. 순서 확정과 이슈 게시는 프로필 `pm.next_task_entry` 의 스킬(예: workflow 플러그인의 `next-task`)에 넘긴다. 규모 라벨이 없는 이슈는 용량 계산에서 빠지고 따로 센다.
 - **고문의 기본 판정 기준은 일반론이다.** 각 고문의 reference 파일(예: PM 고문의 [methods.md](skills/pm/reference/methods.md))은 어느 프로젝트에나 맞는 기준이다. 팀이 쓰는 교재나 사내 기준이 있으면 요약 노트를 프로필 `<고문>.knowledge_dir` 에 두면 그 노트를 먼저 따른다. 노트 원문은 리포트에 옮기지 않으므로 비공개 자료여도 된다.
 - **최적화 고문은 측정 파일이 있어야 병목을 말한다.** 측정이 없으면 코드에서 찾은 것은 "후보"로만 적고, 첫 결과물은 측정 계획이다.
+- **Godot 지원은 바꿔 읽기다.** 고문 문서는 언리얼 기준이고, Godot 에서는 [engine-godot.md](shared/engine-godot.md) 의 표대로 바꿔 읽는다. 표에 없는 언리얼 전용 단계는 "Godot 에 해당 없음"으로 건너뛴다. 기술 목록과 모듈 지도의 사용 흔적·참조는 텍스트로 보이는 것(res:// 경로, class_name, autoload, 씬의 ext_resource, C# namespace)만 센다. C# 클래스 이름으로 쓰는 것, GDExtension 이 등록한 클래스, 이진 리소스(.res, .scn) 안의 참조는 세지 못한다. Godot 에는 정해진 측정 파일이 없어서, 최적화 고문이 병목을 말하려면 게임 안 측정 스크립트가 남긴 프레임별 CSV 가 있어야 한다. 그 파일에 "(확인 필요)"가 붙은 명령·클래스 이름은 대상 버전 문서로 확인한 뒤에 쓴다.
 - **에이전트 이름 호출.** 스킬은 `advisors:web-scout`, `advisors:analyst` 를 이름으로 부른다. 이 이름을 찾지 못하는 환경이면 메인 대화에서 같은 규칙으로 수집하고, 리포트에 그 사실을 적는다.

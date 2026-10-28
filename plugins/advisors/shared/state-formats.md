@@ -14,7 +14,8 @@
 ## radar-inventory.md — 프로젝트 기술 목록
 
 - 만드는 고문: radar. 읽는 고문: perf, design(구현 확인 보조), td(이미 쓰는 기술과 성숙도 표시).
-- 다시 만드는 조건: 엔진 버전 파일, 프로젝트 파일(.uproject 등), Config 폴더, 게임 코드의 빌드 설정(Build.cs)이 바뀌었을 때, 또는 마지막 갱신이 프로필 `stale_after_days` 보다 오래됐을 때. 어느 쪽도 아니면 다시 만들지 않고 날짜만 확인한다.
+- 다시 만드는 조건: 엔진 버전 파일, 프로젝트 파일(.uproject 등), Config 폴더, 게임 코드의 빌드 설정(Build.cs)이 바뀌었을 때, 또는 마지막 갱신이 프로필 `stale_after_days` 보다 오래됐을 때. 어느 쪽도 아니면 다시 만들지 않고 날짜만 확인한다. Godot 이면 엔진 version.py(커스텀 빌드), project.godot, export_presets.cfg, C# 프로젝트 파일, plugin.cfg, .gdextension 이 바뀌었을 때다.
+- Godot 판도 표와 상태 다섯 가지는 같다. 엔진 표에는 "엔진: Godot" 행이 맨 위에 있고, 플러그인 행은 addons 폴더(에디터 플러그인·GDExtension·스크립트 애드온)와 addons 밖 .gdextension 이다. 상태의 Godot 뜻은 목록 끝 설명에 있다.
 - 아래 표에 행을 더해도 된다(예: 프로젝트 모듈, 프로젝트 파일의 대상 플랫폼, 입력 지문). 끝에 `## 만든 방법과 검색 기록` 을 둬서 검색 범위, 상한, 실패 여부, 직전 목록과 달라진 것을 적는다.
 
 ```markdown

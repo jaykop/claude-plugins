@@ -37,7 +37,7 @@
    ```
    python "<플러그인 폴더>/scripts/profile_scan.py" "<프로젝트 루트>"
    ```
-   `python` 이 없으면 `python3` 로 실행한다. 결과(버전 관리 종류, 프로젝트 파일, 엔진 버전, 문서가 많은 폴더 등)는 `[파일]` 출처로 채운다.
+   `python` 이 없으면 `python3` 로 실행한다. 결과(버전 관리 종류, 엔진 종류, 프로젝트 파일, 엔진 버전, 문서가 많은 폴더 등)는 `[파일]` 출처로 채운다. 엔진 종류가 "둘 다"로 나오면 묻는다. Godot 이면 칸마다 넣을 값은 `<플러그인 폴더>/shared/engine-godot.md` §6 에 있다.
 3. 남은 칸 중 **공통 칸과, 지금 부른 고문의 "필요한 프로필 값"에 적힌 칸만** 묻는다(0-C 의 "Step 0 에서 묻지 않음" 예외는 같다). 나머지 칸은 그 칸이 필요한 고문을 처음 부를 때 묻는다. 한 번에 다 묻고, 모르는 값은 비워 둬도 된다고 알려 준다.
 4. 특히 다음은 추측으로 채우지 않는다: `decision_owners`, `user_role`, `team_size`, `search_banned_terms`, `search_banned_combos`, `design.principles_status`, `perf.budgets`.
 5. 저장 위치는 `<프로젝트 루트>/.claude/advisors/profile.md`. 버전 관리에 올릴지는 사용자에게 맡긴다. git 프로젝트이고 `share_scope` 가 personal 이면 `.gitignore` 에 넣을지 묻는다.
@@ -65,6 +65,11 @@
    - 리포트 머리 "범위"에 읽은 행 ID 를 적는다(예: "결과 표시 FB-0003, FB-0007 읽음"). 읽을 행이 없으면 "결과 표시 없음"이다.
    - 원인이 비었거나 "모름"인 행은, 대화 실행이면 리포트 항목을 다시 보고 원인을 가린다. Step Final 에서 그 칸에 쓴다. 가리지 못하면 "모름"으로 둔다. 무인 실행이면 그대로 둔다.
    - 읽은 행이 10개 이상이면 정리를 제안한다. 대화 실행은 Step Final 의 후속 제안에 "반영 전 표시가 N건 쌓였어요. 원인별로 고칠 곳을 정리해 드릴까요?"를 넣는다. 동의하면 대화에 원인별 묶음(행 ID, state-formats.md "원인별 고칠 곳"의 후보)을 내고, 파일은 고치지 않는다. 무인 실행은 리포트 머리 "범위"에 "반영 전 N건 — 정리 필요"를 적는다.
+
+### 0-G. 엔진 종류
+고문 문서는 언리얼 기준으로 쓰여 있다. 프로필 `engine.kind` 가 `godot` 이면 `<플러그인 폴더>/shared/engine-godot.md` 를 읽고, SKILL.md 가 가리키는 절대로 바꿔 읽는다. design·market·pm 은 엔진에 묶인 단계가 없어 읽지 않아도 된다.
+- `engine.kind` 가 비어 있으면 `project_file` 이 `project.godot` 일 때, 또는 프로젝트 루트 아래 깊이 3 까지 `.uproject` 가 없고 `project.godot` 가 있을 때(Glob) Godot 으로 본다. 대화 실행에서는 그 값을 프로필에 `[파일]` 출처로 적는다.
+- 그 밖에는 언리얼(`unreal`)로 본다.
 
 ## Step Final — 마무리
 

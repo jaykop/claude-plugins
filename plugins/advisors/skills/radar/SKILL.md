@@ -88,7 +88,7 @@ Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이
 
 ## Step 0 — 시작
 
-`${CLAUDE_PLUGIN_ROOT}/shared/start.md` 의 Step 0 을 읽고 따른다(`<고문>` = radar). 그다음 기술 동향 고문만의 일을 한다.
+`${CLAUDE_PLUGIN_ROOT}/shared/start.md` 의 Step 0 을 읽고 따른다(`<고문>` = radar). 그다음 기술 동향 고문만의 일을 한다. Godot 프로젝트면(start.md 0-G) 이 파일과 reference 의 언리얼 낱말·출처·단계를 `${CLAUDE_PLUGIN_ROOT}/shared/engine-godot.md` §2·§3 대로 바꿔 읽는다.
 
 1. `${CLAUDE_SKILL_DIR}/reference/verdict-rules.md` 와 `${CLAUDE_SKILL_DIR}/reference/sources.md` 를 읽는다.
 2. `<report_dir>/_state/radar-watchlist.md` 와 `source-checks.md` 를 읽는다. 없으면 이번 실행 끝에 만든다(형식: `${CLAUDE_SKILL_DIR}/reference/watchlist-format.md`, `${CLAUDE_PLUGIN_ROOT}/shared/state-formats.md`). source-checks 에서 다음을 모은다.

@@ -75,7 +75,7 @@ Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이
 start.md 0-C 에서 사용자가 프로필 만들기를 거절하면 아래 범위로만 한다.
 - 프로필 파일을 만들거나 고치지 않는다. 확인받은 팀 규칙 문서와 엔진 수정 표시는 이번 실행에만 쓰고, 리포트 머리 "범위"에 적는다.
 - 리포트 폴더는 기본값 `.claude/advisors/reports` 다. TD 고문의 `_state` 파일(td-ledger.md, td-debt.md, td-engine-mods.md)은 이 폴더의 `_state` 에 쓴다.
-- 프로젝트 파일은 Glob 으로 찾는다(깊이 4 까지, Engine·Templates·Samples 아래는 뺀다). 둘 이상 남으면 대화 실행에서 한 번 묻는다. 코드 범위는 그 프로젝트 파일 옆 Source·Plugins 다.
+- 프로젝트 파일은 Glob 으로 찾는다(깊이 4 까지, Engine·Templates·Samples 아래는 뺀다). 둘 이상 남으면 대화 실행에서 한 번 묻는다. 코드 범위는 그 프로젝트 파일 옆 Source·Plugins 다. `.uproject` 가 없고 `project.godot` 가 있으면(addons 아래는 뺀다) Godot 이다. 코드 범위는 그 폴더 전체이고 engine-godot.md 대로 바꿔 읽는다.
 - 버전 관리 명령은 하나도 쓰지 않는다(rules.md §7). `profile_scan.py` 도 돌리지 않는다. 버전 관리 명령을 실행하기 때문이다. 엔진 폴더는 프로젝트 파일 위쪽 폴더에서 `Engine/Build/Build.version` 을 Glob 으로 찾은 것만 쓴다. 기준 리비전은 "확인 못 함"이다.
 - 웹에서 찾지 않는다. 검색 금지어를 모르기 때문이다. 판정을 가르는 바깥 사실에 기대는 안에는 상한 규칙 T8 을 건다. W1 에 걸려도 "기술 동향 고문으로 먼저 볼까요?"라고 묻지 않는다. 기술 동향 고문도 프로필 없이는 검색 금지어를 모르기 때문이다. 리포트에 "프로필을 만든 뒤 기술 동향 고문에게 물을 것"으로 적는다.
 - 개발 단계를 묻지 않는다. 비어 있는 것으로 보고 T7 의 처리를 따른다.
@@ -97,7 +97,7 @@ start.md 0-C 에서 사용자가 프로필 만들기를 거절하면 아래 범�
 
 ## Step 0 — 시작
 
-`${CLAUDE_PLUGIN_ROOT}/shared/start.md` 의 Step 0 을 읽고 따른다(`<고문>` = td). 그다음 TD 고문만의 일을 한다.
+`${CLAUDE_PLUGIN_ROOT}/shared/start.md` 의 Step 0 을 읽고 따른다(`<고문>` = td). 그다음 TD 고문만의 일을 한다. Godot 프로젝트면(start.md 0-G) 이 파일과 reference 의 언리얼 낱말·검색식·단계를 `${CLAUDE_PLUGIN_ROOT}/shared/engine-godot.md` §2·§4 대로 바꿔 읽는다.
 
 1. `${CLAUDE_SKILL_DIR}/reference/choice-rules.md` 와 `${CLAUDE_SKILL_DIR}/reference/evidence.md` 를 읽는다. 구조 점검이면 `${CLAUDE_SKILL_DIR}/reference/audit-scopes.md` 도 읽는다.
 2. `<report_dir>/_state/td-ledger.md`(TD 기록)와 `td-debt.md`(기술 부채 기록)를 읽는다(형식: `${CLAUDE_SKILL_DIR}/reference/ledger-format.md`). 없으면 이번 실행 끝에 만든다. 기술 부채 구조 점검이 아닌 실행에서 td-debt.md 를 처음 만들 때는 부채 표를 비워 두고 머리의 마지막 갱신에 날짜 대신 "점검 전"을 적는다. 세션 시작 알림이 첫 부채 점검을 알리게 하기 위해서다.
