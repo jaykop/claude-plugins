@@ -25,7 +25,7 @@ argument-hint: "[thread 이름]"
 
 ### Step 1 — Thread 이름 결정
 
-1. **연결된 이슈가 있으면**: `<이슈번호>-<slug>` (예: `12-preview-gizmo-fix`). 이슈 번호가 없는 기존 메모면 이름 변경을 제안한다.
+1. **연결된 이슈가 있으면**: `<이슈번호>-<slug>` (예: `12-preview-gizmo-fix`). Jira 면 이슈 키를 쓴다(예: `ABC-12-preview-gizmo-fix`). 이슈 번호가 없는 기존 메모면 이름 변경을 제안한다.
 2. **작업 브랜치가 기본 브랜치가 아니면**: 브랜치 이름을 kebab-case 로 정리해 쓴다.
 3. **기본 브랜치에서 작업 중이면**: 대화 맥락에서 주제를 뽑는다. 영어 소문자 kebab-case.
 4. **모호하면 사용자에게 확인한다**: "이 thread 이름을 뭐로 할까요? (예: `timeline-editor-polish`)"

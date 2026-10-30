@@ -1,6 +1,6 @@
 ---
 name: next-task
-description: "'다음 뭐 해', '오늘 뭐 하지', '다음 작업', '새 이슈', '이슈 만들어', '이거 이슈로 남겨', '우선순위 다시 매겨' 같은 요청에 쓴다. GitHub 마일스톤과 중요도×규모 등급으로 오늘 쓸 수 있는 시간에 맞는 다음 작업을 고르거나, 새 이슈 초안에 중요도·규모·선행·마일스톤을 붙여 게시하거나, 이슈를 다시 채점한다. 구현은 하지 않고 feature-impl 로 넘긴다. 해당하지 않는 경우 — 코드 수정, 이슈 트래커가 GitHub 가 아닌 프로젝트."
+description: "'다음 뭐 해', '오늘 뭐 하지', '다음 작업', '새 이슈', '이슈 만들어', '이거 이슈로 남겨', '우선순위 다시 매겨' 같은 요청에 쓴다. GitHub 마일스톤과 중요도×규모 등급으로 오늘 쓸 수 있는 시간에 맞는 다음 작업을 고르거나, 새 이슈 초안에 중요도·규모·선행·마일스톤을 붙여 게시하거나, 이슈를 다시 채점한다. 구현은 하지 않고 feature-impl 로 넘긴다. 해당하지 않는 경우 — 하던 작업을 알려 주고 이어 가는 일(work-start), 코드 수정, 이슈 트래커가 GitHub 가 아닌 프로젝트."
 when_to_use: "작업을 시작하기 전 무엇을 할지 고를 때, 새 작업을 이슈로 남길 때, 마일스톤을 시작·이동하거나 범위가 바뀌어 이슈를 다시 채점할 때."
 argument-hint: "[다음 작업|새 이슈|다시 채점] [오늘 가능한 시간]"
 allowed-tools: Read, Glob, Grep, Bash(python *issue_priority.py), Bash(python3 *issue_priority.py), Bash(python *issue_priority.py --milestone *), Bash(python3 *issue_priority.py --milestone *), Bash(gh issue view *), Bash(gh issue list *), Bash(gh api repos/*/milestones*)

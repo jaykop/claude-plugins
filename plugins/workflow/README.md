@@ -4,6 +4,7 @@
 
 | 스킬 | 명령 | 하는 일 |
 |---|---|---|
+| work-start | `/workflow:work-start` | 세션을 시작할 때 진행 중 이슈·인계 메모·미제출 변경을 짧게 알려 주기, 고른 작업의 이슈 상태와 인계 메모 맞추기 |
 | next-task | `/workflow:next-task` | 오늘 시간에 맞는 다음 이슈 고르기, 새 이슈 초안·게시, 다시 채점 |
 | feature-impl | `/workflow:feature-impl` | 규모(Small/Large), 종류(feature/improvement/bug), 위험 등급(low/mid/high)을 판별해 구현하고, 에이전트 리뷰와 체크포인트로 마무리 |
 | feature-doc-sync | `/workflow:feature-doc-sync` | 영향받는 manual·devlog·plan 갱신(또는 문서 지시서 작성과 쓴 결과 대조), 이슈 결과 초안, 설명 변경 목록 정리 |
@@ -11,11 +12,11 @@
 | commit-doc-review | `/workflow:commit-doc-review` | 커밋 직전 빠진 문서 확인, `Docs-Reviewed:` 트레일러(feature-impl 작업이면 `Risk:`·`Tested:` 도) |
 | context-handoff | `/workflow:context-handoff` | 작업별 인계 메모 저장·갱신 |
 
-명령 이름을 외우지 않아도 된다. "다음 뭐 해", "이거 고쳐 줘", "문서 정리해", "커밋해", "여기까지 저장해 둬" 같은 말로도 불린다.
+명령 이름을 외우지 않아도 된다. "작업 시작", "다음 뭐 해", "이거 고쳐 줘", "문서 정리해", "커밋해", "여기까지 저장해 둬" 같은 말로도 불린다.
 
 ## 흐름
 
-1. `next-task` 로 이슈를 고르거나 만든다.
+1. 세션을 시작하면 `work-start` 가 하던 일을 알려 준다. 이어 갈 것이 없으면 `next-task` 로 이슈를 고르거나 만든다.
 2. `feature-impl` 이 구현한다. Small 은 바로 고치고, Large 는 요구 정리 → 탐색 → 계획(결정 카드) → 결정 확정 → 구현 → 에이전트 리뷰 → 테스트 가이드 순서다.
 3. 끝나면 체크포인트가 문서화(`feature-doc-sync`), 커밋(`commit-doc-review`), 이슈 상태, 인계(`context-handoff`)를 차례로 제안한다.
 
@@ -76,7 +77,7 @@ codex plugin marketplace add jaykop/claude-plugins
 | 칸 | 왜 필요한가 |
 |---|---|
 | `instructions`, `scope_sections`, `coding_rules` | 스킬이 규칙을 복사하지 않고 매번 지침의 해당 위치를 읽는다 |
-| `tracker`, `tracker_repo`, `tracker_public` | 이슈 연동 여부와 공개 저장소 주의 사항. `next-task` 는 `github` 일 때만 동작한다 |
+| `tracker`, `tracker_repo`, `tracker_public` | 이슈 연동 여부와 공개 저장소 주의 사항. `next-task` 는 `github` 일 때만 동작한다. `work-start` 는 `jira` 도 읽는다(`tracker_project`, `tracker_site`, `tracker_query`) |
 | `threads_dir` | 인계 메모 위치. 공개 저장소면 버전 관리에서 빠지는 폴더여야 한다 |
 | `verification` | `user` 면 빌드·테스트를 사용자가 맡는다 |
 | 본문 "변경 → 문서 대응표" | 커밋 전 검토할 문서를 고르는 표 |
@@ -113,7 +114,7 @@ Codex 에서 같은 동작이 필요하면 프로젝트의 `.codex/hooks.json` �
 plugins/workflow/
 ├─ .claude-plugin/plugin.json   Claude Code 매니페스트
 ├─ .codex-plugin/plugin.json    Codex 매니페스트 (같은 skills/ 를 쓴다)
-├─ skills/        next-task, feature-impl, feature-doc-sync, doc-draft, commit-doc-review, context-handoff
+├─ skills/        work-start, next-task, feature-impl, feature-doc-sync, doc-draft, commit-doc-review, context-handoff
 ├─ hooks/         hooks.json, run-py.sh, commit_gate.py, handoff_reminder.py
 ├─ scripts/       issue_priority.py, profile_reader.py
 └─ shared/        프로필 양식, 개인 프로필 양식, 등급 체계, 인계 메모 양식, 문서 지시서 양식, 리뷰 지시서, 리뷰 지침 양식
@@ -125,11 +126,14 @@ plugins/workflow/
 - Python 3.8 이상 (표준 라이브러리만 쓴다)
 - git
 - `next-task` 와 이슈 연동: 로그인된 `gh` CLI
+- `work-start` 의 Jira 조회: Atlassian MCP 서버
+- `work-start` 의 Perforce 상태 조회: `p4` CLI
 - 훅: bash. Windows 에서는 Git Bash 가 필요하다
 
 ## 알려진 한계
 
-- **이슈 트래커는 GitHub 만 다룬다.** 다른 트래커는 `tracker: none` 으로 두면 이슈 단계를 건너뛴다.
+- **이슈 트래커는 GitHub 만 다룬다.** 예외로 `work-start` 는 Jira 이슈를 읽고 상태를 바꾼다. 다른 스킬은 `tracker` 가 `github` 가 아니면 이슈 단계를 건너뛴다.
+- **Perforce 는 `work-start` 의 상태 조회만 다룬다.** 커밋 검사와 인계 메모의 버전 관리 상태는 git 을 기준으로 쓴다.
 - **훅은 맥락 사용량을 모른다.** 인계 권유는 턴 수를 대신 쓴다.
 - **에이전트 리뷰는 코드를 읽기만 한다.** 실행해야 드러나는 문제는 빌드·테스트 가이드의 몫이다. 서브에이전트를 쓸 수 없는 환경에서는 구현한 에이전트가 직접 리뷰하고, 리뷰 패킷에 그 사실을 적는다.
 - **리뷰 결과가 나빠져도 위험 기준이 자동으로 엄격해지지 않는다.** 놓친 버그 기록을 보고 `risk_paths` 와 리뷰 지침을 사람이 고친다.

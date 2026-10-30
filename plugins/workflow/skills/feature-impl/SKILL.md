@@ -134,7 +134,7 @@ Large · feature · 위험 high (Source/Save/SaveGame.cpp — 저장 데이터 �
 
 ### D. 이슈 연결
 
-프로필 `tracker` 가 `none` 이거나 없으면 이 단계를 건너뛴다. `github` 면 진행 중인 작업의 기준은 이슈다. **Large 는 필수, Small 은 생략할 수 있다.**
+프로필 `tracker` 가 `github` 가 아니면 이 단계를 건너뛴다(`jira` 는 지금 `work-start` 만 읽는다). `github` 면 진행 중인 작업의 기준은 이슈다. **Large 는 필수, Small 은 생략할 수 있다.**
 
 1. 사용자가 이슈 번호를 주면 `gh issue view <N>` 으로 읽고 그 이슈를 이어 쓴다.
 2. 번호가 없으면 열린 이슈에서 주제가 맞는 것을 찾는다.

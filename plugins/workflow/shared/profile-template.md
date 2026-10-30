@@ -17,8 +17,11 @@ risk_paths:                   # 위험 등급을 정하는 경로(glob). 어디�
   low: []                     # 예: [Docs/**, Tools/Scripts/**]
 
 # ── 이슈 트래커 ─────────────────────────────────────
-tracker: github               # github / none
-tracker_repo:                 # owner/repo
+tracker: github               # github / jira / none. jira 는 지금 work-start 만 읽는다
+tracker_repo:                 # github: owner/repo
+tracker_project:              # jira: 프로젝트 키. 예: ABC
+tracker_site:                 # jira: 사이트 주소. 예: example.atlassian.net. 사이트가 하나면 비워도 된다
+tracker_query:                # jira: 진행 중 이슈를 찾는 JQL. 비우면 work-start 의 기본 조건을 쓴다
 tracker_public: true          # 공개 저장소면 이슈·커밋에 로컬 경로, 개인 설정, 시행착오를 쓰지 않는다
 issue_template:               # 이슈 본문 양식. 예: .github/ISSUE_TEMPLATE/work.md
 status_labels:                # 상태 라벨 이름. 비우면 상태 라벨 제안을 건너뛴다
@@ -30,7 +33,7 @@ backlog_goal:                 # 마일스톤 없는 이슈의 중요도를 매�
 milestone_view_url:           # 마일스톤을 시작할 때 갱신을 안내할 이슈 뷰 주소. 없으면 비움
 
 # ── 버전 관리와 커밋 ────────────────────────────────
-vcs: git
+vcs: git                      # git / p4. p4 는 지금 work-start 의 상태 조회만 다룬다
 commit_policy:                # 커밋 범위·대상 규칙이 적힌 위치. 예: "AGENTS.md 커밋과 저장소별 추적 범위"
 commit_gate: false            # true 면 트레일러 없는 git commit 을 훅이 막는다
 commit_trailer: "Docs-Reviewed:"
