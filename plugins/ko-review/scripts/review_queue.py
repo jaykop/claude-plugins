@@ -7,6 +7,7 @@
 목록 형식은 플러그인의 shared/queue-format.md 를 따른다.
 
 프로젝트 루트: --root, 환경 변수 CLAUDE_PROJECT_DIR, 현재 폴더의 git 최상위, 현재 폴더 순으로 정한다.
+버전 관리: 프로필의 vcs(git, p4, none)를 쓴다. 없으면 git 저장소인지 본다. git 이 아니면 파일 사본과 비교해 변경 구간을 찾는다.
 목록 폴더: --queue-dir, 프로필(.claude/ko-review/profile.md)의 queue_dir, 기본값 순으로 정한다.
 등록 범위: 프로필의 queue_scope 패턴에 맞고 exclude 에 걸리지 않는 설명 파일만 등록한다. queue_scope 가 비면 제한하지 않는다.
 보관 폴더: --archive-dir, 프로필의 queue_archive_dir 순으로 정한다. 없으면 닫은 목록을 제자리에 둔다.
@@ -15,12 +16,14 @@
 import argparse
 from contextlib import contextmanager
 from datetime import datetime, timezone
+import difflib
 from fnmatch import fnmatchcase
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -40,6 +43,7 @@ ROOT = Path.cwd()
 QUEUES = ROOT / DEFAULT_QUEUE_DIR
 QUEUE_SCOPE = []
 EXCLUDE = []
+VCS = "git"
 
 
 def now():
@@ -120,6 +124,68 @@ def git(*args):
     return subprocess.check_output(
         ["git", *args], cwd=ROOT, encoding="utf-8", errors="strict"
     ).strip()
+
+
+def vcs_kind():
+    """버전 관리 종류. 프로필 vcs 가 있으면 그 값이고, 없으면 git 저장소인지 본다."""
+    value = profile_value(ROOT, "vcs")
+    if value:
+        if value not in ("git", "p4", "none"):
+            raise ValueError("Unknown profile vcs; use git, p4 or none")
+        return value
+    try:
+        subprocess.check_output(["git", "rev-parse", "--is-inside-work-tree"], cwd=ROOT, stderr=subprocess.DEVNULL)
+        return "git"
+    except (OSError, subprocess.CalledProcessError):
+        return "none"
+
+
+def p4_opened(*paths):
+    """p4 opened 출력. 상태를 남기는 용도라 실패해도 작업을 막지 않고 빈 글을 돌려준다."""
+    try:
+        return subprocess.run(["p4", "opened", *paths], cwd=ROOT, capture_output=True, encoding="utf-8",
+                              errors="replace", timeout=30).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def head_ref():
+    return git("rev-parse", "HEAD") if VCS == "git" else None
+
+
+def initial_changes():
+    if VCS == "git":
+        return git("status", "--short")
+    return p4_opened() if VCS == "p4" else ""
+
+
+def initially_dirty(path):
+    if VCS == "git":
+        return bool(git("status", "--short", "--", path))
+    return bool(p4_opened(str(project_path(path)))) if VCS == "p4" else False
+
+
+def base_folder(task):
+    return QUEUES / f"{task}.base"
+
+
+def save_base(task, path):
+    """git 이 아니면 시작 상태를 되찾을 곳이 없으므로 수정 전 파일을 목록 폴더에 복사해 둔다."""
+    source = project_path(path)
+    if source.is_file():
+        target = base_folder(task) / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+
+
+def text_lines(path):
+    return path.read_text(encoding="utf-8-sig", errors="replace").splitlines() if path.is_file() else []
+
+
+def base_hunks(task, path):
+    """시작 상태의 사본과 지금 파일을 비교한 diff 구간."""
+    diff = difflib.unified_diff(text_lines(base_folder(task) / path), text_lines(project_path(path)), n=0, lineterm="")
+    return [line for line in diff if line.startswith("@@")]
 
 
 def file_hash(value):
@@ -261,16 +327,19 @@ def get_entry(data, entry_id):
 
 
 def capture(data):
-    data["headCommit"] = git("rev-parse", "HEAD")
+    data["headCommit"] = head_ref()
     changes = []
     for path in data["taskPaths"]:
         current = file_hash(path)
         initial = data["initialFiles"][path]
         if current == initial["sha256"]:
             continue
-        patch = git("diff", "--no-ext-diff", "--no-textconv", "--unified=0",
-                    data["baseCommit"], "--", path)
-        hunks = re.findall(r"^@@.*@@.*$", patch, flags=re.MULTILINE)
+        if VCS == "git":
+            patch = git("diff", "--no-ext-diff", "--no-textconv", "--unified=0",
+                        data["baseCommit"], "--", path)
+            hunks = re.findall(r"^@@.*@@.*$", patch, flags=re.MULTILINE)
+        else:
+            hunks = base_hunks(data["taskId"], path)
         changes.append({"path": path, "sha256": current, "hunks": hunks,
                         "initiallyDirty": initial["dirty"],
                         "changeType": "deleted" if current is None else "modified-or-added"})
@@ -301,6 +370,11 @@ def remove_item_files(task):
     removed = sorted(QUEUES.glob(f"{task}.items*.json"))
     for path in removed:
         path.unlink()
+    # 닫은 작업은 다시 capture 하지 않으므로 시작 상태의 사본도 남길 이유가 없다.
+    base = base_folder(task)
+    if base.is_dir():
+        shutil.rmtree(base)
+        removed.append(base)
     return removed
 
 
@@ -331,7 +405,7 @@ def issue_ref(value):
 
 
 def main():
-    global ROOT, QUEUES, QUEUE_SCOPE, EXCLUDE
+    global ROOT, QUEUES, QUEUE_SCOPE, EXCLUDE, VCS
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("command", choices=("start", "scope", "capture", "register", "no-impact",
                                             "pending", "snapshot", "begin", "finish", "retire", "close"))
@@ -357,6 +431,7 @@ def main():
     QUEUES = ROOT / (args.queue_dir or profile_value(ROOT, "queue_dir") or DEFAULT_QUEUE_DIR)
     QUEUE_SCOPE = profile_list(ROOT, "queue_scope")
     EXCLUDE = profile_list(ROOT, "exclude")
+    VCS = vcs_kind()
 
     closed_queue = False
     with edit_queue(args.task, create=args.command == "start") as data:
@@ -367,8 +442,8 @@ def main():
             if not args.paths:
                 raise ValueError("start requires explicit file paths")
             data.update(schemaVersion=1, taskId=args.task, issue=issue_ref(args.issue),
-                        baseCommit=git("rev-parse", "HEAD"), headCommit=git("rev-parse", "HEAD"),
-                        startedAt=now(), initialChanges=git("status", "--short"),
+                        baseCommit=head_ref(), headCommit=head_ref(),
+                        startedAt=now(), initialChanges=initial_changes(),
                         taskPaths=[], initialFiles={}, changes=[], entries=[], noImpact=[])
         if args.command in ("start", "scope"):
             if not args.paths:
@@ -381,7 +456,9 @@ def main():
                     data["taskPaths"].append(path)
                     data["initialFiles"][path] = {
                         "sha256": file_hash(path), "capturedAt": now(),
-                        "dirty": bool(git("status", "--short", "--", path))}
+                        "dirty": initially_dirty(path)}
+                    if VCS != "git":
+                        save_base(args.task, path)
         elif args.command == "capture":
             capture(data)
         elif args.command == "register":

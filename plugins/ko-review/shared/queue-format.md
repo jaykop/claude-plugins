@@ -4,7 +4,7 @@
 
 작업마다 바꾼 설명과 로직 변경에 영향을 받는 기존 설명을 목록 하나에 남긴다. 작성하는 쪽(`record` 스킬)이 기록하고 검토하는 쪽(`review` 스킬)이 대기 항목의 문장을 교정한다. 검토하는 쪽은 코드 기능을 검수하지 않는다. 근거 구현은 교정이 원래 뜻을 바꾸지 않았는지 확인하는 데만 읽는다.
 
-목록 파일: `<queue_dir>/<task>.descriptions.json`. `queue_dir` 는 프로필 값이고, 없으면 `.claude/ko-review/queue` 다. 기록 도구는 `<플러그인 폴더>/scripts/review_queue.py` 다. Python 3.8 이상과 git 이 필요하고, 프로젝트 루트에서 실행한다.
+목록 파일: `<queue_dir>/<task>.descriptions.json`. `queue_dir` 는 프로필 값이고, 없으면 `.claude/ko-review/queue` 다. 기록 도구는 `<플러그인 폴더>/scripts/review_queue.py` 다. Python 3.8 이상이 필요하다. 프로젝트 루트에서 실행하며, 버전 관리는 프로필의 `vcs` 값을 따른다.
 
 작업 ID 는 영어 소문자·숫자·하이픈이다. 이슈가 있으면 `<번호>-<slug>`, 없으면 `<slug>` 로 정한다.
 
@@ -14,7 +14,7 @@
 |---|---|---|
 | `start <task> --paths <파일들> [--issue <번호>]` | 작성 | 수정 전 파일 상태를 기록하고 목록을 만든다. 이미 있으면 거절한다 |
 | `scope <task> --paths <파일들>` | 작성 | 작업 중 새로 손댈 파일을 수정 전에 더한다 |
-| `capture <task>` | 작성 | 시작 상태와 다른 파일, git diff 구간, 현재 HEAD 를 기록한다 |
+| `capture <task>` | 작성 | 시작 상태와 다른 파일, diff 구간을 기록한다. git 을 쓰면 현재 HEAD 도 기록한다 |
 | `register <task> --items <JSON 파일>` | 작성 | 설명 항목을 등록한다. 같은 id 를 다시 등록하면 대기로 돌린다. 설명 파일이 프로필 `queue_scope` 밖이면 거절한다 |
 | `no-impact <task> --path <파일> --note "이유"` | 작성 | 설명에 영향이 없는 변경을 기록한다. 파일 내용이 바뀌면 기록이 무효가 된다 |
 | `pending <task>` | 둘 다 | 현재 내용과 맞춰 본 뒤 대기 항목, 미등록 변경 파일을 출력한다. `queue_scope` 밖의 대기 항목은 `outOfScopeEntries` 로 따로 출력한다. 닫힌 목록이면 맞춰 보지 않고 닫힘 정보만 출력한다 |
@@ -22,20 +22,20 @@
 | `snapshot <task> --id <항목>` | 검토 | 현재 설명·근거의 해시를 출력한다. 완료 기록은 하지 않는다 |
 | `finish <task> --id <항목> --token <token> --note "결과" [--status needs-decision] [--description-hash <해시>]` | 검토 | 검토 결과를 기록한다 |
 | `retire <task> --id <항목> --note "이유"` | 작성 | 설명이 지워졌거나 다른 작업으로 넘어간 항목을 `retired` 로 둔다. 이후 다시 대기가 되지 않는다. 검토 중인 항목은 거절한다 |
-| `close <task> --note "이유" [--allow-unresolved] [--archive-dir <폴더>]` | 작성 | 작업을 커밋한 뒤 목록을 닫는다. 아래 "목록 수명"을 따른다 |
+| `close <task> --note "이유" [--allow-unresolved] [--archive-dir <폴더>]` | 작성 | 작업을 커밋·제출한 뒤 목록을 닫는다. 아래 "목록 수명"을 따른다 |
 
 공통 인자: `--root <프로젝트 루트>`, `--queue-dir <목록 폴더>`. 보통은 생략한다.
 
 ## 목록 수명
 
-목록은 한 작업의 커밋 전 검토를 위한 기록이다. 그 작업을 커밋하고 검토 넘기기를 마치면 작성 쪽이 `close` 로 닫는다. 닫지 않고 두면 이후 다른 작업이 같은 설명이나 근거를 바꿀 때마다 항목이 다시 대기가 되고, 설명이 지워지면 위치 오류로 남는다.
+목록은 한 작업의 커밋·제출 전 검토를 위한 기록이다. 그 작업을 커밋·제출하고 검토 넘기기를 마치면 작성 쪽이 `close` 로 닫는다. 닫지 않고 두면 이후 다른 작업이 같은 설명이나 근거를 바꿀 때마다 항목이 다시 대기가 되고, 설명이 지워지면 위치 오류로 남는다.
 
 - `close` 는 검토 중(`begin` 뒤 `finish` 전)인 항목이 있으면 거절한다. 먼저 `capture` 로 현재 상태를 맞춘다.
 - `reviewed`·`retired` 가 아닌 항목이 남아 있으면 그 항목을 출력하고 거절한다. 남긴 채 닫으려면 `--allow-unresolved` 를 붙인다. 남은 항목은 `closed.unresolved` 에 그대로 기록된다.
 - 닫힌 목록은 `scope`·`capture`·`register`·`no-impact`·`begin`·`finish`·`retire`·`close` 를 거절한다. `pending`·`snapshot` 만 받는다. 같은 작업 ID 로 `start` 하려면 닫힌 목록이 보관 폴더로 옮겨져 있어야 한다.
-- 다시 열지 않는다. 이후 같은 설명을 바꾸는 작업은 자기 목록에 새로 등록한다. 오래 가는 작업은 커밋마다 닫고, 다음 단계에서 같은 ID 로 새로 `start` 한다.
+- 다시 열지 않는다. 이후 같은 설명을 바꾸는 작업은 자기 목록에 새로 등록한다. 오래 가는 작업은 커밋·제출마다 닫고, 다음 단계에서 같은 ID 로 새로 `start` 한다.
 - 보관 폴더는 `--archive-dir`, 프로필 `queue_archive_dir` 순으로 정한다. 둘 다 없으면 닫힌 목록을 제자리에 둔다. 폴더 이름에는 닫는 날을 기준으로 `{year}`(예: `2026`), `{quarter}`(예: `2026-Q4`)를 쓸 수 있다. 보관 폴더에 같은 이름이 있으면 `<task>.2.descriptions.json` 처럼 번호를 붙인다.
-- 같은 작업의 등록 입력 파일(`<task>.items*.json`)은 닫을 때 지운다. `register` 가 항목 내용을 목록에 모두 옮겼고, 닫은 작업은 다시 등록하지 않기 때문이다. 보관 폴더를 쓰지 않아도 지운다.
+- 같은 작업의 등록 입력 파일(`<task>.items*.json`)과 수정 전 파일을 복사해 둔 폴더(`<queue_dir>/<task>.base/`)는 닫을 때 지운다. `register` 가 항목 내용을 목록에 모두 옮겼고, 닫은 작업은 다시 등록하지 않기 때문이다. 보관 폴더를 쓰지 않아도 지운다.
 - 닫기 전에 위치 오류 항목은 anchor 를 바로잡아 검토를 받거나, 설명이 사라졌으면 `retire` 한다. 판단을 기다리는 항목(`needs-decision`)은 프로젝트의 이슈나 작업 메모로 옮긴다.
 
 ## 등록 범위
@@ -100,8 +100,8 @@
 | 칸 | 뜻 |
 |---|---|
 | `schemaVersion`, `taskId`, `issue` | 현재 형식은 1. 이슈가 없으면 null |
-| `baseCommit`, `headCommit` | 시작·캡처 시점의 커밋 |
-| `taskPaths`, `initialChanges`, `initialFiles` | 명시적 파일 범위, 시작 시 git 상태와 파일 해시 |
+| `baseCommit`, `headCommit` | 시작·캡처 시점의 커밋. git 을 쓰지 않으면 null |
+| `taskPaths`, `initialChanges`, `initialFiles` | 명시적 파일 범위, 시작 시 버전 관리 상태(`git status` 또는 `p4 opened`), 시작 시 파일 해시 |
 | `changes`, `noImpact` | 시작 상태와 다른 파일·diff 구간, 영향 없음 기록 |
 | `entries[].snapshot`, `review`, `ticket` | 내용 SHA-256 과 줄 위치 힌트, 검토 결과, 검토 시작 token |
 | `entries[].status` | `pending`·`reviewed`·`needs-decision`·`retired` |
@@ -110,6 +110,7 @@
 
 ## 제한
 
+- git 을 쓰지 않으면 `start`·`scope` 때 수정 전 파일을 `<queue_dir>/<task>.base/` 에 복사한다. 이 사본과 비교해 diff 구간을 찾고, `close` 때 사본을 지운다. `queue_dir` 은 버전 관리에서 제외되는 폴더여야 한다.
 - 자동 캡처는 작업 파일의 변경과 diff 구간까지만 찾는다. 주석 문법이나 의미상의 영향은 판정하지 않는다. `unassignedChanges` 는 항목·근거·영향 없음 기록이 없는 **파일 단위** 알림이다. 같은 파일 안의 미등록 구간은 작성하는 쪽이 직접 대응시킨다.
 - 시작 전에 이미 수정돼 있던 파일은 해시와 상태만 남는다(`initiallyDirty`). diff 에 이전 변경이 섞일 수 있으므로 사람이 구분한다.
 - anchor 가 사라지거나 여러 줄과 맞으면 `locationError` 를 남기고 대기로 둔다. 파일 이름 변경은 따라가지 않는다. 작성 쪽이 경로·anchor 를 고치거나 `retire` 한다.

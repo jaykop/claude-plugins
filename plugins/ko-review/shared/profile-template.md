@@ -15,13 +15,14 @@ comment_language: ko          # 설명 주석의 언어
 code_text_language: en        # 식별자·메타데이터·로그 문자열의 언어. 주석을 다듬을 때 바꾸지 않는다
 data_comment_files: []        # 사람이 읽는 설명 칸이 있는 설정·데이터 파일. 예: [Config/Tags/*.ini]
 
-queue_dir: .claude/ko-review/queue   # 설명 변경 목록 폴더. 공개 저장소면 git 에서 빼는 폴더를 고른다
+queue_dir: .claude/ko-review/queue   # 설명 변경 목록 폴더. 버전 관리에서 빠지는 폴더를 고른다
 queue_archive_dir:            # close 로 닫은 목록을 옮길 폴더. {year}·{quarter}(예: 2026-Q4) 사용 가능. 비우면 제자리에 둔다. 예: docs/archive/{quarter}/queues
 queue_scope: []               # 목록에 등록할 수 있는 설명 파일의 경로 패턴(fnmatch, `/` 경로). 비우면 제한 없음. exclude 에 걸리면 제외. 예: [Plugins/*/Source/*, Source/*, docs/manual/*, Config/Tags/*.ini]
 writer: Claude                # 설명을 작성하고 목록에 남기는 쪽
 reviewer: Codex               # 대기 항목을 검토하는 쪽
 terms_file: .claude/ko-review/terms.json   # 프로젝트 전용 금지어·표기 목록. 없으면 비움
 check_runs: user              # user: 빌드·테스트·lint 는 사용자 담당, 요청이 있을 때만 실행 / agent: 스킬이 필요하면 실행
+vcs:                          # git / p4 / none. 비우면 git 저장소인지 스스로 판단한다. git 이 아니면 파일 사본과 비교해 변경 구간을 찾는다
 ---
 
 # 메모

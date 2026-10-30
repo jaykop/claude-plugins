@@ -43,11 +43,12 @@ codex plugin marketplace add jaykop/claude-plugins
 | `instructions` | 프로젝트 지침 파일. 이 플러그인의 규칙보다 우선한다 |
 | `doc_roots`, `code_roots`, `exclude` | 넓은 범위를 요청받았을 때의 대상과 제외 범위 |
 | `engine` | 에디터에 보이는 주석의 기준. 지금은 `unreal` 전용 기준만 있다 |
-| `queue_dir` | 설명 변경 목록 폴더. 공개 저장소라면 git 에서 빠지는 폴더를 고른다 |
+| `queue_dir` | 설명 변경 목록 폴더. 버전 관리에서 제외되는 폴더를 고른다 |
 | `queue_scope` | 목록에 등록할 수 있는 설명 파일의 경로 패턴. 범위 밖 파일은 등록을 거절한다. 비우면 제한하지 않는다 |
 | `queue_archive_dir` | `close` 로 닫은 목록을 옮길 폴더. `{year}`·`{quarter}` 를 쓸 수 있다. 비우면 닫은 목록을 제자리에 둔다 |
 | `writer`, `reviewer` | 작성·검토를 맡는 쪽의 이름. 검토를 시작할 때 이름을 따로 주지 않으면 `reviewer` 값이 검토 기록에 남는다 |
 | `check_runs` | `user` 면 빌드·테스트·lint 를 사용자가 요청할 때만 실행한다 |
+| `vcs` | `git`, `p4`, `none` 중 하나다. git 을 쓰지 않으면 파일 사본과 비교해 변경 구간을 찾는다 |
 
 프로젝트에서만 쓰는 금지어·표기 목록은 `.claude/ko-review/terms.json` 에 둔다. 형식은 [shared/terms-format.md](shared/terms-format.md) 에 있다.
 
@@ -58,7 +59,7 @@ codex plugin marketplace add jaykop/claude-plugins
 1. 작성 쪽: 수정 전 `start`, 수정 뒤 `capture` → `register`(바꾼 설명) / `no-impact`(영향 없는 변경)
 2. 검토 쪽: `pending` → 항목마다 `begin` → 교정 → `finish`
 3. 목록이 열려 있는 동안 설명이나 근거가 바뀌면 그 항목은 자동으로 다시 대기가 된다
-4. 작성 쪽: 작업을 커밋한 뒤 사라진 설명은 `retire`, 목록은 `close` 로 닫는다. 닫힌 목록은 다시 대기가 생기지 않고, 이후 같은 설명을 바꾸는 작업은 자기 목록에 새로 등록한다
+4. 작성 쪽: 작업을 커밋 또는 제출한 뒤 사라진 설명은 `retire`, 목록은 `close` 로 닫는다. 닫힌 목록은 다시 대기가 생기지 않고, 이후 같은 설명을 바꾸는 작업은 자기 목록에 새로 등록한다
 
 목록 형식, 명령, 위치 지정 방법은 [shared/queue-format.md](shared/queue-format.md) 에 있다.
 
@@ -69,7 +70,7 @@ plugins/ko-review/
 ├─ .claude-plugin/plugin.json   Claude Code 매니페스트
 ├─ .codex-plugin/plugin.json    Codex 매니페스트 (같은 skills/ 를 쓴다)
 ├─ skills/
-│  ├─ polish/    교정 기준 (reference/editor-comments.md, reference/unreal.md)
+│  ├─ polish/    교정 기준 (reference/editor-comments.md, reference/unreal.md, reference/word-choice.md)
 │  ├─ record/    작성 쪽 기록
 │  └─ review/    검토 쪽 교정
 ├─ scripts/
@@ -82,7 +83,7 @@ plugins/ko-review/
 
 - Claude Code 또는 Codex
 - Python 3.8 이상 (표준 라이브러리만 쓴다)
-- git (설명 변경 목록이 커밋과 diff 를 읽는다)
+- 버전 관리는 git 또는 Perforce 를 지원한다. 어느 쪽도 없어도 동작한다.
 
 ## 알려진 한계
 

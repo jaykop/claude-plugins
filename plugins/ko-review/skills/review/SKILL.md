@@ -3,7 +3,7 @@ name: review
 description: "설명 변경 목록의 검토 쪽 절차. 다른 AI 가 목록에 남긴 주석·문서·설정 설명의 대기 항목만 골라 자연스러운 한국어로 교정하고 결과를 기록한다. 코드 기능 검수·버그 판단·동작 추정은 하지 않는다. 근거 구현은 교정이 원래 뜻을 바꾸지 않았는지 확인하는 데만 읽는다. 전체 프로젝트를 다시 읽지 않는다. 예: '대기 중인 설명 검토해 줘', '12-retry 작업 설명 검토해'. 해당하지 않는 경우 — 목록 없이 문서 전체를 다듬는 일(polish 스킬), 설명을 새로 쓰고 등록하는 일(record 스킬)."
 when_to_use: "사용자가 설명 변경 목록의 대기 항목 검토를 요청할 때. 보통 작성한 AI 와 다른 AI(예: Claude 가 작성하면 Codex)가 맡는다."
 argument-hint: "[<task>|전체 대기 목록]"
-allowed-tools: Read, Glob, Grep, Edit, Bash(python *review_queue.py*), Bash(python3 *review_queue.py*), Bash(python *doc_check.py*), Bash(python3 *doc_check.py*), Bash(git status *), Bash(git diff *)
+allowed-tools: Read, Glob, Grep, Edit, Bash(python *review_queue.py*), Bash(python3 *review_queue.py*), Bash(python *doc_check.py*), Bash(python3 *doc_check.py*), Bash(git status *), Bash(git diff *), Bash(p4 opened*)
 ---
 
 # 설명 변경 부분 검토 (검토 쪽)
@@ -27,7 +27,7 @@ allowed-tools: Read, Glob, Grep, Edit, Bash(python *review_queue.py*), Bash(pyth
 
 ## 대상 고르기
 
-- 프로젝트 지침과 사용자가 정한 범위를 따른다. `git status --short` 와 그 작업의 메모를 읽는다.
+- 프로젝트 지침과 사용자가 정한 범위를 따른다. 버전 관리 상태(`git status --short` 또는 `p4 opened`)와 그 작업의 메모를 읽는다.
 - 목록 폴더는 프로필(`<프로젝트 루트>/.claude/ko-review/profile.md`)의 `queue_dir`, 없으면 `.claude/ko-review/queue` 다.
 - 작업을 지정받았으면 `<queue_dir>/<task>.descriptions.json` 을 쓴다. 대기 목록 전체를 요청받았으면 그 폴더의 `*.descriptions.json` 만 찾아 작업별 `taskId` 와 대기 항목 수를 요약하고 대기 항목부터 처리한다. 완료된 목록의 소스까지 읽지 않는다. `closed` 칸이 있는 목록은 닫힌 기록이므로 검토하지 않는다. 보관 폴더(프로필 `queue_archive_dir`)도 찾지 않는다.
 - `<도구> pending <task>` 로 현재 내용과 기록을 맞춘다. 설명·근거가 바뀌었거나 위치가 사라진 항목은 이 명령이 대기로 돌린다. `retired` 항목은 작성 쪽이 폐기한 것이므로 출력되지 않고, 검토하지 않는다. `unassignedChanges` 는 파일 단위의 등록 누락 알림이다. 파일 안의 모든 변경 구간이 등록됐다는 보장이 아니다.
@@ -38,7 +38,7 @@ allowed-tools: Read, Glob, Grep, Edit, Bash(python *review_queue.py*), Bash(pyth
 
 1. 항목의 `selector` 로 실제 설명과 인접 문단을 읽는다. `evidence` 는 위 "역할"의 범위에서만 읽는다. anchor 가 사라졌거나 여러 줄과 맞으면 위치를 바로잡기 전에는 완료로 기록하지 않는다.
 2. 고치기 전에 `<도구> begin <task> --id <id>` 로 token 과 스냅샷을 받는다. `--reviewer` 를 생략하면 프로필 `reviewer` 값이 검토자로 기록된다. 프로필에 값이 없으면 `--reviewer <자기 이름>` 을 붙인다.
-3. `polish` 스킬의 문장 기준으로 자연스러운 한국어인지 검토하고, 뜻이 분명한 설명은 직접 고친다. `polish` 와 그 참고 파일(`reference/*.md`)에서 구현에 맞춰 설명을 고치라는 기준("현재 로직과 대조하기" 단락 등)은 따르지 않는다. 식별자, 일반 문자열, 메타데이터, 실행 로직, 설정 파일의 키는 보존한다. 생성 파일은 고치지 않는다. 문서를 고쳤으면 `doc_check.py` 로 링크·앵커를 확인한다.
+3. `polish` 스킬의 문장 기준으로 자연스러운 한국어인지 검토하고, 뜻이 분명한 설명은 직접 고친다. 표현을 다시 쓸 때도 적용 조건, 부정, 횟수, 단위, 기본값은 원문 그대로 둔다. `polish` 와 그 참고 파일(`reference/*.md`)에서 구현에 맞춰 설명을 고치라는 기준("현재 로직과 대조하기" 단락 등)은 따르지 않는다. 식별자, 일반 문자열, 메타데이터, 실행 로직, 설정 파일의 키는 보존한다. 생성 파일은 고치지 않는다. 문서를 고쳤으면 `doc_check.py` 로 링크·앵커를 확인한다.
 4. 설명과 근거가 어긋나 보이거나 원래 뜻을 알 수 없으면 설명을 고치지 않고 `needs-decision` 으로 기록한다. 메모에는 어긋난 설명 위치와 근거 위치(파일·anchor)만 적는다. 설명에 맞추려고 코드를 바꾸지 않는다.
 
 ## 결과 기록
