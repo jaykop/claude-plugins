@@ -70,7 +70,7 @@ plugins/ko-review/
 ├─ .claude-plugin/plugin.json   Claude Code 매니페스트
 ├─ .codex-plugin/plugin.json    Codex 매니페스트 (같은 skills/ 를 쓴다)
 ├─ skills/
-│  ├─ polish/    교정 기준 (reference/editor-comments.md, reference/unreal.md, reference/word-choice.md)
+│  ├─ polish/    일반 문장 기준과 완료 판단 (reference/: editor-comments.md, unreal.md, manual.md, word-choice.md)
 │  ├─ record/    작성 쪽 기록
 │  └─ review/    검토 쪽 교정
 ├─ scripts/
@@ -88,6 +88,8 @@ plugins/ko-review/
 ## 알려진 한계
 
 - **문장 품질은 스크립트로 판정하지 않는다.** `doc_check.py` 는 판단이 필요 없는 후보만 찾는다. 통과해도 좋은 문장이라는 뜻은 아니다.
+- **설명 단위 전체를 읽는다.** 툴팁은 항목 이름과 본문만으로 역할·조건·빈 값의 결과가 읽히는지 판단한다. manual은 사용 순서와 현재 결과를 먼저 설명한다. 문장 기준과 완료 판단은 `polish` 하나를 따르며, `reviewed` 기록은 현재 품질을 대신하지 않는다.
+- **보조 검사도 실행 권한을 따른다.** `check_runs: user`이거나 검사를 금지한 프로젝트에서는 요청받지 않은 `doc_check.py`를 실행하지 않는다.
 - **목록의 미등록 알림은 파일 단위다.** 같은 파일 안에서 등록하지 않은 변경 구간은 작성 쪽이 직접 확인해야 한다.
 - **엔진별 기준은 언리얼만 있다.** 다른 엔진은 `editor-comments.md` 의 일반 기준만 쓴다.
 - **Codex 는 버전이 같으면 새 사본을 받지 않는다.** 스킬이나 스크립트를 고치면 `.codex-plugin/plugin.json` 의 `version` 을 올려야 Codex 에 반영된다.
