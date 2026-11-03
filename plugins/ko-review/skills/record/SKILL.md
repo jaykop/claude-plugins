@@ -2,13 +2,13 @@
 name: record
 description: "설명 변경 목록의 작성 쪽 절차. 코드 주석·문서·설정 파일 설명을 바꾸거나, 로직 변경이 기존 설명에 영향을 줄 때 수정 전 파일 상태를 기록하고, 수정 뒤 바꾼 설명의 위치와 근거 구현을 등록해 다른 AI 가 부분 검토할 수 있게 남긴다. 예: '이번 작업 설명 변경 기록해 줘', '설명 검토 목록 시작해'. 해당하지 않는 경우 — 대기 항목을 검토·교정하는 일(review 스킬), 문장 교정 자체(polish 스킬)."
 when_to_use: "주석·문서·설정 설명을 고치는 작업을 시작할 때(수정 전), 구현을 마쳤거나 사용자 빌드 확인을 기다리기 직전, 작업을 커밋하고 검토 넘기기를 마친 뒤(목록 닫기), 다른 작업 흐름 스킬이 설명 변경 기록을 요구할 때."
-argument-hint: "[start|scope|capture|register|no-impact|pending|retire|close] <task>"
+argument-hint: "[start|scope|capture|register|no-impact|pending|prepare|apply|retire|close] <task>"
 allowed-tools: Read, Glob, Grep, Write(./.claude/ko-review/**), Bash(python *review_queue.py*), Bash(python3 *review_queue.py*), Bash(git status *), Bash(git diff *), Bash(p4 opened*)
 ---
 
 # 설명 변경 기록 (작성 쪽)
 
-작업마다 바꾼 설명과, 로직 변경으로 실제 동작과 달라진 기존 설명을 목록에 남긴다. 검토하는 쪽은 이 목록의 항목과 근거 구현만 읽고 교정한다. 목록 형식과 명령은 `<플러그인 폴더>/shared/queue-format.md` 에 있다. 필요한 단락만 읽는다.
+작업마다 바꾼 설명과, 로직 변경으로 실제 동작과 달라진 기존 설명을 목록에 남긴다. 검토하는 쪽은 작성 쪽이 만든 요청서만 읽고 교정문을 돌려준다. 목록 형식과 명령은 `<플러그인 폴더>/shared/queue-format.md` 에 있다. 필요한 단락만 읽는다.
 
 ## 경로
 
@@ -52,6 +52,25 @@ python "<플러그인 폴더>/scripts/review_queue.py" <명령> <task> ...
 3. 설명에 영향이 없는 변경은 `no-impact <task> --path <파일> --note "이유"` 로 남긴다.
 4. `pending <task>` 출력의 `unassignedChanges` 와 실제 변경 구간을 비교해 빠진 기록을 채운다. 이 알림은 파일 단위다. 파일에 항목이 하나 있다고 그 파일의 모든 변경이 등록됐다고 보지 않는다.
 
+## 검토 넘기기
+
+1. `register` 와 `pending` 대조를 마친 뒤 `prepare <task>` 를 실행한다. 도구가 대기 항목으로 `<queue_dir>/<task>.request.md` 를 만들고, `items` 가 빈 결과 파일 `<queue_dir>/<task>.result.json` 을 함께 만든다.
+   - 요청서에 들어가는 내용은 `queue-format.md` 의 "요청서에 넣는 내용" 에 있다.
+   - 상태가 `pending` 인 항목만 넣는다. `needs-decision` 항목은 사용자가 정할 때까지 넣지 않는다. 위치 오류 항목과 `queue_scope` 밖 항목은 넣지 않고 출력의 `skipped` 에 적는다.
+   - 한 번에 40개까지 넣는다. `--limit` 로 수를 바꿀 수 있다. 넣지 못한 대기 항목 수는 출력의 `notIncluded` 다.
+   - 넣은 항목마다 검토 시작 token 을 기록한다. 검토자 이름은 `--reviewer`, 없으면 프로필 `reviewer`, 그것도 없으면 `reviewer` 다.
+   - 다시 `prepare` 하면 이전 요청은 무효가 된다. 이전 요청의 결과 파일은 `apply` 가 거절한다.
+2. 요청서 경로를 검토하는 AI 에게 넘긴다. 넘기는 방법은 프로젝트 지침을 따른다. 지침이 없으면 사용자에게 다음 요청 문장을 주고, 전달은 사용자가 한다.
+
+   `ko-review 플러그인의 review 스킬로 <요청서 경로> 를 교정해 줘.`
+
+3. 검토 쪽이 결과 파일에 항목을 채우면 `apply <task>` 를 실행한다. `items` 가 비어 있으면 도구가 거절하고 요청을 그대로 둔다. 다른 위치의 결과 파일은 `--results <파일>` 로 지정한다.
+   - 검토자, 시각, 메모, 상태를 목록에 기록한다. 반영한 뒤 요청서와 기본 위치의 결과 파일을 지운다.
+   - 출력의 `applied` 는 반영한 항목, `unchanged` 는 그대로 둔 항목이다. `unchecked` 는 주석 문법을 모르는 파일이라 코드 보호를 확인하지 못하고 반영한 항목이다. `needsDecision` 은 판단이 필요한 항목, `failed` 는 거절한 항목과 이유, `remaining` 은 남은 대기·판단 필요 항목 수다.
+   - 반영 방법과 거절 조건은 `queue-format.md` 의 "반영과 거절", "주석 문법과 반영 뒤 확인" 에 있다. 거절한 항목은 파일을 바꾸지 않고 대기로 남긴다.
+4. 반영된 교정문을 다시 고치지 않는다. 고쳐야 하면 고친 뒤 같은 id 로 다시 `register` 한다. `unchecked` 항목은 바뀐 구간을 직접 확인하고, `needsDecision` 항목은 사용자에게 보인다. `remaining` 이 0 이 아니면 다시 `prepare` 한다.
+5. 요청서를 만든 뒤 반영하기 전에는 `close` 가 거절한다. `apply` 하거나 다시 `prepare` 한다. 닫힌 목록은 `prepare`·`apply` 를 거절한다. `close` 는 남은 요청서·결과 파일도 지운다.
+
 ## 커밋·제출한 뒤 닫기
 
 목록은 그 작업의 커밋·제출 전 검토를 위한 기록이다. git 프로젝트는 커밋하고 Perforce 프로젝트는 제출한 뒤, 프로젝트가 정한 검토 넘기기를 마쳤으면 목록을 닫는다. 닫힌 목록은 이후 다른 작업의 변경으로 다시 대기가 되지 않는다. 자세한 규칙은 `queue-format.md` 의 "목록 수명" 단락에 있다.
@@ -65,6 +84,5 @@ python "<플러그인 폴더>/scripts/review_queue.py" <명령> <task> ...
 ## 지키는 것
 
 - 이 기록은 설명의 인계 절차다. 문장 품질이나 빌드·실행 확인의 근거로 쓰지 않는다. 빌드·테스트·검사를 실행하지 않는다.
-- 검토하는 AI 를 자동으로 부르거나 메시지를 보내지 않는다. 검토 요청은 사용자가 전달한다.
-- 검토하는 쪽이 같은 목록을 고치는 중일 수 있다. 쓰기 직전에 목록을 다시 읽고, 동시에 고치지 않는다. 도구가 "Queue changed" 로 거절하면 다시 읽고 이어서 진행한다.
+- 프로젝트 지침이 정하지 않았으면 검토하는 AI 를 자동으로 부르거나 메시지를 보내지 않는다. 이때 검토 요청은 사용자가 전달한다.
 - 완료 보고에 목록 경로와 대기 항목 수, 판단이 필요한 항목을 적는다.

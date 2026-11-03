@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """작업별 설명 변경 목록과 내용 스냅샷을 기록한다. Python 표준 라이브러리만 쓴다.
 
-작성하는 AI 는 start · scope · capture · register · no-impact 로 바꾼 설명과 근거 구현을 남기고,
-검토하는 AI 는 pending · begin · snapshot · finish 로 대기 항목을 교정한 결과를 남긴다.
+작성하는 AI 는 start · scope · capture · register · no-impact 로 바꾼 설명과 근거 구현을 남긴다.
+검토를 넘길 때는 작성하는 AI 가 prepare 로 요청서를 만들고, 검토하는 AI 는 요청서만 읽고 교정문을 결과 파일에 쓴다.
+작성하는 AI 가 apply 로 교정문을 파일에 반영하고 검토 결과를 기록한다. 검토하는 AI 는 이 도구와 목록 파일을 쓰지 않는다.
 작업을 커밋한 뒤에는 작성하는 AI 가 retire 로 사라진 설명을 폐기하고 close 로 목록을 닫는다.
 목록 형식은 플러그인의 shared/queue-format.md 를 따른다.
 
@@ -38,6 +39,39 @@ DEFAULT_QUEUE_DIR = ".claude/ko-review/queue"
 KINDS = ("comment", "doc", "data-comment")
 # 이전 형식의 kind 이름. 기존 목록을 그대로 읽고, 새로 등록할 때만 바꾼다.
 LEGACY_KINDS = {"manual": "doc", "tag-devcomment": "data-comment"}
+
+PLUGIN_DIR = Path(__file__).resolve().parents[1]
+REQUEST_LIMIT = 40
+CONTEXT_LINES = 6
+EVIDENCE_LINES = 40
+BOM = b"\xef\xbb\xbf"
+# 요청서에 넣는 polish 의 절이다. 제목이 바뀌어 찾지 못하면 본문 전체를 넣는다.
+CRITERIA_SECTIONS = ("## 문장 기준", "## 사실과 수정 권한", "## 교정 완료 판단")
+
+# apply 가 "주석 밖의 코드가 그대로인지" 확인할 때 쓰는 주석 문법. 문자열 안의 주석 기호는 주석으로 보지 않는다.
+STRING = r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\''
+COMMENT_PATTERNS = {
+    "c": re.compile(STRING + r'|(?P<c>//[^\n]*|/\*.*?\*/)', re.S),
+    "hash": re.compile(STRING + r'|(?P<c><#.*?#>|#[^\n]*)', re.S),
+    "dash": re.compile(STRING + r'|(?P<c>--\[\[.*?\]\]|--[^\n]*)', re.S),
+    "ini": re.compile(r'(?P<c>^[ \t]*[;#][^\n]*)', re.M),
+}
+STYLE_BY_SUFFIX = {
+    **dict.fromkeys((".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".inl", ".ipp", ".cs", ".java",
+                     ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".go", ".rs", ".swift", ".kt", ".kts",
+                     ".scala", ".m", ".mm", ".dart", ".proto", ".glsl", ".hlsl", ".usf", ".ush", ".scss"), "c"),
+    **dict.fromkeys((".py", ".rb", ".sh", ".bash", ".zsh", ".ps1", ".psm1", ".yaml", ".yml", ".toml",
+                     ".cmake", ".r", ".pl", ".pm", ".conf"), "hash"),
+    **dict.fromkeys((".lua", ".sql"), "dash"),
+    **dict.fromkeys((".ini", ".cfg"), "ini"),
+}
+# data-comment 의 설명 칸으로 보는 키 이름. 이 값만 바뀌었는지 확인하려고 값을 지우고 비교한다.
+DESCRIPTION_KEY = r'[\w.-]*(?:comment|description|desc|tooltip)[\w.-]*'
+DESCRIPTION_VALUES = (
+    re.compile(r'(\b' + DESCRIPTION_KEY + r'\s*=\s*)"(?:\\.|[^"\\\n])*"', re.I),
+    re.compile(r'("' + DESCRIPTION_KEY + r'"\s*:\s*)"(?:\\.|[^"\\\n])*"', re.I),
+    re.compile(r'^(\s*' + DESCRIPTION_KEY + r'\s*[:=][ \t]*)(?!["\'])[^\n]*$', re.I | re.M),
+)
 
 ROOT = Path.cwd()
 QUEUES = ROOT / DEFAULT_QUEUE_DIR
@@ -380,9 +414,9 @@ def archive_folder(explicit):
 
 
 def remove_item_files(task):
-    """닫은 작업의 등록 입력 파일(<task>.items*.json)을 지우고 지운 경로를 돌려준다."""
+    """닫은 작업의 등록 입력 파일(<task>.items*.json)과 남은 요청서·결과 파일을 지우고 지운 경로를 돌려준다."""
     # register 가 항목 내용을 목록에 모두 옮기고, 닫은 작업은 다시 등록하지 않으므로 입력 파일은 남길 이유가 없다.
-    removed = sorted(QUEUES.glob(f"{task}.items*.json"))
+    removed = sorted(QUEUES.glob(f"{task}.items*.json")) + [p for p in request_paths(task) if p.exists()]
     for path in removed:
         path.unlink()
     # 닫은 작업은 다시 capture 하지 않으므로 시작 상태의 사본도 남길 이유가 없다.
@@ -419,11 +453,306 @@ def issue_ref(value):
     return int(value) if value.isdigit() else value
 
 
+def request_paths(task):
+    return QUEUES / f"{task}.request.md", QUEUES / f"{task}.result.json"
+
+
+def fence(text):
+    # 본문에 ``` 가 있어도 닫히지 않게 본문보다 긴 울타리를 쓴다.
+    longest = max((len(run) for run in re.findall(r"`+", text)), default=0)
+    return "`" * max(3, longest + 1)
+
+
+def fenced(text, info="text"):
+    mark = fence(text)
+    return f"{mark}{info}\n{text}\n{mark}"
+
+
+def file_lines(value):
+    return project_path(value).read_text(encoding="utf-8-sig").splitlines()
+
+
+def evidence_view(selector):
+    """근거 구간. 한 줄만 고른 근거는 그 아래 줄을 더해 보여 준다."""
+    selected = block(selector)
+    lines = file_lines(selector["path"])
+    start, end = selected["lineHint"] - 1, selected["endLineHint"]
+    if end - start == 1:
+        end = min(len(lines), start + EVIDENCE_LINES)
+    shown = lines[start:min(end, start + EVIDENCE_LINES)]
+    cut = end - start - len(shown)
+    tail = [f"... ({cut}줄 생략)"] if cut > 0 else []
+    return f"`{selector['path']}:{start + 1}`\n" + fenced("\n".join(shown + tail))
+
+
+def polish_criteria(kinds):
+    """요청서에 넣을 문장 기준. 검토하는 쪽이 기준 파일을 따로 찾아 읽지 않게 한다."""
+    skill = (PLUGIN_DIR / "skills/polish/SKILL.md").read_text(encoding="utf-8")
+    body = skill.split("\n---", 2)[-1] if skill.startswith("---") else skill
+    parts = []
+    for heading in CRITERIA_SECTIONS:
+        start = body.find("\n" + heading + "\n")
+        if start < 0:
+            parts = [body.strip()]
+            break
+        end = body.find("\n## ", start + 1)
+        parts.append(body[start:end if end >= 0 else len(body)].strip())
+    references = []
+    if kinds & {"comment", "data-comment"}:
+        references.append("editor-comments.md")
+        if (profile_value(ROOT, "engine") or "").lower() == "unreal":
+            references.append("unreal.md")
+    if "doc" in kinds:
+        references.append("manual.md")
+    references.append("word-choice.md")
+    for name in references:
+        path = PLUGIN_DIR / "skills/polish/reference" / name
+        if path.is_file():
+            parts.append(f"## 참고: {name}\n\n" + path.read_text(encoding="utf-8").replace("<!-- ko-review: ignore -->", "").strip())
+    return "\n\n".join(parts)
+
+
+def banned_terms():
+    """프로젝트 낱말 목록의 확정 금지 표현. 문맥 확인 후보는 넣지 않는다."""
+    path = project_path(profile_value(ROOT, "terms_file") or ".claude/ko-review/terms.json")
+    if not path.is_file():
+        return []
+    terms = json.loads(path.read_text(encoding="utf-8-sig"))
+    return [f"- `{key}`: {value}" for group in ("banned", "banned_patterns")
+            for key, value in (terms.get(group) or {}).items()]
+
+
+def request_text(task, request_id, result_rel, entries):
+    lines = [f"# 설명 교정 요청: {task}", "",
+             f"- 요청 ID: `{request_id}`", f"- 결과 파일: `{result_rel}`", f"- 항목: {len(entries)}개", "",
+             "## 결과 파일 형식", "",
+             fenced(json.dumps({"requestId": request_id, "items": [
+                 {"id": "<항목 id>", "status": "reviewed 또는 needs-decision",
+                  "text": "<고칠 글 전체를 대신할 글>", "note": "<한 줄 메모>"}]}, ensure_ascii=False, indent=2), "json"), ""]
+    for number, entry in enumerate(entries, 1):
+        selected = block(entry["selector"], with_text=True)
+        start, end = selected["lineHint"] - 1, selected["endLineHint"]
+        all_lines = file_lines(entry["selector"]["path"])
+        context = all_lines[max(0, start - CONTEXT_LINES):start] + ["<<< 고칠 글 >>>"] + all_lines[end:end + CONTEXT_LINES]
+        lines += [f"## 항목 {number}/{len(entries)}: `{entry['id']}`", "",
+                  f"- 종류: {entry['kind']}", f"- 위치: `{entry['selector']['path']}:{start + 1}-{end}`",
+                  f"- 등록 이유: {entry.get('reason', '')}", "",
+                  "### 고칠 글", "", fenced(selected["text"].rstrip("\n")), "",
+                  "### 앞뒤 줄 (참고만)", "", fenced("\n".join(context)), "",
+                  "### 근거 (참고만)", ""]
+        lines += [evidence_view(s) + "\n" for s in entry["evidence"]]
+    terms = banned_terms()
+    if terms:
+        lines += ["## 프로젝트가 금지한 표현", "", *terms, ""]
+    lines += ["# 문장 기준", "", polish_criteria({e["kind"] for e in entries}), ""]
+    return "\n".join(lines)
+
+
+def code_view(text, suffix, kind):
+    """설명을 뺀 나머지. 교정 전후가 같아야 한다. 확인할 방법이 없으면 None."""
+    if kind == "doc":
+        # 문서는 코드 블록만 그대로인지 본다.
+        return [m.group(0) for m in re.finditer(r"^(`{3,}|~{3,})[^\n]*\n.*?^\1[ \t]*$", text, re.S | re.M)]
+    if kind == "data-comment":
+        for pattern in DESCRIPTION_VALUES:
+            text = pattern.sub(lambda m: m.group(1), text)
+    pattern = COMMENT_PATTERNS.get(STYLE_BY_SUFFIX.get(suffix.lower()))
+    if pattern:
+        text = pattern.sub(lambda m: "" if m.group("c") else m.group(0), text)
+    elif kind == "comment":
+        return None
+    return [line.rstrip() for line in text.split("\n") if line.strip()]
+
+
+def comment_problem(old, new, suffix):
+    """C 계열에서 다음 줄을 주석으로 만드는 글. 원문에 없던 것만 거절한다."""
+    if STYLE_BY_SUFFIX.get(suffix.lower()) != "c":
+        return None
+    checks = (("nested /* inside a block comment", lambda t: any("/*" in c[2:] for c in re.findall(r"/\*.*?\*/", t, re.S))),
+              ("// comment ends with a backslash", lambda t: bool(re.search(r"//[^\n]*\\[ \t]*(\n|$)", t))))
+    for reason, found in checks:
+        if found(new) and not found(old):
+            return reason
+    return None
+
+
+def write_block(path_value, start, end, new_text):
+    """선택 구간만 바꾼다. BOM 과 줄바꿈 문자는 원래대로 둔다. 되돌릴 수 있게 원래 바이트를 돌려준다."""
+    path = project_path(path_value)
+    raw = path.read_bytes()
+    bom = BOM if raw.startswith(BOM) else b""
+    keep = raw[len(bom):].decode("utf-8").splitlines(True)
+    old = keep[start:end]
+    endings = [line[len(line.rstrip("\r\n")):] for line in old]
+    eol = next((e for e in endings if e), "\n")
+    new_lines = [line + eol for line in new_text.split("\n")]
+    if not endings[-1]:
+        new_lines[-1] = new_lines[-1][:-len(eol)]
+    keep[start:end] = new_lines
+    path.write_bytes(bom + "".join(keep).encode("utf-8"))
+    return raw
+
+
+def reanchor(selector, start, count):
+    """바뀐 구간을 다시 가리키는 selector. 원래 anchor 가 남아 있으면 그대로 쓴다. 못 만들면 None."""
+    lines = file_lines(selector["path"])
+
+    def fits(candidate):
+        try:
+            selected = block(candidate)
+        except ValueError:
+            return False
+        return selected["lineHint"] == start + 1 and selected["endLineHint"] == start + count
+
+    if fits(selector):
+        return selector
+    if selector.get("mode") == "heading":
+        candidate = {"path": selector["path"], "anchor": lines[start].strip(), "mode": "heading"}
+        return candidate if fits(candidate) else None
+    candidates = []
+    found = [i for i, line in enumerate(lines) if selector["anchor"] in line]
+    if len(found) == 1 and start <= found[0] < start + count:
+        candidates.append((found[0] - start, selector["anchor"]))
+    # 원래 anchor 가 교정으로 사라졌으면 바뀐 구간에서 파일 안에 한 번만 나오는 긴 줄을 고른다.
+    candidates += [(i, lines[start + i].strip()) for i in sorted(range(count), key=lambda i: -len(lines[start + i].strip()))]
+    for offset, anchor in candidates:
+        candidate = {"path": selector["path"], "anchor": anchor, "before": offset, "after": count - offset - 1}
+        if len(anchor) >= 4 and fits(candidate):
+            return candidate
+    return None
+
+
+def prepare(data, task, limit, reviewer):
+    capture(data)
+    # 판단을 기다리는 항목은 사용자가 정할 때까지 다시 보내지 않는다. 내용이 바뀌면 refresh 가 대기로 돌린다.
+    waiting = [e for e in data["entries"] if e["status"] == "pending"]
+    ready = [e for e in waiting if in_queue_scope(e["selector"]["path"]) and not e.get("locationError")]
+    skipped = [{"id": e["id"], "reason": e.get("locationError") or "outside queue_scope"}
+               for e in waiting if e not in ready]
+    # 이전 요청을 반영하지 않고 다시 만들면 이전 요청의 결과는 받지 않는다.
+    for entry in data["entries"]:
+        if entry.get("ticket", {}).get("token") == data.get("request", {}).get("id"):
+            entry.pop("ticket", None)
+    chosen = ready[:limit]
+    request_file, result_file = request_paths(task)
+    if not chosen:
+        data.pop("request", None)
+        return {"items": 0, "skipped": skipped}
+    request_id = uuid.uuid4().hex
+    for entry in chosen:
+        entry["ticket"] = {"token": request_id, "snapshot": entry["snapshot"], "reviewer": reviewer, "startedAt": now()}
+    result_rel = result_file.relative_to(ROOT).as_posix()
+    # BOM 을 붙여야 Windows PowerShell 5.1 의 Get-Content 가 인코딩을 지정하지 않아도 한글을 깨지 않고 읽는다.
+    request_file.write_text(request_text(task, request_id, result_rel, chosen), encoding="utf-8-sig")
+    # 결과 파일을 미리 만들어 검토 쪽이 내용만 바꾸게 한다. Windows 의 Codex 샌드박스가 새로 만든 파일은
+    # 사용자 계정이 읽지 못할 수 있다.
+    try:
+        result_file.write_text(json.dumps({"requestId": request_id, "items": []}, indent=2) + "\n", encoding="utf-8")
+    except PermissionError:
+        raise ValueError(f"Cannot replace {result_rel}; another account created it. Delete it with that account and prepare again")
+    data["request"] = {"id": request_id, "createdAt": now(), "items": [e["id"] for e in chosen],
+                       "requestFile": request_file.relative_to(ROOT).as_posix(), "resultFile": result_rel}
+    return {"requestFile": data["request"]["requestFile"], "resultFile": result_rel, "items": len(chosen),
+            "notIncluded": len(ready) - len(chosen), "skipped": skipped}
+
+
+def apply_results(data, results_path):
+    request = data.get("request")
+    if not request:
+        raise ValueError("No prepared request; run prepare first")
+    if not results_path.is_file():
+        raise ValueError(f"Result file not found: {results_path.relative_to(ROOT).as_posix()}")
+    try:
+        result = json.loads(results_path.read_text(encoding="utf-8-sig"))
+    except PermissionError:
+        raise ValueError("Cannot read the result file; the reviewer may have created a new file in a sandbox "
+                         "instead of editing the one prepare made")
+    if result.get("requestId") != request["id"]:
+        raise ValueError("Result file belongs to another request; prepare again or use the matching result")
+    if not result.get("items"):
+        # 검토 쪽이 아직 쓰지 않은 결과로 반영하면 모든 항목의 요청이 풀린다.
+        raise ValueError("Result file has no items yet; wait for the reviewer to finish")
+    answers = {item.get("id"): item for item in result.get("items", [])}
+    report = {"applied": [], "unchanged": [], "unchecked": [], "needsDecision": [], "failed": []}
+    mine = [e for e in data["entries"] if e.get("ticket", {}).get("token") == request["id"]]
+    report["failed"] += [{"id": i, "reason": "not in this request"} for i in answers if i not in {e["id"] for e in mine}]
+    # 같은 파일 안에서는 아래쪽 항목부터 바꿔야 위쪽 항목의 줄 번호가 밀리지 않는다.
+    mine.sort(key=lambda e: (e["selector"]["path"], -e["ticket"]["snapshot"]["description"]["lineHint"]))
+    for entry in mine:
+        ticket = entry.pop("ticket")
+        answer = answers.get(entry["id"])
+
+        def fail(reason):
+            report["failed"].append({"id": entry["id"], "reason": reason})
+
+        if answer is None:
+            fail("no result for this item")
+            continue
+        try:
+            current = snapshot(entry)
+        except (OSError, ValueError) as error:
+            fail(str(error))
+            continue
+        if fingerprints(current)[1:] != fingerprints(ticket["snapshot"])[1:]:
+            fail("evidence changed after prepare")
+            continue
+        if current["description"]["sha256"] != ticket["snapshot"]["description"]["sha256"]:
+            fail("description changed after prepare")
+            continue
+        note = (answer.get("note") or "").strip() or "교정함"
+        status = answer.get("status")
+        if status not in ("reviewed", "needs-decision"):
+            fail("status must be reviewed or needs-decision")
+            continue
+        if status == "reviewed":
+            selected = block(entry["selector"], with_text=True)
+            old = selected["text"][:-1]
+            new = (answer.get("text") or "").replace("\r\n", "\n")
+            if new.endswith("\n") and not old.endswith("\n"):
+                new = new[:-1]
+            if not new.strip():
+                fail("text is empty")
+                continue
+            if new == old:
+                report["unchanged"].append(entry["id"])
+            else:
+                suffix = Path(entry["selector"]["path"]).suffix
+                before, after = code_view(old, suffix, entry["kind"]), code_view(new, suffix, entry["kind"])
+                if before != after:
+                    fail("code outside the description changed")
+                    continue
+                problem = comment_problem(old, new, suffix)
+                if problem:
+                    fail(problem)
+                    continue
+                start, count = selected["lineHint"] - 1, new.count("\n") + 1
+                original = write_block(entry["selector"]["path"], start, selected["endLineHint"], new)
+                selector = reanchor(entry["selector"], start, count)
+                if selector is None:
+                    project_path(entry["selector"]["path"]).write_bytes(original)
+                    fail("no unique anchor in the new text; file restored")
+                    continue
+                entry["selector"] = selector
+                current = snapshot(entry)
+                report["applied"].append(entry["id"])
+                if before is None:
+                    report["unchecked"].append(entry["id"])
+        else:
+            report["needsDecision"].append({"id": entry["id"], "note": note})
+        entry["status"] = status
+        entry["snapshot"] = current
+        entry["review"] = {"reviewer": ticket["reviewer"], "finishedAt": now(), "snapshot": current,
+                           "note": note, "status": status}
+    data.pop("request")
+    report["remaining"] = sum(1 for e in data["entries"] if e["status"] not in ("reviewed", "retired"))
+    return report
+
+
 def main():
     global ROOT, QUEUES, QUEUE_SCOPE, EXCLUDE, VCS
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=("start", "scope", "capture", "register", "no-impact",
-                                            "pending", "snapshot", "begin", "finish", "retire", "close"))
+    parser.add_argument("command", choices=("start", "scope", "capture", "register", "no-impact", "pending",
+                                            "prepare", "apply", "snapshot", "begin", "finish", "retire", "close"))
     parser.add_argument("task")
     parser.add_argument("--root", help="Project root (default: CLAUDE_PROJECT_DIR or git top level)")
     parser.add_argument("--queue-dir", help="Queue folder relative to the root (default: profile queue_dir)")
@@ -440,6 +769,8 @@ def main():
     parser.add_argument("--allow-unresolved", action="store_true",
                         help="Let close keep entries that are not reviewed or retired")
     parser.add_argument("--archive-dir", help="Folder for closed queues, {year}/{quarter} allowed (default: profile queue_archive_dir)")
+    parser.add_argument("--limit", type=int, default=REQUEST_LIMIT, help=f"Most entries in one request (default: {REQUEST_LIMIT})")
+    parser.add_argument("--results", help="Result file for apply (default: <queue_dir>/<task>.result.json)")
     args = parser.parse_args()
 
     ROOT = find_root(args.root)
@@ -449,6 +780,7 @@ def main():
     VCS = vcs_kind()
 
     closed_queue = False
+    applied_files = []
     with edit_queue(args.task, create=args.command == "start") as data:
         # 닫힌 목록에서는 읽기 명령만 받는다.
         if args.command not in ("start", "pending", "snapshot"):
@@ -533,6 +865,17 @@ def main():
             data["noImpact"] = [n for n in data["noImpact"] if n["path"] != path]
             data["noImpact"].append({"path": path, "sha256": file_hash(path), "reason": args.note,
                                      "recordedAt": now()})
+        elif args.command == "prepare":
+            if args.limit < 1:
+                raise ValueError("--limit must be at least 1")
+            reviewer = args.reviewer or profile_value(ROOT, "reviewer") or "reviewer"
+            print(json.dumps(prepare(data, args.task, args.limit, reviewer), ensure_ascii=False, indent=2))
+        elif args.command == "apply":
+            request_file, result_file = request_paths(args.task)
+            results = project_path(args.results) if args.results else result_file
+            print(json.dumps(apply_results(data, results), ensure_ascii=False, indent=2))
+            # 반영을 마친 요청서와 결과 파일은 다시 쓰지 않는다. 다른 위치에서 받은 결과 파일은 지우지 않는다.
+            applied_files = [request_file] + ([result_file] if results == result_file else [])
         elif args.command == "snapshot":
             entry = get_entry(data, args.id)
             # 검토 쪽이 고친 설명을 파일을 다시 열지 않고 읽게 본문을 함께 낸다. 본문은 목록에 저장하지 않는다.
@@ -585,7 +928,7 @@ def main():
                 raise ValueError("close requires --note")
             busy = [e["id"] for e in data["entries"] if e.get("ticket")]
             if busy:
-                raise ValueError("Entries are under review; finish them before closing: " + ", ".join(busy))
+                raise ValueError("Entries are under review; apply or finish them before closing: " + ", ".join(busy))
             capture(data)
             unresolved = [{"id": e["id"], "status": e["status"],
                            **({"locationError": e["locationError"]} if e.get("locationError") else {})}
@@ -598,6 +941,9 @@ def main():
             data["closed"] = {"at": now(), "commit": data["headCommit"], "note": args.note,
                               "unresolved": unresolved}
             closed_queue = True
+    for path in applied_files:
+        if path.exists():
+            path.unlink()
     if closed_queue:
         for path in remove_item_files(args.task):
             print(f"Removed input: {path.relative_to(ROOT).as_posix()}")
