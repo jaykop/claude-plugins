@@ -1,193 +1,193 @@
-# Godot 프로젝트에서 바꿔 읽기
+# Reading guide for Godot projects
 
-고문의 SKILL.md 와 reference 파일은 언리얼 기준으로 쓰여 있다. 프로필 `engine.kind` 가 `godot` 이면 고문은 Step 0 에서 이 파일을 먼저 읽고, 언리얼 낱말과 단계를 아래 표대로 바꿔 읽는다.
+The advisors' SKILL.md and reference files are written for Unreal. If the profile `engine.kind` is `godot`, the advisor must read this file first in Step 0, and read Unreal words and steps as mapped in the tables below.
 
-- 표에 없는 언리얼 전용 단계(예: Build.cs 의존 정리, 런처판 패치 번호 찾기)는 건너뛰고 리포트 "확인 못 한 것"에 "Godot 에 해당 없음 — <단계>"로 적는다. 건너뛴 것을 "문제 없음"으로 읽지 않는다.
-- 명령·설정·클래스 이름을 기억으로 쓰지 않는 규칙(perf `categories.md` §2, radar `sources.md` §7)은 그대로다. 이 파일에 "(확인 필요)"가 붙은 이름은 이 파일을 쓸 때도 확실하지 않았던 것이다. 리포트에 넣기 전에 대상 버전의 공식 문서나 엔진 소스로 확인하고, 확인한 위치(URL·조회일 또는 파일:줄)를 적는다.
-- design, market, pm 고문은 엔진에 묶인 단계가 없다. 바꿔 읽을 것이 없다. 다만 Godot 콘텐츠 데이터는 `.tres` 와 JSON·CSV 가 섞이고, 그 데이터를 검사하는 도구가 res:// 밖(예: `tools/`)에 있는 일이 많다. design 은 `design.data_paths` 와 `design.existing_tools` 를 채울 때 두 곳을 다 본다.
+- If an Unreal-only step is not in the tables (for example, cleaning up Build.cs dependencies, or finding the patch number of a launcher build), skip it and write "Godot 에 해당 없음 — <단계>" in the report's "확인 못 한 것". Do not read a skipped step as "no problem".
+- The rule that you must not write command, setting, or class names from memory (perf `categories.md` §2, radar `sources.md` §7) still applies. A name marked "(확인 필요)" in this file was uncertain even when this file was written. Before you put such a name in a report, check it in the official documentation or the engine source of the target version, and write where you checked it (URL and access date, or file:line).
+- The design, market, and pm advisors have no steps tied to the engine. They have nothing to remap. However, Godot content data mixes `.tres` with JSON and CSV, and the tools that check that data are often outside res:// (for example, `tools/`). When design fills `design.data_paths` and `design.existing_tools`, it must look in both places.
 
-## 1. engine.kind 정하기
+## 1. Set engine.kind
 
-- 프로필을 만들 때(start.md 0-D) `profile_scan.py` 결과의 "엔진 종류 (engine.kind)" 줄을 `[파일]` 출처로 채운다. "둘 다"로 나오면 사용자에게 묻는다. 무인 실행에서 칸이 비어 있으면 스크립트가 엔진을 가린 결과를 따르고, 리포트 머리 "범위"에 그렇게 적는다.
-- 스크립트 셋은 엔진을 스스로 가린다. `profile_scan.py` 는 두 엔진을 다 찾는다. `tech_inventory.py` 와 td 의 `module_graph.py` 는 `--project-file` 이 `project.godot` 이면, 또는 `.uproject` 가 없고 `project.godot` 만 있으면 Godot 판(`tech_inventory_godot.py`, `godot_graph.py`)으로 돈다. 그래서 SKILL.md 의 명령을 그대로 쓴다. 엔진을 못 박고 싶으면 `--engine godot` 을 붙인다.
-- 나머지 스크립트(`csv_profile_stat.py`, `vcs_churn.py`, `due_check.py`, `pm_calc.py`, design·market 스크립트)는 엔진과 상관없다.
+- When you make the profile (start.md 0-D), fill it from the "엔진 종류 (engine.kind)" line of the `profile_scan.py` output, with the source `[파일]`. If the output says "둘 다", ask the user. In an unattended run, if the field is empty, follow the engine that the script detected, and write that in "범위" in the report header.
+- The three scripts detect the engine by themselves. `profile_scan.py` looks for both engines. `tech_inventory.py` and td's `module_graph.py` run their Godot versions (`tech_inventory_godot.py`, `godot_graph.py`) if `--project-file` is `project.godot`, or if there is no `.uproject` and there is only `project.godot`. So use the commands in SKILL.md as they are. To force the engine, add `--engine godot`.
+- The other scripts (`csv_profile_stat.py`, `vcs_churn.py`, `due_check.py`, `pm_calc.py`, and the design and market scripts) do not depend on the engine.
 
-### Godot 실행 명령을 적을 때
+### When you write the Godot run command
 
-고문은 Godot·빌드·에디터를 실행하지 않는다(rules.md §7). 아래는 측정 계획, 테스트 명세, `perf.test_command`, 수정을 넘길 때의 확인 조건에 Godot 명령을 적을 때의 규칙이다.
+Advisors do not run Godot, builds, or the editor (rules.md §7). The rules below apply when you write a Godot command in a measurement plan, a test spec, `perf.test_command`, or the check conditions of a code change that you hand off.
 
-- **실행 래퍼**: 프로젝트에 Godot 를 띄우는 래퍼(잠금, 출력 받기, 시간 상한)나 빌드 스크립트가 있으면 명령은 그것을 거친다. 프로필 `engine.run_wrapper` 를 명령 앞에 붙인다. 칸이 비어 있으면 `profile_scan.py` 결과의 "Godot 실행 래퍼 후보"와 프로젝트 정본 문서의 실행법에서 찾고, 대화 실행에서 확인받는다. 무인 실행에서는 명령 옆에 "실행 래퍼 확인 필요"를 붙인다.
-- **동시 실행**: 한 프로젝트에 Godot 를 둘 이상 띄우면 `.godot` import 캐시가 꼬일 수 있다. Godot 실행은 차례로 적고 병렬로 적지 않는다. 같은 폴더를 쓰는 다른 작업 트리·세션이 있는지는 측정 조건 표에 확인 항목으로 적는다. 프로세스를 이름으로 끄라고 적지 않는다. 같은 이름의 다른 세션 프로세스도 꺼진다.
-- **헤드리스와 창**: 결과를 콘솔·파일로 보는 실행에만 `--headless` 를 붙인다. 스크린숏, 마우스 입력·호버, 프레임 시간, 렌더링 시간은 창이 있어야 한다. 헤드리스에서는 실패하거나 틀린 값이 나온다. 창을 띄우는 실행은 한 번에 모아 적고 사용자에게 먼저 알린다. 창을 최소화하면 그리기가 멈춰 시간 초과로 끝날 수 있다.
-- **출력**: Windows 의 GUI 빌드 실행 파일은 콘솔에 출력하지 않을 수 있다(확인 필요). 출력을 읽어야 하는 실행은 콘솔판 실행 파일이나 출력을 파일로 받는 래퍼를 쓴다.
-- **처음 여는 프로젝트**: 다른 실행보다 먼저 import(`--import` — 확인 필요)를 헤드리스로 한 번 한다.
-- **문서 충돌**: 프로젝트 문서끼리 실행 명령이 다르면 프로젝트가 정본으로 정한 문서(예: `AGENTS.md`, 문서 색인의 정본 목록)를 따르고, 다른 쪽은 리포트에 "문서 충돌 — <파일:줄>"로 적는다.
+- **Run wrapper**: If the project has a wrapper that launches Godot (locking, capturing output, time limit) or a build script, the command must go through it. Put the profile `engine.run_wrapper` in front of the command. If the field is empty, look for it in the "Godot 실행 래퍼 후보" lines of the `profile_scan.py` output and in the run instructions of the project's canonical documents, and get it confirmed in an conversation run. In an unattended run, add "실행 래퍼 확인 필요" next to the command.
+- **Running at the same time**: If you launch two or more Godot instances in one project, the `.godot` import cache can get corrupted. Write Godot runs in sequence. Do not write them in parallel. In the measurement conditions table (`측정 조건` in the ledger), add a check item for whether another worktree or session uses the same folder. Do not write a step that kills processes by name, because that also kills processes of other sessions with the same name.
+- **Headless and windowed**: Add `--headless` only to runs whose results you read from the console or a file. Screenshots, mouse input and hover, frame time, and rendering time need a window. In headless mode they fail or give wrong values. Group the runs that open a window together, and tell the user first. If the window is minimized, drawing stops and the run can end with a timeout.
+- **Output**: On Windows, the GUI build executable may not print to the console (확인 필요). For a run whose output you must read, use the console executable or a wrapper that captures the output to a file.
+- **A project opened for the first time**: Before any other run, run import (`--import` — 확인 필요) once in headless mode.
+- **Document conflicts**: If project documents give different run commands, follow the document that the project defines as canonical (for example, `AGENTS.md`, or the canonical list in the document index), and record the other one in the report as "문서 충돌 — <파일:줄>".
 
-## 2. 낱말 바꿔 읽기 (모든 고문)
+## 2. Word mapping (all advisors)
 
-| 언리얼 | Godot | 메모 |
+| Unreal | Godot | Notes |
 |---|---|---|
-| 프로젝트 파일 `.uproject` | `project.godot` | 프로필 `project_file` 에 그 경로를 적는다 |
-| 엔진 버전 파일 `Engine/Build/Build.version` | 커스텀 빌드면 엔진 소스의 `version.py`. 아니면 C# 프로젝트 파일(`*.csproj`)의 `Godot.NET.Sdk/<버전>`, 그것도 없으면 `project.godot` 의 `config/features` 버전 | `config/features` 에는 마이너 버전까지만 있다(패치 번호 모름). 스크립트가 이 순서로 읽는다 |
-| 소스 빌드 여부(`EngineAssociation`) | 프로젝트 파일에 적히지 않는다 | `engine.source_build` 는 추측하지 않고 사용자에게 묻는다 |
-| `engine.root`(엔진 소스·설치 폴더) | 커스텀 빌드일 때만 Godot 엔진 소스 폴더(`version.py` 가 있는 곳). 공식 배포판이면 비워 둔다 | 비어 있으면 엔진 클래스·설정·명령줄 이름은 대상 버전의 공식 문서와 공개 소스 저장소의 그 버전 태그로 확인한다 |
-| 게임 코드 폴더 `Source`, `Plugins/*/Source` | `project.godot` 가 있는 폴더(res://) 전체. C# 이면 게임 프로젝트가 ProjectReference 로 잇는 res:// 밖 프로젝트(예: 순수 시뮬레이션 라이브러리)도 게임 코드다 | 외부 애드온(`addons/<이름>`)은 판정에서 뺄 때 `--exclude` 로 준다. res:// 밖 C# 프로젝트는 모듈 지도와 기술 목록이 저절로 읽고, `profile_scan.py` 가 경로를 알려 준다. 다른 코드 검색에도 넣으려면 `source_roots` 에 적는다 |
-| 플러그인 `.uplugin` | `addons/<이름>/plugin.cfg`(에디터 플러그인), `*.gdextension`(GDExtension), 둘 다 없는 `addons/<이름>`(스크립트 애드온), C# 프로젝트의 NuGet 패키지(PackageReference) | 엔진에 들어 있는 기능(렌더러, 물리 엔진 등)은 플러그인이 아니라 설정이다. 테스트 프로젝트의 패키지는 게임에 들지 않아 기술 목록에서 뺀다 |
-| 프로젝트 파일의 플러그인 켜짐·꺼짐 | `project.godot` 의 `[editor_plugins] enabled` | 에디터 플러그인을 꺼도 그 애드온의 런타임 스크립트는 쓸 수 있다. GDExtension 과 스크립트 애드온은 켜고 끄는 칸이 없다 |
-| 플러그인 성숙도 표시(`IsExperimentalVersion`, `IsBetaVersion`) | 애드온 파일에는 없다 | 엔진 기능의 실험 표시는 대상 버전 공식 문서의 클래스 설명 원문으로 확인한다(엔진 소스면 `doc/classes/*.xml` 의 실험 표시 — 확인 필요) |
-| 모듈과 `*.Build.cs` 의존 선언 | 없다 | td 의 모듈 지도는 폴더를 모듈로, 파일 안의 참조를 간선으로 센다(§4) |
-| 설정 파일 `Config/Default*.ini` | `project.godot` | 기능 태그별 값(`키.mobile` 처럼 점 뒤에 태그)도 같은 설정으로 본다. 적히지 않은 설정은 엔진 기본값이다 |
-| 콘솔 변수(CVar), 콘솔 명령 | 프로젝트 설정(ProjectSettings) 키, 엔진 싱글턴(`Engine`, `Performance`, `RenderingServer` 등)의 속성·메서드, 명령줄 인자 | 실행 중 조작 경로는 게임이 직접 만든 디버그 명령·디버그 콘솔 애드온이다 |
-| 블루프린트 에셋(`.uasset`, 이진이라 못 읽음) | `.tscn`·`.tres` 는 텍스트라 읽는다. `.res`·`.scn`(이진)과 에디터에서만 보이는 것은 못 읽는다 | 언리얼 문서의 "블루프린트 확인 못 함"은 이진 리소스에만 쓴다. 씬 안의 시그널 연결(`[connection]`)과 스크립트 연결도 텍스트로 센다 |
-| 틱, 틱 그룹 | `_process`, `_physics_process`, 노드의 처리 우선순위(`process_priority`, `process_physics_priority` — 확인 필요), 씬 트리 순서 | 같은 프레임의 실행 순서를 정하는 장치다 |
-| 네트워크 복제, 원격 호출 | 고수준 멀티플레이어(`MultiplayerAPI`, `@rpc`, `MultiplayerSynchronizer`, `MultiplayerSpawner` — 확인 필요) | 권한 검사는 `is_multiplayer_authority()` 같은 호출을 찾는다(확인 필요) |
-| 쿡·패키징 | 내보내기(`export_presets.cfg`) | 대상 플랫폼은 `export_presets.cfg` 의 `platform` |
-| 측정 파일 폴더 `Saved/Profiling` | 정해진 곳이 없다 | `perf.profiling_dir` 은 사용자에게 묻는다 |
-| 자동화 테스트(Automation Spec 등) | GUT, gdUnit4(GDScript·C#), 자체 러너, .NET 테스트 프로젝트(xUnit·NUnit·MSTest) | `profile_scan.py` 가 알려진 틀(`extends GutTest`, `extends GdUnitTestSuite`, `[TestSuite]`), 자체 러너 후보와 그 안의 `test_` 함수 수, .NET 테스트 프로젝트와 테스트 표시(`[Fact]`, `[Theory]`, `[Test]` 등) 수를 따로 낸다. 엔진 없이 도는 순수 C# 라이브러리의 테스트는 .NET 테스트 프로젝트에 있는 일이 많다 |
+| Project file `.uproject` | `project.godot` | Write its path in the profile `project_file` |
+| Engine version file `Engine/Build/Build.version` | For a custom build, `version.py` in the engine source. Otherwise `Godot.NET.Sdk/<version>` in the C# project file (`*.csproj`). If that is also missing, the version in `config/features` of `project.godot` | `config/features` has only up to the minor version (the patch number is unknown). The script reads them in this order |
+| Source build or not (`EngineAssociation`) | Not written in the project file | Do not guess `engine.source_build`. Ask the user |
+| `engine.root` (engine source or install folder) | Only for a custom build: the Godot engine source folder (where `version.py` is). Leave it empty for an official release | If it is empty, check engine class, setting, and command-line names in the official documentation of the target version and in that version's tag of the public source repository |
+| Game code folders `Source`, `Plugins/*/Source` | The whole folder that contains `project.godot` (res://). For C#, projects outside res:// that the game project links with ProjectReference (for example, a pure simulation library) are also game code | To leave external add-ons (`addons/<name>`) out of the checks, pass them with `--exclude`. The module map and the technology inventory read C# projects outside res:// automatically, and `profile_scan.py` reports their paths. To include them in other code searches too, list them in `source_roots` |
+| Plugin `.uplugin` | `addons/<name>/plugin.cfg` (editor plugin), `*.gdextension` (GDExtension), `addons/<name>` with neither (script add-on), NuGet packages of the C# project (PackageReference) | Features built into the engine (renderer, physics engine, and so on) are settings, not plugins. Packages of test projects are not part of the game, so leave them out of the technology inventory |
+| Plugin enabled or disabled in the project file | `[editor_plugins] enabled` in `project.godot` | Even if an editor plugin is disabled, the add-on's runtime scripts can still be used. GDExtensions and script add-ons have no enable/disable field |
+| Plugin maturity flags (`IsExperimentalVersion`, `IsBetaVersion`) | Not in add-on files | Check experimental flags of engine features in the original class descriptions of the target version's official documentation (in the engine source, the experimental flag in `doc/classes/*.xml` — 확인 필요) |
+| Modules and `*.Build.cs` dependency declarations | None | td's module map counts folders as modules and references inside files as edges (§4) |
+| Config files `Config/Default*.ini` | `project.godot` | Treat per-feature-tag values (a tag after a dot, as in `key.mobile`) as the same setting. A setting that is not written uses the engine default |
+| Console variables (CVar), console commands | Project settings (ProjectSettings) keys, properties and methods of engine singletons (`Engine`, `Performance`, `RenderingServer`, and so on), command-line arguments | The way to control the game at run time is debug commands that the game builds itself, or a debug console add-on |
+| Blueprint assets (`.uasset`, binary, so they cannot be read) | `.tscn` and `.tres` are text, so you can read them. You cannot read `.res` and `.scn` (binary) or things that are visible only in the editor | Use "블루프린트 확인 못 함" from the Unreal documents only for binary resources. Also count signal connections in scenes (`[connection]`) and script attachments from the text |
+| Tick, tick groups | `_process`, `_physics_process`, node processing priority (`process_priority`, `process_physics_priority` — 확인 필요), scene tree order | These set the execution order within the same frame |
+| Network replication, remote calls | High-level multiplayer (`MultiplayerAPI`, `@rpc`, `MultiplayerSynchronizer`, `MultiplayerSpawner` — 확인 필요) | For authority checks, look for calls such as `is_multiplayer_authority()` (확인 필요) |
+| Cooking and packaging | Export (`export_presets.cfg`) | The target platform is `platform` in `export_presets.cfg` |
+| Measurement file folder `Saved/Profiling` | No fixed location | Ask the user for `perf.profiling_dir` |
+| Automated tests (Automation Spec and so on) | GUT, gdUnit4 (GDScript and C#), custom runners, .NET test projects (xUnit, NUnit, MSTest) | `profile_scan.py` reports these separately: known frameworks (`extends GutTest`, `extends GdUnitTestSuite`, `[TestSuite]`), custom runner candidates and the number of `test_` functions in them, and .NET test projects and their number of test attributes (`[Fact]`, `[Theory]`, `[Test]`, and so on). Tests of pure C# libraries that run without the engine are often in .NET test projects |
 
-## 3. 기술 동향 고문(radar)
+## 3. Technology trend advisor (radar)
 
-- **기술 목록**(SKILL.md Step 1): 명령은 그대로다. 상태 다섯 가지의 Godot 뜻은 결과 끝 설명에 있다. "엔진에 있으나 꺼짐"은 `addons` 에 있지만 `[editor_plugins]` 에 켜짐으로 적히지 않은 에디터 플러그인이다.
-  - "엔진 폴더를 못 찾아" 단계는 없다. Godot 은 엔진 폴더 없이도 목록이 다 나온다. 공식 배포판이면 `engine.root` 를 묻지 않는다.
-  - "변경 없음"의 입력 지문은 `version.py`(엔진 폴더를 줬을 때), `project.godot`, `export_presets.cfg`, `*.csproj`, `plugin.cfg`, `*.gdextension` 이다. 게임 코드는 지문에 들지 않으므로 사용 흔적만 바뀐 것은 `stale_after_days` 가 지나야 반영된다.
-  - "켜짐·사용 흔적 없음"은 에디터 도구만 더하는 플러그인이거나 GDExtension 이 등록한 클래스 이름으로만 쓰는 경우일 수 있다. "안 쓴다"고 단정하지 않는다.
-- **우리 트리의 1차 근거**(SKILL.md D2): `.uplugin` 대신 `plugin.cfg`(이름, 버전, 스크립트)와 `.gdextension`(`compatibility_minimum`, 라이브러리 경로)을 읽는다. 커스텀 빌드면 엔진 소스의 그 모듈 폴더를 읽는다.
-- **1차 출처**(sources.md §1): 아래는 찾기 시작할 곳이다. 접근 가능 여부와 주소는 실행할 때 열어 보고 `source-checks.md` 에 적는다.
-  - 공식 블로그와 릴리스 공지(godotengine.org 의 글 목록과 릴리스 페이지)
-  - 버전별 공식 문서(docs.godotengine.org 의 버전 판). 이전 안내 문서(마이너 버전 사이 업그레이드 안내)가 있으면 버전 점검의 1차 근거다
-  - 공개 소스 저장소 godotengine/godot 의 릴리스 태그, 변경 기록, 이슈 트래커(공식 이슈 트래커로 본다)
-  - 제안 저장소 godotengine/godot-proposals 는 계획이다. 출시 근거로 쓰지 않는다(발표 단계 ②까지)
-  - 애셋 라이브러리와 애드온 저장소는 그 애드온 공급사의 자료로 본다(sources.md §1 의 공급사 규칙)
-- **커뮤니티 채널**(sources.md §10): 채널 목록은 그대로 쓴다. qiita 태그는 공개 기술 이름(예: `Godot` — 확인 필요)으로 쓴다.
-- **엔진 버전 점검표**(upgrade-checklist.md): 항목 번호는 그대로 두고 아래처럼 바꿔 읽는다.
-  - 2: 대조 대상은 기술 목록의 애드온·GDExtension 과 설정 표, 그리고 게임 코드가 쓰는 엔진 클래스·메서드다. 바뀐 API 를 쓰는 파일 수는 analyst 에 `.gd`·`.cs`·`.tscn`·`.tres` 검색식으로 센다.
-  - 3: 언리얼 성숙도 표시 대신, 우리가 쓰는 엔진 기능 가운데 공식 문서에 실험 기능으로 적힌 것이 대상 버전에서 어떻게 바뀌는지 본다.
-  - 4: 커스텀 빌드일 때만. 애드온을 고쳐 쓰면("엔진을 고쳐서 씀") 그 애드온도 여기서 센다.
-  - 5: `project.godot` 의 `config_version` 이 바뀌는 버전(3 → 4 처럼 큰 이전)은 따로 "막힘 후보"로 적고 이전 안내 문서를 1차 근거로 둔다.
-  - 7: NuGet 패키지는 대상 버전의 `Godot.NET.Sdk` 가 요구하는 .NET 버전과 맞는지 패키지 공개 자료로 본다. C# 프로젝트는 .NET 메이저 런타임을 새로 설치하는 것도 엔진 버전 점검처럼 본다. 에디터·도구는 설치된 새 런타임으로 돌고 내보낸 게임은 대상 런타임에 남으면, 같은 입력에서 결과가 갈릴 수 있다(`TargetFramework`, `RollForward` 를 대조한다). 애드온마다 대상 버전 지원을 그 애드온 저장소·애셋 라이브러리에서 본다. `plugin.cfg` 에는 지원 버전 칸이 없다. GDExtension 은 `compatibility_minimum`·`compatibility_maximum`(확인 필요)과 공급사 자료를 함께 본다.
-  - C# 프로젝트면 `Godot.NET.Sdk` 버전과 그 버전이 요구하는 .NET 버전도 항목 2 에 넣는다.
-  - 10(되돌리는 방법)에 더할 것: 올린 뒤 같은 결과인지 확인하는 절차(결정론 대조, 시각 회귀 기준 이미지 다시 찍기)가 프로젝트에 있으면 그 절차를 적는다.
+- **Technology inventory** (SKILL.md Step 1): The command is the same. The Godot meaning of the five statuses is in the explanation at the end of the output. "엔진에 있으나 꺼짐" is an editor plugin that is in `addons` but is not written as enabled in `[editor_plugins]`.
+  - There is no "엔진 폴더를 못 찾아" step. For Godot, the full inventory comes out without an engine folder. For an official release, do not ask for `engine.root`.
+  - The input fingerprint for "변경 없음" is `version.py` (when you gave the engine folder), `project.godot`, `export_presets.cfg`, `*.csproj`, `plugin.cfg`, and `*.gdextension`. Game code is not part of the fingerprint, so a change only in usage traces is reflected only after `stale_after_days` has passed.
+  - "켜짐·사용 흔적 없음" can be a plugin that adds only editor tools, or a GDExtension that is used only through the class names it registers. Do not conclude that it is "not used".
+- **Primary evidence from our tree** (SKILL.md D2): Instead of `.uplugin`, read `plugin.cfg` (name, version, script) and `.gdextension` (`compatibility_minimum`, library paths). For a custom build, read that module's folder in the engine source.
+- **Primary sources** (sources.md §1): The list below is where to start looking. At run time, open each one to check whether it is accessible and what its address is, and record that in `source-checks.md`.
+  - The official blog and release announcements (the post list and the release pages on godotengine.org)
+  - Official documentation per version (the versioned docs on docs.godotengine.org). If there is a migration guide (upgrade guide between minor versions), it is the primary evidence for a version check
+  - Release tags, changelogs, and the issue tracker of the public source repository godotengine/godot (treat it as the official issue tracker)
+  - The proposals repository godotengine/godot-proposals holds plans. Do not use it as evidence of a release (at most announcement stage ②)
+  - Treat the Asset Library and add-on repositories as material from that add-on's vendor (the vendor rule in sources.md §1)
+- **Community channels** (sources.md §10): Use the channel list as it is. For qiita tags, use public technology names (for example, `Godot` — 확인 필요).
+- **Engine version checklist** (upgrade-checklist.md): Keep the item numbers, and read the items as follows.
+  - 2: Compare against the add-ons, GDExtensions, and settings table in the technology inventory, and against the engine classes and methods that the game code uses. Have analyst count the files that use a changed API, with search patterns over `.gd`, `.cs`, `.tscn`, and `.tres`.
+  - 3: Instead of Unreal maturity flags, check how the engine features we use that the official documentation marks as experimental change in the target version.
+  - 4: Only for a custom build. If we use a modified add-on ("엔진을 고쳐서 씀"), count that add-on here too.
+  - 5: Record a version where `config_version` in `project.godot` changes (a major migration such as 3 → 4) separately as "막힘 후보", and use the migration guide as the primary evidence.
+  - 7: For NuGet packages, check in the packages' public material whether they match the .NET version that the target version's `Godot.NET.Sdk` requires. For a C# project, treat installing a new major .NET runtime the same as an engine version check. If the editor and tools run on the newly installed runtime while the exported game stays on the target runtime, results can differ for the same input (compare `TargetFramework` and `RollForward`). For each add-on, check support for the target version in that add-on's repository or the Asset Library. `plugin.cfg` has no field for supported versions. For GDExtensions, check `compatibility_minimum` and `compatibility_maximum` (확인 필요) together with the vendor's material.
+  - For a C# project, also put the `Godot.NET.Sdk` version and the .NET version that it requires in item 2.
+  - Add to 10 (how to roll back): If the project has a procedure to confirm that the results are the same after the upgrade (determinism comparison, re-capturing the reference images for visual regression), write that procedure.
 
-## 4. TD 고문(td)
+## 4. TD advisor (td)
 
-- **모듈 지도**(SKILL.md, audit-scopes.md §1): 명령은 그대로다. 결과 머리가 "— Godot"이면 Godot 판이다.
-  - 모듈은 폴더다. `addons/<이름>` 은 애드온 하나, 그 밖은 프로젝트 폴더 바로 아래 폴더 하나다. 더 잘게 보려면 `--unit-depth 2` 를 준다.
-  - 코드가 `scripts/` 같은 폴더 하나에 몰린 프로젝트(Godot 에서 흔하다)는 모듈이 하나로 뭉친다. 결과 머리에 "--unit-depth N 로 다시 돌릴 것" 주의가 있으면 그 값으로 다시 돌리고, 리포트에는 다시 돌린 결과를 쓴다. 쓴 `--unit-depth` 값은 TD 기록 판정 기준 표에 적어 다음 점검도 같은 값으로 돌린다.
-  - 간선은 참조 종류(preload, extends, class_name 사용, autoload 사용, 씬·리소스 참조, 셰이더 include, C# using, C# 형 사용, 동적 로드, 경로 문자열)마다 묶어 센다. 순환 의존과 층 판정에서는 동적 로드, 경로 문자열, 여러 모듈에 걸친 namespace 의 using 을 뺀다.
-  - C# 형 사용은 한 모듈에서만 선언한 형 이름이 형으로 쓰인 자리(선언, `new`, `typeof`, 정적 접근, 제네릭 인자)만 센다. 자기 C# 프로젝트와 ProjectReference 로 잇는 프로젝트의 형만 센다. 이름이 같은 형을 여러 모듈이 선언하면 세지 않고 결과 머리에 그 수를 적는다.
-  - res:// 밖 C# 프로젝트 폴더의 모듈은 소속 칸이 "res:// 밖"이고, 이름은 프로젝트 루트 기준 폴더다(예: `core/Match`).
-  - `--engine-root`, `--includes` 는 쓰지 않는다. 주면 무시하고 "주의"로 적는다.
-  - 판정 표 바꿔 읽기:
+- **Module map** (SKILL.md, audit-scopes.md §1): The command is the same. If the output header says "— Godot", it is the Godot version.
+  - A module is a folder. `addons/<name>` is one add-on. Elsewhere, each folder directly under the project folder is one module. For finer modules, pass `--unit-depth 2`.
+  - In a project where the code is concentrated in one folder such as `scripts/` (common in Godot), the modules collapse into one. If the output header has the warning "--unit-depth N 로 다시 돌릴 것", run again with that value, and use the output of the rerun in the report. Write the `--unit-depth` value you used in the decision criteria table (판정 기준 표) of the TD record, so that the next check runs with the same value.
+  - Edges are grouped and counted by reference kind (preload, extends, class_name use, autoload use, scene and resource references, shader include, C# using, C# type use, dynamic load, path strings). Cycle and layer checks leave out dynamic loads, path strings, and `using` of namespaces that span several modules.
+  - C# type use counts only the places where a type name declared in only one module is used as a type (declarations, `new`, `typeof`, static access, generic arguments). It counts only the types of the module's own C# project and of the projects linked with ProjectReference. If several modules declare a type with the same name, it is not counted, and the output header shows that number.
+  - A module in a C# project folder outside res:// has "res:// 밖" in its membership column, and its name is the folder relative to the project root (for example, `core/Match`).
+  - Do not use `--engine-root` or `--includes`. If they are passed, they are ignored and recorded as "주의".
+  - Read the verdict table as follows:
 
-    | 언리얼 분류 | Godot |
+    | Unreal classification | Godot |
     |---|---|
-    | 층 규칙 위반 | 그대로 |
-    | 런타임 → 에디터 의존 | 결과의 "에디터 전용 코드에 기대는 곳". 조건 칸(`Engine.is_editor_hint()`, `#if TOOLS`)이 없으면 등급은 확인함, 있으면 참고로만 적는다. 내보낸 빌드에서 그 조건이 안전한지는 문서·내보내기 시험으로 확인할 일로 적는다 |
-    | 순환 의존 | 그대로(동적 로드와 경로 문자열을 뺀 참조 기준) |
-    | 지울 후보 의존, 선언 없는 include | 해당 없음. 의존 선언이 없어서다 |
+    | 층 규칙 위반 (layer rule violation) | Same |
+    | 런타임 → 에디터 의존 (runtime → editor dependency) | The output's "에디터 전용 코드에 기대는 곳". If the condition column (`Engine.is_editor_hint()`, `#if TOOLS`) is empty, the grade is 확인함. If it has a condition, record it only for reference. Record whether that condition is safe in an exported build as something to confirm with documentation or an export test |
+    | 순환 의존 (circular dependency) | Same (based on references without dynamic loads and path strings) |
+    | 지울 후보 의존, 선언 없는 include (dependency to remove, include without a declaration) | Not applicable, because there are no dependency declarations |
 
-  - 산출물의 "include 가 많은 헤더"는 "다른 모듈이 많이 참조하는 파일"로 바꾼다. "autoload" 표(전역 싱글턴과 그것을 이름으로 부르는 모듈 수)와 "가리키는 파일이 없는 res:// 경로"를 산출물에 더한다.
-- **지금 구조 조사**(SKILL.md): 진입점·상태를 쓰는 지점에 더해 아래를 찾는다. 시그널 연결(코드의 `connect` 와 `.tscn` 의 `[connection]`), 그룹(`add_to_group`, `get_nodes_in_group`, `call_group`), 노드 경로 문자열(`$`, `get_node`, `%고유 이름`) — 씬 구조에 묶인 참조다, 씬 상속과 인스턴스, 여러 곳이 같은 `.tres` 를 고치는 공유 리소스.
-- **Godot 기본 점검표**: `td.rule_docs` 에 같은 주제의 팀 규칙이 없을 때만 쓴다. 팀 규칙이 있으면 팀 규칙이 이긴다. 근거는 "Godot 일반 점검표"로 적고, 이 표만으로 권고 등급을 올리지 않는다. 검색식과 개수를 남긴다.
-  - 씬: 한 씬 안 노드 경로가 5단계를 넘는 참조(`get_node`·`$` 의 `/` 수 — 고유 이름 `%` 후보), `.tscn` 안에서 아무도 쓰지 않는 `[sub_resource]`·`[ext_resource]`, 자동으로 붙은 노드 이름(`Node2D2`, `@` 이 든 이름), 여러 씬이 같은 리소스를 따로 정의한 곳(공유 `.tres` 후보)
-  - 실행 순서: 자식의 `_ready` 가 부모 `_ready` 본문보다 먼저 돈다. 자식 `_ready` 가 부모나 autoload 가 `_ready` 에서 채우는 상태를 읽는 곳을 찾는다
-  - GDScript 형: 형을 붙인 배열에 다른 형의 값을 넣는 곳(예: `Array[Dictionary]` 에 객체), 중첩 제네릭(`Array[Array[`), 형을 붙인 Dictionary(4.4 이후 — 확인 필요)의 값으로 Array·Dictionary 를 쓰는 곳. 런타임 변환 오류로 배열이 비는 일이 있다
-  - 참조: `class_name` 이 있는 스크립트를 `preload` 별칭으로 또 부르는 곳(같은 대상에 이름이 둘)
-  - 파일: `.tres`·`.tscn` 은 BOM 없이 쓴다. 새 스크립트의 `.uid` 파일을 함께 버전 관리에 넣는다(4.4 이후). 편집기가 C# 파일 들여쓰기를 바꿔 저장할 수 있다. 이것은 코드 수정을 넘길 때(`code_change_entry`) 조건으로 적는다
-- **엔진 수정**(audit-scopes.md §2): 커스텀 빌드이고 `engine.root` 가 Godot 엔진 소스일 때만 한다. 순정 엔진(`td.vanilla_engine_root`)은 같은 버전의 공식 소스다. 버전은 `Build/Build.version` 대신 `version.py` 로 읽는다. 공식 배포판이면 엔진 수정은 "해당 없음"이고, 고쳐 쓰는 애드온이 있으면 그 애드온 폴더를 셀 폴더로 주고 순정은 애드온 원본 저장소의 같은 버전으로 본다.
-- **에이전트 검증 가능성**(audit-scopes.md 의 축 1~6): 아래 검색식을 언리얼 검색식 대신 쓴다. 여기 적힌 검색식은 대화 실행에서 따로 확인받지 않아도 되고 무인 실행에서도 쓴다. 더 찾을 것이 있으면 대화 실행에서 확인받는다.
-  1. 난수 경로
-     - GDScript 전역 난수: `(?<![\w.])(randi|randf|randi_range|randf_range|randfn|randomize|rand_from_seed|seed)\s*\(`
-     - C# 전역 난수: `GD\.(Randi|Randf|RandRange|Randfn|Randomize|Seed)\b`, `new\s+(System\.)?Random\(`, `Random\.Shared`
-     - 시드를 가진 스트림: `RandomNumberGenerator`, 프로젝트가 만든 시드 난수 형(`class\s+\w*(Rng|Random)\w*\b`). 프로젝트가 만든 형이 있으면 그것이 "정한 경로"의 선례다
-     - 연출용 난수(이펙트, 배경 흔들림 등)와 게임 결과에 닿는 난수를 나눠 센다. 파일 이름·폴더(`fx`, `vfx`, `ambience` 등)로 1차로 가르고, 애매한 것은 analyst 가 그 값이 상태·판정에 들어가는지 본다. 연출용 전역 난수는 "없음" 판정의 근거로 쓰지 않는다
-     - 프로젝트 문서의 결정론 선언("같은 시드면 같은 결과", "미리보기 = 실행" 등)과 그것을 확인하는 테스트가 있으면 1차 근거로 적는다
-     - 프레임 간격(참고 사실로만): `project.godot` 의 `physics/common/physics_ticks_per_second`, 명령줄 `--fixed-fps`(확인 필요)
-     - C# 런타임(참고 사실로만): 게임 프로젝트와 도구·테스트 프로젝트의 `TargetFramework` 차이, `RollForward`, `Deterministic`. 런타임이 다르면 같은 입력에서도 부동소수점 결과가 갈릴 수 있다
-  2. 상태 재현
+  - In the deliverable, replace "include 가 많은 헤더" with "다른 모듈이 많이 참조하는 파일". Add to the deliverable the "autoload" table (global singletons and the number of modules that call each one by name) and "가리키는 파일이 없는 res:// 경로".
+- **Current structure survey** (SKILL.md): In addition to entry points and the places that write state, look for the following: signal connections (`connect` in code and `[connection]` in `.tscn`); groups (`add_to_group`, `get_nodes_in_group`, `call_group`); node path strings (`$`, `get_node`, `%` unique names), which are references tied to the scene structure; scene inheritance and instances; and shared resources, where several places modify the same `.tres`.
+- **Godot default checklist**: Use it only when `td.rule_docs` has no team rule on the same topic. If there is a team rule, the team rule wins. Cite the evidence as "Godot 일반 점검표", and do not raise a recommendation grade on this checklist alone. Keep the search patterns and the counts.
+  - Scenes: references whose node path within one scene goes deeper than 5 levels (the number of `/` in `get_node` and `$` — candidates for `%` unique names); `[sub_resource]` and `[ext_resource]` entries in a `.tscn` that nothing uses; automatically generated node names (`Node2D2`, names that contain `@`); places where several scenes define the same resource separately (candidates for a shared `.tres`)
+  - Execution order: a child's `_ready` runs before the body of its parent's `_ready`. Look for places where a child's `_ready` reads state that the parent or an autoload fills in its own `_ready`
+  - GDScript types: places that put a value of another type into a typed array (for example, an object into `Array[Dictionary]`); nested generics (`Array[Array[`); places that use Array or Dictionary as the values of a typed Dictionary (4.4 and later — 확인 필요). A runtime conversion error can leave the array empty
+  - References: places that also call a script that has `class_name` through a `preload` alias (two names for the same target)
+  - Files: write `.tres` and `.tscn` without a BOM. Add the `.uid` files of new scripts to version control together with the scripts (4.4 and later). The editor can change the indentation of C# files when it saves them. Write this as a condition when you hand off a code change (`code_change_entry`)
+- **Engine modifications** (audit-scopes.md §2): Do this only for a custom build where `engine.root` is the Godot engine source. The vanilla engine (`td.vanilla_engine_root`) is the official source of the same version. Read the version from `version.py` instead of `Build/Build.version`. For an official release, engine modifications are "해당 없음". If we use a modified add-on, give that add-on's folder as the folder to count, and treat the same version in the add-on's original repository as vanilla.
+- **Agent verifiability** (axes 1–6 in audit-scopes.md): Use the search patterns below instead of the Unreal ones. The search patterns written here need no separate confirmation in an conversation run, and you can also use them in an unattended run. If you need to search for more, get confirmation in an conversation run.
+  1. Random paths
+     - GDScript global random: `(?<![\w.])(randi|randf|randi_range|randf_range|randfn|randomize|rand_from_seed|seed)\s*\(`
+     - C# global random: `GD\.(Randi|Randf|RandRange|Randfn|Randomize|Seed)\b`, `new\s+(System\.)?Random\(`, `Random\.Shared`
+     - Seeded streams: `RandomNumberGenerator`, seeded random types that the project made (`class\s+\w*(Rng|Random)\w*\b`). If the project made such a type, it is the precedent for the "정한 경로" (set path)
+     - Count random calls for presentation (effects, background shake, and so on) separately from random calls that affect game results. Do the first split by file name and folder (`fx`, `vfx`, `ambience`, and so on). For unclear cases, analyst checks whether the value goes into state or a judgment. Do not use global random calls for presentation as evidence for a "없음" verdict
+     - If the project documents declare determinism ("같은 시드면 같은 결과", "미리보기 = 실행", and so on) and there are tests that check it, record them as primary evidence
+     - Frame interval (as a reference fact only): `physics/common/physics_ticks_per_second` in `project.godot`, the command-line option `--fixed-fps` (확인 필요)
+     - C# runtime (as a reference fact only): differences in `TargetFramework` between the game project and the tool or test projects, `RollForward`, `Deterministic`. If the runtimes differ, floating-point results can differ even for the same input
+  2. State reproduction
      - GDScript: `ResourceSaver\.save`, `FileAccess\.open`, `ConfigFile`, `JSON\.(stringify|parse)`, `(var_to_str|str_to_var|var_to_bytes|bytes_to_var)\s*\(`
      - C#: `ResourceSaver\.Save`, `FileAccess\.Open`, `ConfigFile`, `Json\.(Stringify|Parse)`, `File\.(WriteAll\w*|ReadAll\w*|Open\w*|Create)\b`, `JsonSerializer\.`
-     - 입력 기록·재생: `Input\.parse_input_event` 를 쓰는 곳, 상태를 바꾸는 입력을 명령 객체로만 넘기는 구조(`interface\s+I\w*Command\b` 와 그 기록·재생기). 명령 구조가 있으면 기록·재생의 선례로 적는다
-     - 세션 기록 파일(`user://` 아래 기록·재생 파일)과 해시 대조로 첫 어긋남을 찾는 도구가 있으면 "갖춤"의 근거로 적는다
-  3. 텍스트 출력
+     - Input recording and replay: places that use `Input\.parse_input_event`, and structures that pass state-changing input only as command objects (`interface\s+I\w*Command\b` and its recorder and player). If there is a command structure, record it as a precedent for recording and replay
+     - If there are session recording files (record and replay files under `user://`) and a tool that finds the first divergence by hash comparison, record them as evidence for "갖춤"
+  3. Text output
      - GDScript: `(?<![\w.])(print|print_debug|print_rich|printerr|prints|printt|push_warning|push_error)\s*\(`
      - C#: `GD\.(Print|PrintRich|PrintErr|PrintS|PrintT|PushWarning|PushError)\b`, `Console\.Write(Line)?\b`, `Debug\.WriteLine\b`
-     - 파일 로그 설정: `project.godot` 의 파일 로그 항목(확인 필요)
-     - 화면만: 디버그용 `Label`·`draw_` 호출, 디버그 그리기 애드온
-  4. 재컴파일 없는 조작
-     - 게임이 만든 디버그 명령·치트(명령 이름 표를 가진 autoload, 디버그 콘솔 애드온)
+     - File log settings: the file log entries in `project.godot` (확인 필요)
+     - Screen only: debug `Label` and `draw_` calls, debug drawing add-ons
+  4. Control without recompiling
+     - Debug commands and cheats that the game made (an autoload with a table of command names, debug console add-ons)
      - GDScript: `OS\.get_cmdline_(user_)?args`, `OS\.is_debug_build`. C#: `OS\.GetCmdline(User)?Args`, `OS\.IsDebugBuild`
-     - GDScript 는 스크립트를 고쳐도 다시 빌드하지 않지만, 이것은 조작 경로로 세지 않는다
-     - 에디터 원격 조작: `.mcp.json` 과 켜진 원격 조작 애드온(기술 목록)
-  5. 수치의 데이터 분리
-     - GDScript 상수: `^\s*const\s+\w+\s*(:\s*(int|float))?\s*:?=\s*-?[0-9.]`. C# 상수: `const\s+(float|double|int)\s+\w+\s*=\s*-?[0-9.]`
-     - 이미 뺀 방식(선례): `@export`, `\[Export\]`, `Resource` 를 상속한 데이터 클래스와 `.tres`, `ProjectSettings\.get_setting`, `.json`·`.csv` 데이터 파일
-  6. 자동 시험
-     - 테스트 수: `extends\s+(GutTest|GdUnitTestSuite)` 파일의 `func\s+test_`, `\[TestSuite\]` 파일의 `\[TestCase\]`
-     - .NET 테스트 프로젝트(`profile_scan.py` 결과): 프로젝트마다 `\[\s*(Fact|Theory|Test|TestCase|TestMethod|DataTestMethod)\s*[\](]` 수. 테스트 프로젝트가 참조하는 프로젝트(ProjectReference)가 그 테스트가 덮는 모듈이다
-     - 자체 테스트 러너: 알려진 틀을 쓰지 않고 직접 만든 러너가 흔하다. 모양은 여럿이다. `extends Node` 스크립트와 씬, `extends SceneTree` 러너 스크립트(`-s` 로 실행), 테스트가 상속하는 기반 클래스(`extends RefCounted` 등, 상속이 여러 단 이어질 수 있다), C# 이면 명령줄 점검 인자를 받아 `GetTree().Quit(n)` 으로 끝내는 코드다.
-       - `profile_scan.py` 결과의 "자체 러너 후보"(테스트 폴더나 `test_*.gd`·`run_all.gd` 같은 이름, 그 안의 `test_` 함수 수)와 "--headless 실행" 줄을 analyst 에 넘긴다.
-       - analyst 가 러너마다 받는다: 테스트를 어떻게 찾는가(파일 이름 규칙, 기반 클래스), 확인 함수 이름(기반 클래스가 정의한 것. `assert_*`·`check_*` 처럼 이름을 고정하지 않는다)과 호출 수, 실패를 종료 코드로 내는가(`(get_tree\(\)\.)?quit\(\s*[^)]` — SceneTree 러너는 `quit(` 를 바로 부른다. C# 은 `GetTree\(\)\.Quit\(`), 따로 도는 테스트(별도 프로세스, 기본 실행에서 SKIP)의 수.
-       - 품질 신호: 테스트 중 엔진 오류(`push_error`, 스크립트 오류)를 실패로 세는가(`OS\.add_logger`·`Logger` 하위 클래스 — 확인 필요). 세지 않으면 GDScript 런타임 오류로 멈춘 함수가 통과로 보일 수 있다. 모든 스크립트를 불러 보는 로드 점검 테스트가 있는가.
-       - 결과는 "알려진 틀 기준 N 개, 자체 러너 M 개(test_ 함수 N 개, 따로 도는 것 N 개)"처럼 나눠 적는다. 알려진 틀이 0 이어도 자체 러너가 있으면 "없음"으로 분류하지 않는다
-     - 화면 없이 돌리는 명령이 적힌 곳: 프로젝트 스크립트와 CI 설정, 실행 래퍼의 인자, 정본 문서(README·인계 문서·아키텍처 문서)의 코드 블록. `--headless`, `--script`·`-s`, `--quit`, `--quit-after`, `--check-only`(확인 필요), GUT·gdUnit4 명령줄 실행 스크립트(확인 필요), `extends\s+(SceneTree|MainLoop)` 스크립트, `dotnet test`. 명령은 실행하지 않는다
-     - 화면이 있어야 하는 점검(스크린숏 비교·시각 회귀, UI 호버 점검)은 따로 센다. 시나리오 목록 파일과 기준 이미지 폴더가 있으면 위치와 장면 수를 적는다. 이 점검은 창을 띄워야 하므로 무인으로 돌릴 수 있는 시험으로 세지 않는다
+     - GDScript needs no rebuild after you edit a script, but do not count this as a control path
+     - Remote control of the editor: `.mcp.json` and enabled remote control add-ons (technology inventory)
+  5. Separating numbers into data
+     - GDScript constants: `^\s*const\s+\w+\s*(:\s*(int|float))?\s*:?=\s*-?[0-9.]`. C# constants: `const\s+(float|double|int)\s+\w+\s*=\s*-?[0-9.]`
+     - Ways already used to move numbers out (precedents): `@export`, `\[Export\]`, data classes that inherit `Resource` together with `.tres`, `ProjectSettings\.get_setting`, `.json` and `.csv` data files
+  6. Automated tests
+     - Number of tests: `func\s+test_` in files with `extends\s+(GutTest|GdUnitTestSuite)`, and `\[TestCase\]` in files with `\[TestSuite\]`
+     - .NET test projects (from the `profile_scan.py` output): the count of `\[\s*(Fact|Theory|Test|TestCase|TestMethod|DataTestMethod)\s*[\](]` per project. The projects that a test project references (ProjectReference) are the modules that its tests cover
+     - Custom test runners: runners built by hand without a known framework are common. They come in several shapes: an `extends Node` script and scene; an `extends SceneTree` runner script (run with `-s`); a base class that tests inherit (`extends RefCounted` and so on; the inheritance can span several levels); and, for C#, code that takes command-line check arguments and ends with `GetTree().Quit(n)`.
+       - Pass to analyst the "자체 러너 후보" lines (test folders or names such as `test_*.gd` and `run_all.gd`, and the number of `test_` functions in them) and the "--headless 실행" lines of the `profile_scan.py` output.
+       - For each runner, analyst collects: how it finds tests (file name rules, base class); the names of the assertion functions (the ones that the base class defines; do not fix the names to patterns such as `assert_*` or `check_*`) and the number of calls; whether it reports failure through the exit code (`(get_tree\(\)\.)?quit\(\s*[^)]` — a SceneTree runner calls `quit(` directly; for C#, `GetTree\(\)\.Quit\(`); and the number of tests that run separately (in a separate process, SKIP in the default run).
+       - Quality signals: whether engine errors during tests (`push_error`, script errors) count as failures (`OS\.add_logger` and `Logger` subclasses — 확인 필요). If they do not count, a function that stopped on a GDScript runtime error can look like a pass. Whether there is a load-check test that loads every script.
+       - Write the result split up, for example "N with known frameworks, M custom runners (N test_ functions, N that run separately)". If there is a custom runner, do not classify the axis as "없음", even if the count for known frameworks is 0
+     - Places where commands that run without a screen are written: project scripts and CI settings, the arguments of the run wrapper, and code blocks in canonical documents (README, handoff documents, architecture documents). Patterns: `--headless`, `--script` and `-s`, `--quit`, `--quit-after`, `--check-only` (확인 필요), GUT and gdUnit4 command-line run scripts (확인 필요), `extends\s+(SceneTree|MainLoop)` scripts, `dotnet test`. Do not run the commands
+     - Count checks that need a screen (screenshot comparison and visual regression, UI hover checks) separately. If there is a scenario list file and a reference image folder, record their locations and the number of scenes. These checks must open a window, so do not count them as tests that can run unattended
 
-## 5. 최적화 고문(perf)
+## 5. Optimization advisor (perf)
 
-- **측정 파일**(SKILL.md Step 0, measure.md §5):
-  - 에디터 디버거의 프로파일러·비주얼 프로파일러·모니터는 화면 도구다. 화면에 뜬 숫자는 근거로 쓰지 않는다(measure.md §5). 파일로 남긴 값만 쓴다.
-  - 프레임별 CSV: 게임 안에서 `Performance.get_monitor()` 값을 프레임마다 CSV 한 행으로 쓰는 측정용 스크립트(보통 autoload)가 있으면, 머리 행 하나와 프레임 행들인 CSV 라서 `csv_profile_stat.py` 로 그대로 집계한다. 측정 시간 모니터 값의 단위(초인지 ms 인지)는 대상 버전 문서로 확인하고(확인 필요), `--budget-ms`·`--hitch-ms` 와 비교하려면 ms 로 쓴 열을 고른다. 그런 스크립트가 없으면 측정 계획에 "측정용 스크립트 명세"(남길 모니터 이름, 열 이름, 단위, 파일 위치)를 넣고 `code_change_entry` 나 사용자에게 넘긴다. 고문이 스크립트를 쓰지 않는다(rules.md §7).
-  - 렌더링 CPU·GPU 시간은 `RenderingServer` 의 뷰포트 렌더 시간 측정 기능(확인 필요)으로 같은 CSV 에 넣는다.
-  - 측정용 스크립트 명세의 기본형은 아래다. 측정 계획에 그대로 옮기고, 프로젝트에 맞게 열을 빼거나 더한다. 모니터·메서드 이름과 단위는 모두 확인 필요라서, 명세를 넘길 때 "대상 버전 문서로 이름과 단위를 확인할 것"을 함께 적는다.
+- **Measurement files** (SKILL.md Step 0, measure.md §5):
+  - The editor debugger's profiler, visual profiler, and monitors are screen tools. Do not use numbers shown on screen as evidence (measure.md §5). Use only values saved to files.
+  - Per-frame CSV: If the game has a measurement script (usually an autoload) that writes `Performance.get_monitor()` values as one CSV row per frame, the file is a CSV with one header row followed by frame rows, so aggregate it with `csv_profile_stat.py` as it is. Check the unit of the time monitor values (seconds or ms) in the target version's documentation (확인 필요). To compare with `--budget-ms` and `--hitch-ms`, pick columns written in ms. If there is no such script, put a "측정용 스크립트 명세" (measurement script spec: the monitor names to record, column names, units, file location) in the measurement plan, and hand it to `code_change_entry` or to the user. The advisor does not write the script (rules.md §7).
+  - Put rendering CPU and GPU time in the same CSV, using the viewport render time measurement feature of `RenderingServer` (확인 필요).
+  - The default form of the measurement script spec is below. Copy it into the measurement plan as it is, and remove or add columns to fit the project. All monitor names, method names, and units are 확인 필요, so when you hand off the spec, also write "대상 버전 문서로 이름과 단위를 확인할 것".
 
-    | 열 이름 | 값 | 단위 |
+    | Column name | Value | Unit |
     |---|---|---|
-    | `Frame` | 기록 시작 뒤 프레임 번호 | 개 |
-    | `FrameTime` | `_process` 의 `delta` × 1000 | ms |
+    | `Frame` | Frame number since recording started | count |
+    | `FrameTime` | `delta` of `_process` × 1000 | ms |
     | `ProcessTime` | `Performance.TIME_PROCESS` × 1000 | ms |
     | `PhysicsTime` | `Performance.TIME_PHYSICS_PROCESS` × 1000 | ms |
-    | `RenderCpuTime` | 뷰포트의 측정 렌더 CPU 시간 | ms |
-    | `RenderGpuTime` | 뷰포트의 측정 렌더 GPU 시간 | ms |
-    | `DrawCalls` | `Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME` | 개 |
-    | `Objects` | `Performance.OBJECT_COUNT` | 개 |
-    | `Nodes` | `Performance.OBJECT_NODE_COUNT` | 개 |
+    | `RenderCpuTime` | The viewport's measured render CPU time | ms |
+    | `RenderGpuTime` | The viewport's measured render GPU time | ms |
+    | `DrawCalls` | `Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME` | count |
+    | `Objects` | `Performance.OBJECT_COUNT` | count |
+    | `Nodes` | `Performance.OBJECT_NODE_COUNT` | count |
     | `StaticMemMB` | `Performance.MEMORY_STATIC` ÷ 1048576 | MB |
 
-    - 머리 행 한 줄 뒤에 프레임마다 한 행을 쓴다. `csv_profile_stat.py` 가 그대로 읽는다(`--stats "FrameTime,ProcessTime,PhysicsTime,RenderCpuTime,RenderGpuTime"`).
-    - 파일 이름에 시나리오 ID 와 반복 번호를 넣는다(예: `S01_r1.csv`). 점검 기록의 "측정 파일 이름 규칙"이 이것을 읽는다.
-    - 저장 위치는 `perf.profiling_dir` 이다. 게임은 실행 중에 `user://` 에 쓰는 것이 보통이므로, 측정이 끝나면 그 폴더로 옮기는 방법도 명세에 적는다.
-    - 측정 조건(수직 동기화, 프레임 상한, 해상도, 렌더러, 빌드 종류)은 파일 끝에 남기지 말고 측정 조건 표에 사람이 적는다. `csv_profile_stat.py` 의 메타데이터 행 형식을 따로 맞추지 않아도 된다.
-    - 워밍업 프레임은 기록 뒤 `--skip-frames` 로 뺀다.
-  - 명령줄 측정 조건: 수직 동기화 끄기, 고정 프레임(`--fixed-fps`), FPS 출력(`--print-fps`), 시작 시간 측정(`--benchmark`, `--benchmark-file`) — 모두 확인 필요.
-  - GPU 캡처는 외부 그래픽 디버거로 한다. C# 의 GC 와 할당은 .NET 진단 도구로 잰다.
-  - `profile_scan.py` 의 측정 파일 폴더 줄은 "정해진 폴더가 없다"로 나온다. 그때만 `perf.profiling_dir` 을 묻는다.
-  - 프레임이 아닌 측정: 시뮬레이션·턴 처리가 무거운 게임은 예산이 프레임 시간이 아니라 처리 시간(예: 하루 처리 ms, 한 경기 ms)이다. `perf.budgets` 에 그런 키를 써도 된다. 측정 파일은 프로젝트의 헤드리스 벤치 도구 출력(콘솔·파일)이나 .NET 프로파일러의 텍스트 요약일 수 있다. 행이 회차·반복마다 하나인 CSV 면 `csv_profile_stat.py` 로 집계하고, 아니면 출력 줄을 그대로 인용한다.
-  - C# 은 Release 빌드로만 잰다. Debug 측정은 판정에 쓰지 않고, 측정 조건 표의 빌드 구성 칸에 적는다. 결과가 시드에 따라 흔들리는 지표는 시드를 여러 개(프로젝트 기준이 없으면 3 개 이상) 쓴다.
-  - 시간 지표는 기기마다 다르다. 다른 기기의 측정과 견주지 않고, 같은 기기의 직전 회차·기준선 회차와만 견준다. 같은 기기에서 다른 무거운 작업(다른 작업 트리의 빌드·측정)이 돌지 않을 때 잰다.
-- **부문 분류표**(categories.md): 항목 ID 는 바꾸지 않는다. 아래만 바꿔 읽는다.
-  - 게임 스레드 CPU 는 메인 스레드다. 게임스레드-02 "블루프린트에서 매 프레임 도는 로직"은 "GDScript 에서 매 프레임 도는 로직"으로 읽는다. 측정은 측정 파일의 처리 시간 열로, 코드 검색은 `_process`·`_physics_process` 본문으로 한다.
-  - 렌더 스레드는 렌더링 스레드 모델 설정(`project.godot`, 확인 필요)에 따라 메인 스레드에서 돌 수 있다. 판정은 측정한 렌더링 CPU 시간으로 한다.
-  - GC: GDScript 는 참조 세기라 GC 멈춤이 없고, 해제가 한 프레임에 몰리는지를 본다. C# 이면 .NET GC 를 본다.
-  - 빌드·쿡 시간은 내보내기 시간과 C# 빌드 시간이다.
-  - 표의 언리얼 명령(`stat`, `dumpticks`, Insights 채널)은 쓰지 않는다. 대신 쓸 Godot 이름은 대상 버전 문서·엔진 소스에서 확인한 것만 쓴다.
-- **명령 이름 확인**(categories.md §2): `engine.root` 가 있으면 엔진 소스에서 이름을 찾는다(명령줄 인자는 엔진 시작 코드, 모니터 이름은 `Performance` 클래스 문서 파일 — 확인 필요). 없으면 대상 버전 공식 문서의 클래스 레퍼런스와 명령줄 안내 페이지에서 찾고 URL·조회일을 적는다.
-- **테스트**(tests.md): 형식은 프로젝트가 이미 쓰는 것을 따른다(`tests.md` 2번 항목). 순서는 프로젝트의 자체 러너·기반 클래스, GUT·gdUnit4, 로직이 엔진 없는 C# 라이브러리에 있으면 xUnit·NUnit 이다. 씬·리소스에 묶인 로직은 씬을 불러 돌리는 테스트(테스트 틀의 씬 실행 도구 — 확인 필요)로 명세한다. "팀 공유 필요"는 `project.godot` 변경(autoload 추가, 애드온 켜기, 입력 맵), `*.csproj` 패키지 추가, `Directory.Build.props`·`nuget.config`·`dotnet-tools.json` 변경, 테스트 애드온 설치다.
+    - Write one header row, then one row per frame. `csv_profile_stat.py` reads it as it is (`--stats "FrameTime,ProcessTime,PhysicsTime,RenderCpuTime,RenderGpuTime"`).
+    - Put the scenario ID and the repetition number in the file name (for example, `S01_r1.csv`). The "측정 파일 이름 규칙" in the check record reads this.
+    - The save location is `perf.profiling_dir`. A game usually writes to `user://` while it runs, so also write in the spec how to move the files to that folder after the measurement.
+    - Do not save the measurement conditions (vertical sync, frame cap, resolution, renderer, build type) at the end of the file. A person writes them in the measurement conditions table (`측정 조건` in the ledger). You do not need to match the metadata row format of `csv_profile_stat.py`.
+    - Remove the warm-up frames after recording, with `--skip-frames`.
+  - Command-line measurement conditions: turning off vertical sync, fixed frame rate (`--fixed-fps`), FPS output (`--print-fps`), startup time measurement (`--benchmark`, `--benchmark-file`) — all 확인 필요.
+  - Do GPU captures with an external graphics debugger. Measure C# GC and allocations with .NET diagnostic tools.
+  - The measurement file folder line of `profile_scan.py` shows "정해진 폴더가 없다". Only in that case, ask for `perf.profiling_dir`.
+  - Measurements that are not per frame: for a game with heavy simulation or turn processing, the budget is processing time (for example, ms per processed day, ms per match), not frame time. You can use such keys in `perf.budgets`. The measurement files can be the output (console or file) of the project's headless bench tool, or a text summary from a .NET profiler. If the file is a CSV with one row per round or repetition, aggregate it with `csv_profile_stat.py`. Otherwise, quote the output lines as they are.
+  - Measure C# only with Release builds. Do not use Debug measurements for verdicts, and write the build configuration in the build configuration column of the measurement conditions table (`측정 조건` in the ledger). For a metric whose results vary with the seed, use several seeds (3 or more if the project has no standard).
+  - Time metrics differ between machines. Do not compare with measurements from other machines. Compare only with the previous round and the baseline round on the same machine. Measure when no other heavy work (builds or measurements in another worktree) runs on the same machine.
+- **Category table** (categories.md): Do not change the item IDs. Remap only the following.
+  - Game thread CPU is the main thread. Read 게임스레드-02 "블루프린트에서 매 프레임 도는 로직" as "GDScript 에서 매 프레임 도는 로직" (logic that runs every frame in GDScript). Measure it with the processing time columns of the measurement file, and search the code in the bodies of `_process` and `_physics_process`.
+  - The render thread can run on the main thread, depending on the rendering thread model setting (`project.godot`, 확인 필요). Judge by the measured rendering CPU time.
+  - GC: GDScript uses reference counting, so it has no GC pauses. Check whether freeing piles up in one frame. For C#, check the .NET GC.
+  - Build and cook time means export time and C# build time.
+  - Do not use the Unreal commands in the table (`stat`, `dumpticks`, Insights channels). As Godot replacements, use only names that you confirmed in the target version's documentation or in the engine source.
+- **Checking command names** (categories.md §2): If `engine.root` is set, find the names in the engine source (command-line arguments in the engine startup code, monitor names in the documentation file of the `Performance` class — 확인 필요). If it is not set, find them in the class reference and the command-line guide page of the target version's official documentation, and record the URL and access date.
+- **Tests** (tests.md): Follow the format the project already uses (item 2 of `tests.md`). The order is: the project's own runner and base classes; then GUT and gdUnit4; then xUnit and NUnit if the logic is in a C# library without the engine. Specify logic tied to scenes and resources as tests that load and run the scene (the test framework's scene runner — 확인 필요). "팀 공유 필요" applies to: changes to `project.godot` (adding an autoload, enabling an add-on, the input map), adding packages to `*.csproj`, changes to `Directory.Build.props`, `nuget.config`, or `dotnet-tools.json`, and installing a test add-on.
 
-## 6. 프로필 칸
+## 6. Profile keys
 
-| 칸 | Godot 값 |
+| Key | Godot value |
 |---|---|
 | `engine.kind` | `godot` |
-| `engine.name` | Godot Engine (C# 을 쓰면 .NET 판이라고 적는다) |
-| `engine.version` | 스크립트가 읽은 버전. 패치 번호를 모르면 사용자에게 확인 |
-| `engine.source_build` | 사용자에게 묻는다 |
-| `engine.root` | 커스텀 빌드일 때만 엔진 소스 폴더 |
-| `engine.run_wrapper` | Godot 를 띄우는 프로젝트 명령의 앞부분. 예: `python tools/godot_run.py --timeout=300 --`, `<콘솔판 실행 파일 경로>`. 비면 §1 "Godot 실행 명령을 적을 때"대로 찾는다 |
-| `project_file` | `project.godot` 의 경로 |
-| `source_roots` | 비우면 `project.godot` 가 있는 폴더 전체. 게임 코드 폴더만 보려면 그 폴더들을 적는다. `project.godot` 가 하위 폴더(예: `game/`)에 있으면 그 바깥 코드(도구 스크립트 등)는 범위 밖이다. 같이 보려면 `source_roots` 에 바깥 폴더까지 모두 적는다(이때 프로젝트 폴더도 함께 적는다) |
-| `radar.engine_mod_dirs` | 커스텀 빌드면 엔진 소스 아래 폴더(상대 경로는 `engine.root` 기준), 고쳐 쓰는 애드온이면 `addons/<이름>`(프로젝트 루트 기준) |
-| `perf.budgets` | 프레임 예산(fps, frame_ms) 또는 처리 시간 예산(예: `{PC: {day_ms: 300, match_ms: 30, memory_gb: 2}}`) |
-| `perf.profiling_dir` | 측정용 스크립트나 벤치 도구가 결과를 남기는 폴더 |
-| `perf.test_command` | 프로젝트가 정한 실행 명령. 실행 래퍼나 빌드 스크립트가 있으면 그것째 적는다. 예: `<run_wrapper> --headless --path game -s res://tests/run_all.gd`, `dotnet test <테스트 프로젝트>` |
-| `perf.test_convention` | 테스트 폴더·파일 이름 규칙, 상속할 기반 클래스, 픽스처 위치 |
+| `engine.name` | Godot Engine (if the project uses C#, write that it is the .NET edition) |
+| `engine.version` | The version that the script read. If the patch number is unknown, confirm it with the user |
+| `engine.source_build` | Ask the user |
+| `engine.root` | Only for a custom build: the engine source folder |
+| `engine.run_wrapper` | The leading part of the project command that launches Godot. Examples: `python tools/godot_run.py --timeout=300 --`, `<console executable path>`. If it is empty, look for it as described in §1 "When you write the Godot run command" |
+| `project_file` | The path of `project.godot` |
+| `source_roots` | If empty, the whole folder that contains `project.godot`. To look only at game code folders, list those folders. If `project.godot` is in a subfolder (for example, `game/`), code outside it (tool scripts and so on) is out of scope. To include that code, list all the outside folders in `source_roots` (in that case, also list the project folder) |
+| `radar.engine_mod_dirs` | For a custom build, folders under the engine source (relative paths are relative to `engine.root`). For a modified add-on, `addons/<name>` (relative to the project root) |
+| `perf.budgets` | A frame budget (fps, frame_ms) or a processing time budget (for example, `{PC: {day_ms: 300, match_ms: 30, memory_gb: 2}}`) |
+| `perf.profiling_dir` | The folder where the measurement script or the bench tool saves its results |
+| `perf.test_command` | The run command that the project defines. If there is a run wrapper or a build script, write the command including it. Examples: `<run_wrapper> --headless --path game -s res://tests/run_all.gd`, `dotnet test <test project>` |
+| `perf.test_convention` | Test folder and file name rules, base classes to inherit, fixture location |

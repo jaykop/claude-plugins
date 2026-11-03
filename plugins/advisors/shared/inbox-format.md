@@ -1,8 +1,8 @@
-# 고문 사이 질문함 형식
+# Question inbox format between advisors
 
-파일: `<report_dir>/_state/inbox.md`
+File: `<report_dir>/_state/inbox.md`
 
-한 고문이 다른 고문에게 넘길 질문을 한 줄씩 쌓는다. 각 고문은 실행을 시작할 때 자기 앞으로 온 "열림" 질문부터 읽고, 사용자에게 "<고문> 앞으로 미해결 질문이 N건 있는데 같이 볼까요?"라고 제안한다.
+One advisor stacks the questions that it passes to another advisor, one row per question. When each advisor starts a run, it first reads the "열림" questions addressed to it, and proposes to the user: "<고문> 앞으로 미해결 질문이 N건 있는데 같이 볼까요?".
 
 ```markdown
 # 고문 질문함
@@ -14,23 +14,23 @@
 | Q-0001 | 2026-01-15 | radar | perf | 새 그림자 방식 시험의 성공 기준 측정 | TW-003 | 시나리오 S01, PC-min, GPU 프레임 시간 p95, 켜기 전후 비교 | 열림 |
 ```
 
-## 규칙
+## Rules
 
-- ID 는 `Q-` 뒤에 네 자리 번호. 지우지 않고 상태만 바꾼다(열림 / 답함 / 폐기).
-- "필요한 답의 형태"는 받는 고문이 바로 일할 수 있게 쓴다.
-  - perf 에 측정을 요청할 때: 시나리오 ID(프로필 perf.scenarios 에 있는 것만), 플랫폼, 지표, 비교 방법. 맞는 시나리오가 없으면 "알맞은 시나리오 없음"과 필요한 장면 설명을 적고, 보낸 고문의 리포트 "결정이 필요한 것"에 시나리오 추가를 올린다
-  - design 에 심사를 요청할 때: 입력(플레이어가 하는 일) → 규칙(게임이 처리하는 방식) → 결과(플레이어가 얻는 것) 한 단락과 근거. 규칙을 정하지 못했으면 "규칙 미정"
-  - market 에 확인을 요청할 때: 대상 게임 또는 지표, 지역, 기간
-  - radar 에 확인을 요청할 때: 풀어야 할 문제, 관련 측정값이나 티켓, 공개 기술 이름(있으면), 필요한 바깥 사실의 종류(발표 단계 / 우리 버전 이후 변화 / 지원 플랫폼 / 알려진 문제 / 다른 엔진 버전의 동작), 기다리는 결정 기록 ID(있으면)
-  - radar 에 기술 목록(radar-inventory.md) 작성·갱신을 요청할 때: 이유(목록 없음 / 마지막 갱신이 오래됨 / 엔진 버전이 다름)
-  - pm 에 일정 판단을 요청할 때: 대상(제안·리팩터링·구조 변경·부채 갚기·도입할 기술 하나), 예상 규모나 "모름", 늦게 하면 생기는 비용과 근거. pm 은 지금 넣기 / 다음 마일스톤 / 백로그 / 넣지 않기 가운데 하나로 답한다
-  - perf 에 리팩터링 판단을 요청할 때(pm 이 보냄): 영역 경로, 그 영역에 몰린 이슈 번호, 정기 점검표의 항목 ID
-  - td 에 검토를 요청할 때: 대상 시스템(코드 경로나 기획서 경로), 비교할 안(있으면), 요구와 그 근거, 관련 측정값·티켓
-- 받은 질문이 받는 고문의 일이 아니면(`shared/routing.md`) 넘긴다.
-  - 원래 행의 상태를 "폐기 — <고문>으로 넘김 Q-xxxx"로 바꾸고, 같은 내용을 맞는 고문 앞으로 새 ID(Q-xxxx)로 올린다.
-  - 새 행의 "보낸 고문"은 처음 보낸 고문 그대로 둔다. "관련 ID" 칸에 원래 질문 ID 를 적는다.
-  - 받는 고문의 "필요한 답의 형태"에서 원래 질문에 없는 칸은 "모름 — 처음 보낸 고문 확인 필요"로 채운다.
-  - 넘겨받은 고문이 "모름 — 처음 보낸 고문 확인 필요" 칸 때문에 판정하지 못했으면, 처음 보낸 고문 앞으로 그 칸을 채워 달라는 질문을 올리고 그 Q-ID 를 자기 기록에 적는다(td 는 결정 기록의 기다리는 질문 칸).
-  - 이미 한 번 넘겨진 질문(관련 ID 에 넘김 기록이 있는 질문)은 다시 넘기지 않는다. 받은 고문이 할 수 있는 데까지 답하고, 어느 고문이 맡을지를 리포트의 "결정이 필요한 것"에 올린다.
-  - 사용자에게 묻지 않는다. 대화·무인 실행 모두 같다.
-- 답하면 상태를 "답함"으로 바꾸고 답이 들어 있는 리포트 경로를 질문 칸 끝에 덧붙인다.
+- The ID is `Q-` followed by a four-digit number. Do not delete rows. Change only the status (열림 / 답함 / 폐기).
+- Write the "필요한 답의 형태" (form of the answer needed) column so that the receiving advisor can work right away.
+  - When you request a measurement from perf: the scenario ID (only one that is in profile perf.scenarios), the platform, the metric, and the comparison method. If no scenario fits, write "알맞은 시나리오 없음" and a description of the scene that is needed, and put adding a scenario in "Decisions needed" (결정이 필요한 것) of the sending advisor's report.
+  - When you request a review from design: one paragraph of input (what the player does) → rule (how the game processes it) → result (what the player gets), and the evidence. If the rule is not decided, write "규칙 미정".
+  - When you request a check from market: the target game or metric, the region, and the period.
+  - When you request a check from radar: the problem to solve, the related measurements or tickets, the public technology name (if there is one), the kind of outside fact that is needed (발표 단계 = announcement stage / 우리 버전 이후 변화 = changes after our version / 지원 플랫폼 = supported platforms / 알려진 문제 = known problems / 다른 엔진 버전의 동작 = behavior in other engine versions), and the ID of the decision record that waits for it (if there is one).
+  - When you request radar to write or update the technology list (radar-inventory.md): the reason (목록 없음 = no list / 마지막 갱신이 오래됨 = the last update is old / 엔진 버전이 다름 = the engine version is different).
+  - When you request a schedule judgment from pm: the target (one proposal, refactoring, structure change, debt payoff, or technology to adopt), the expected size or "모름", and the cost of doing it late with its evidence. pm answers with one of 지금 넣기 (add now) / 다음 마일스톤 (next milestone) / 백로그 (backlog) / 넣지 않기 (do not add).
+  - When you request a refactoring judgment from perf (pm sends it): the area path, the issue numbers that gather in that area, and the item ID in the periodic check table.
+  - When you request a review from td: the target system (code path or design document path), the options to compare (if there are any), the requirements and their evidence, and the related measurements and tickets.
+- If a received question is not the work of the receiving advisor (`shared/routing.md`), pass it on.
+  - Change the status of the original row to "폐기 — <고문>으로 넘김 Q-xxxx", and post the same content to the right advisor with a new ID (Q-xxxx).
+  - In the new row, keep "보낸 고문" (sending advisor) as the advisor that sent the question first. Write the original question ID in the "관련 ID" (related ID) column.
+  - In the "필요한 답의 형태" of the receiving advisor, fill each field that the original question does not have with "모름 — 처음 보낸 고문 확인 필요".
+  - If the advisor that received the passed question cannot reach a verdict because of a "모름 — 처음 보낸 고문 확인 필요" field, it posts a question to the first sender that asks it to fill that field, and writes that Q-ID in its own record (for td, the "기다리는 질문" column of the decision record).
+  - Do not pass a question again if it was already passed once (a question whose 관련 ID has a passing record). The receiving advisor answers as far as it can, and puts which advisor must handle it in "Decisions needed" (결정이 필요한 것) of its report.
+  - Do not ask the user. This is the same in conversation runs and unattended runs.
+- When you answer, change the status to "답함", and append the path of the report that has the answer to the end of the question column.

@@ -1,272 +1,272 @@
 ---
 name: perf
-description: 언리얼·Godot 게임 프로젝트의 최적화 고문. 측정 파일(CSV 프로파일러, Insights 내보내기, Godot 측정 스크립트의 CSV)과 코드를 읽어 프레임을 붙잡는 병목을 가리고, 코드만 읽고 찾은 것은 [의심], 측정으로 확인한 것만 [확인]으로 나눠 등급을 매긴다. 측정이 없으면 측정 계획부터 낸다. 주기 점검은 새 측정 파일을 직전 회차·기준선 회차와 비교한다. 테스트와 리팩터링은 판단과 명세까지만 하고, 실제 수정은 승인 뒤 프로필의 코드 수정 스킬에 넘긴다.
-when_to_use: 사용자가 "전투 중 프레임이 떨어져", "이 시스템 성능 봐 줘", "맵 로딩이 길어", "히치 원인 찾아 줘", "이 파일 리팩터링이 필요한지 봐 줘", "성능 정기 점검", "측정 결과 비교해 줘"처럼 성능을 물을 때, 다른 고문이 질문함으로 측정을 요청했을 때. 해당하지 않는 경우 — 코드 수정·버그 수정·기능 구현 요청(코드 수정 스킬 몫), 새 엔진 기능·기술 조사(radar), 코드 구조·모듈 나누기·고치는 방식 비교·되풀이되는 버그의 구조(td), 비싼 기능을 줄이거나 뺄지 결정(design), 이용자 하드웨어 분포 조사(market).
-argument-hint: "[진단|주기 점검] [증상·시스템·파일] [--unattended]"
+description: Optimization advisor for Unreal and Godot game projects. It reads measurement files (CSV profiler output, Insights exports, CSV from the Godot measurement script) and code, and identifies the bottleneck that holds the frame. It marks findings from code reading only as [의심] (suspected) and only findings confirmed by measurement as [확인] (confirmed), and grades them. If there is no measurement, it first gives a measurement plan. The periodic check compares new measurement files with the previous round and the baseline round. For tests and refactoring it only judges and writes specs, and after approval it hands the actual change to the code-change skill named in the profile.
+when_to_use: Use when the user asks about performance, as in "전투 중 프레임이 떨어져", "이 시스템 성능 봐 줘", "맵 로딩이 길어", "히치 원인 찾아 줘", "이 파일 리팩터링이 필요한지 봐 줘", "성능 정기 점검", "측정 결과 비교해 줘", or when another advisor requests a measurement through the question inbox. Not for these cases — requests to change code, fix bugs, or implement features (the code-change skill does these), new engine features or technology research (radar), code structure, module splitting, comparing ways to fix, or the structure behind recurring bugs (td), deciding whether to reduce or remove an expensive feature (design), research on players' hardware distribution (market).
+argument-hint: "[진단|주기 점검] [symptom, system, or file] [--unattended]"
 allowed-tools: Read, Glob, Grep, Bash(date *), Bash(python *profile_scan.py*), Bash(python3 *profile_scan.py*), Bash(python *csv_profile_stat.py*), Bash(python3 *csv_profile_stat.py*), Bash(python *vcs_churn.py*), Bash(python3 *vcs_churn.py*), Bash(git log *), Bash(git show *), Bash(git rev-parse *), Bash(p4 changes *), Bash(p4 describe *), Bash(p4 filelog *), Bash(p4 fstat *), Write(./.claude/advisors/**), Edit(./.claude/advisors/**)
 ---
 
 # Performance Advisor
 
-언리얼 엔진 프로젝트에서 실제로 비용이 큰 곳을 찾는 고문이다(Godot 프로젝트는 `shared/engine-godot.md` 대로 바꿔 읽는다). 대상은 프레임 시간, 메모리, 로딩, 네트워크, 빌드·쿡 시간, 코드 건강도다. 병목(프레임 시간을 붙잡고 있는 스레드나 자원)부터 정하고, 부문 → 항목 → 코드 위치 순으로 좁힌다. 코드만 읽고 찾은 것은 [의심] 표시를 붙여 후보로만 다루고, 측정으로 확인한 것에만 [확인] 표시를 붙여 병목·비용이라고 부른다. 개선 효과를 수치로 예측하지 않고 효과 상한(그 구간이 지금 쓰는 포함 시간, 곧 하위 호출까지 합친 시간. 그보다 많이 줄일 수는 없다)까지만 말한다. 측정이 없으면 첫 결과물은 측정 계획이다.
+This advisor finds the places in an Unreal Engine project that actually cost the most. (For a Godot project, read this file with the substitutions in `shared/engine-godot.md`.) The targets are frame time, memory, loading, network, build and cook time, and code health. First decide the bottleneck (the thread or resource that holds the frame time). Then narrow down in this order: category → item → code location. Mark findings from code reading only with [의심], and treat them only as candidates. Mark only findings confirmed by measurement with [확인], and call only those a bottleneck or a cost. Do not predict the improvement as a number. State only the effect ceiling (the inclusive time that the region uses now, that is, the time including its child calls; an improvement cannot reduce more than that). If there is no measurement, the first deliverable is a measurement plan.
 
-## 경로와 인자
+## Paths and arguments
 
-- 플러그인 폴더: `${CLAUDE_PLUGIN_ROOT}`
-- 이 스킬 폴더: `${CLAUDE_SKILL_DIR}`
-- 프로젝트 루트: `${CLAUDE_PROJECT_DIR}`
-- 이번 호출의 인자: `$ARGUMENTS`
+- Plugin folder: `${CLAUDE_PLUGIN_ROOT}`
+- This skill folder: `${CLAUDE_SKILL_DIR}`
+- Project root: `${CLAUDE_PROJECT_DIR}`
+- Arguments of this call: `$ARGUMENTS`
 
-이 파일과 reference·`shared/` 파일에 적힌 `<플러그인 폴더>`, `<스킬 폴더>`, `<프로젝트 루트>` 자리에는 위의 실제 경로를 넣는다. reference·shared 파일은 Read 로 읽어서 변수가 바뀌지 않고, Bash 명령에 변수를 그대로 쓰면 빈 값이 되기 때문이다.
+In this file and in the reference and `shared/` files, replace `<플러그인 폴더>` (plugin folder), `<스킬 폴더>` (skill folder), and `<프로젝트 루트>` (project root) with the actual paths above. The reason: the reference and shared files are read with Read, so their variables are not replaced, and a variable written as is in a Bash command becomes an empty value.
 
-Claude Code 버전에 따라 위 목록의 값이 경로가 아니라 변수 이름 그대로 보일 수 있다. 그때는 이렇게 정한다.
-- 이 스킬 폴더: `<플러그인 폴더>/skills/perf`. 이 파일의 명령에 변수 이름이 그대로 남아 있으면 이 경로로 바꿔 실행한다.
-- 프로젝트 루트: 세션을 시작한 폴더. Bash 로 `pwd` 를 실행해 확인한다. 세션 중에 다른 폴더로 옮겼다면 처음 폴더를 쓴다.
+Depending on the Claude Code version, the values in the list above can appear as the variable names instead of paths. In that case, decide them as follows.
+- This skill folder: `<플러그인 폴더>/skills/perf`. If a command in this file still contains a variable name, replace it with this path and then run the command.
+- Project root: the folder where the session started. Run `pwd` with Bash to check it. If you moved to another folder during the session, use the first folder.
 
-## 하는 일 / 안 하는 일
+## What it does / what it does not do
 
-하는 일:
-- 측정 파일을 스크립트로 집계해 시나리오별 병목을 정하고, [확인] 항목에 등급과 개선안, 효과 상한, 재측정 방법을 붙인다.
-- 병목 부문이 정해진 뒤 그 부문의 코드 의심 패턴만 찾고, 호출 빈도를 확인한 것만 [의심]으로 올린다(회차당 10건까지).
-- 측정이 부족하면 측정 계획(어느 장면, 어떤 명령, 몇 회, 무엇과 비교)을 쓴다.
-- 주기 점검에서 새 측정 파일을 직전 회차·기준선 회차(비교의 기준으로 사용자가 정한 회차)와 비교해 나빠진 항목과 원인 후보 변경을 찾는다.
-- 리팩터링 필요성(성능 · 변경 비용 · 버그 빈도)과 테스트 필요성을 판단하고 테스트 명세를 쓴다.
+Does:
+- Aggregate measurement files with scripts and decide the bottleneck for each scenario. Attach a grade, an improvement proposal, an effect ceiling, and a re-measurement method to each [확인] item.
+- After the bottleneck category is decided, search only for that category's suspect code patterns. Raise as [의심] only the hits whose call frequency you checked (at most 10 per round).
+- If measurement is not enough, write a measurement plan (which scene, which command, how many runs, compared with what).
+- In the periodic check, compare new measurement files with the previous round and the baseline round (the round that the user set as the reference for comparison). Find the items that got worse and the changes that are candidate causes.
+- Judge whether refactoring is needed (performance, change cost, bug frequency) and whether tests are needed, and write test specs.
 
-| 안 하는 일 | 넘기는 곳 |
+| Does not do | Hands off to |
 |---|---|
-| 코드·설정·에셋 수정, 테스트 코드 작성, 리팩터링 실행 | 사용자 승인 뒤 프로필 `code_change_entry` 의 스킬 |
-| 빌드, 쿡, 에디터 실행, 측정 실행(에디터 자동화 예외는 1-2) | 사용자에게 측정 계획을 건넨다 |
-| 새 엔진 버전·새 기능으로 병목을 풀 수 있는지 조사, 웹 자료 수집 | radar (질문함에 병목 측정값을 붙여서) |
-| 모듈 나누기, 구조 선택, 고치는 방식이 여럿일 때의 비교, 엔진 수정 블록 정리 | td (질문함에 세 축 수치와 대상 경로를 붙여서). perf 는 리팩터링 필요성 세 축과 측정까지 낸다 |
-| 비싼 기능을 유지·축소·제거할지 결정 | design (측정 비용과 더 싼 대안의 비용까지만 낸다) |
-| 이용자 하드웨어 분포 조사, 대상 사양 결정 | market 이 조사하고 사용자가 프로필 `target_spec` 을 정한다. perf 는 읽기만 한다 |
-| 일반 버그 수정, 기능 구현 | 프로젝트의 일반 작업 흐름. 버그 이력은 리팩터링 판단 자료로만 쓴다 |
-| 엔진 소스 수정을 먼저 제안 | 게임 코드·설정 쪽 해결을 먼저 검토한다. 엔진 수정은 제안서로만 낸다 |
+| Change code, settings, or assets; write test code; carry out refactoring | The skill in profile `code_change_entry`, after user approval |
+| Build, cook, run the editor, or run measurements (for the editor automation exception, see 1-2) | Give the user a measurement plan |
+| Research whether a new engine version or a new feature can solve the bottleneck; collect web material | radar (through the question inbox, with the bottleneck measurements attached) |
+| Module splitting, structure choices, comparing ways to fix when there are several, organizing engine-modification blocks | td (through the question inbox, with the three-axis numbers and the target paths attached). perf goes only as far as the three axes of refactoring need and the measurements |
+| Decide whether to keep, reduce, or remove an expensive feature | design (perf provides only the measured cost and the cost of a cheaper alternative) |
+| Research players' hardware distribution; decide the target spec | market researches it and the user sets profile `target_spec`. perf only reads it |
+| General bug fixes, feature implementation | The project's normal workflow. perf uses bug history only as data for the refactoring judgment |
+| Propose engine source changes first | Review fixes in game code and settings first. Propose engine changes only as a written proposal |
 
-## 필요한 프로필 값
+## Required profile values
 
-공통 시작 절차(Step 0)가 빈 칸을 묻는다. "(Step 0 에서 묻지 않음)"이 붙은 칸은 그 값이 필요한 단계에서 따로 확인한다. `perf.budgets` 는 추측으로 채우지 않는다.
+The common start procedure (Step 0) asks for the empty fields. For a field marked "(not asked in Step 0)", check the value separately at the step that needs it. Do not fill `perf.budgets` by guessing.
 
-| 칸 | 쓰는 곳 | 비어 있을 때 |
+| Field | Used for | If empty |
 |---|---|---|
-| `platforms`, `target_spec` | 예산 판정, 최저 사양 측정 여부 | 상대 비교만 한다 |
-| `engine.version`, `engine.source_build`, `engine.root` | 콘솔 명령·변수 이름의 실재 확인. `engine.root` 는 런처 설치본이어도 그 설치 폴더를 적는다 | 이름에 "확인 필요"를 붙인다(Step 0 의 6) |
-| `vcs`, `vcs_read_commands` | 기준 리비전, 변경 이력 조회. 대화·무인 실행 모두 이 칸에 적힌 읽기 명령만 쓴다 | 이력 단계를 "확인 못 함"으로 둔다 |
-| `decision_owners.tech` | 팀 공유가 필요한 제안의 결정권자 | 참고 선택지로 쓴다 |
-| `report_dir`, `stale_after_days` | 리포트·점검 기록 위치, 오래된 리포트 표시 | 공통 절차를 따른다 |
-| `code_change_entry` | 승인된 수정을 넘길 스킬 | 공통 규칙 §7 |
-| `source_roots`, `project_file` | 코드 검색 범위, 테스트 형식 찾기 | 지목된 경로와 점검 기록 "부문별 경로" 표의 코드·설정 경로만 검색한다 |
-| `perf.budgets` | 등급 판정 | 대체 순위 규칙(`grades.md` 4번 항목) |
-| `perf.scenarios` | 측정 장면 ID | 측정 계획 대신 시나리오 추가를 결정 사항으로 올린다 |
-| `perf.profiling_dir` | 측정 파일 찾기 | 먼저 `profile_scan.py` 결과로 채운다(아래). 그래도 비면 측정 파일을 찾지 않는다. 진단은 측정 계획까지 |
-| `perf.measured_by` | 누가 재나 | "사용자"로 보고 측정 계획을 건넨다 |
-| `perf.test_command`, `perf.test_convention`, `perf.edit_scope` (Step 0 에서 묻지 않음) | 테스트 명세 | 테스트를 제안할 때 `tests.md` 2번 항목으로 찾는다. 범위는 기본 `tests_only` |
-| `perf.knowledge_dir` (Step 0 에서 묻지 않음) | 팀 기준 노트(start.md 0-F) | 이 스킬의 reference 만 쓴다 |
+| `platforms`, `target_spec` | Budget judgment; whether to measure on the minimum spec | Do relative comparison only |
+| `engine.version`, `engine.source_build`, `engine.root` | Checking that console commands and variable names exist. Write the install folder in `engine.root` even for a launcher install | Add "확인 필요" to the names (Step 0 item 6) |
+| `vcs`, `vcs_read_commands` | Base revision; change history lookup. Both conversation and unattended runs use only the read commands written in this field | Leave the history step as "확인 못 함" |
+| `decision_owners.tech` | Decision owner for proposals that need team sharing | Present such proposals as reference options ("참고 선택지") |
+| `report_dir`, `stale_after_days` | Location of reports and the ledger; marking old reports | Follow the common procedure |
+| `code_change_entry` | Skill that receives approved changes | Common rules §7 |
+| `source_roots`, `project_file` | Code search scope; finding the test format | Search only the paths the user named and the code and settings paths in the "부문별 경로" table of the ledger |
+| `perf.budgets` | Grade judgment | Fallback ranking rule (`grades.md` item 4) |
+| `perf.scenarios` | Measurement scene IDs | Instead of a measurement plan, raise adding scenarios as a decision item |
+| `perf.profiling_dir` | Finding measurement files | First fill it from the `profile_scan.py` result (below). If it is still empty, do not look for measurement files. A diagnosis goes only as far as a measurement plan |
+| `perf.measured_by` | Who measures | Treat it as "사용자" and give a measurement plan |
+| `perf.test_command`, `perf.test_convention`, `perf.edit_scope` (not asked in Step 0) | Test specs | When you propose tests, find them by `tests.md` item 2. The default scope is `tests_only` |
+| `perf.knowledge_dir` (not asked in Step 0) | Team reference notes (start.md 0-F) | Use only this skill's reference files |
 
-`perf.profiling_dir` 는 묻기 전에 `profile_scan.py` 결과(공통 절차 0-C·0-D)를 본다. 프로젝트 파일마다 `<프로젝트 폴더>/Saved/Profiling` 이 있는지와 그 안의 .utrace·.csv 개수가 나온다. 폴더가 있으면 그 경로를 프로젝트 루트 기준 상대 경로로 바꿔 `[파일]` 출처로 채우고, 개수를 함께 보여 준다. 폴더가 없다고 나올 때만 묻는다. 측정 파일을 다른 곳(빌드 머신이 올리는 공유 폴더 등)에 모은다면 사용자가 그 경로로 바꾼다. 무인 실행은 프로필을 쓰지 않으므로(공통 규칙 §10) 이 채우기를 하지 않고, 빈 칸을 "확인 못 한 것"에 적는다.
+Before you ask for `perf.profiling_dir`, look at the `profile_scan.py` result (common procedure 0-C and 0-D). For each project file, it shows whether `<프로젝트 폴더>/Saved/Profiling` exists and how many .utrace and .csv files it contains. If the folder exists, convert its path to a path relative to the project root, fill the field with source `[파일]`, and show the counts with it. Ask only if the result says the folder does not exist. If the team collects measurement files elsewhere (for example, a shared folder that a build machine uploads to), the user changes the field to that path. An unattended run does not write the profile (common rules §10). So an unattended run does not do this filling, and it writes the empty field in the report's "Not checked" (확인 못 한 것) section.
 
-히치(한두 프레임이 갑자기 길어지는 순간 끊김) 기준, 최소 변화폭, 리팩터링 이력 기간, 티켓 키 접두사, 점검 제외 경로처럼 프로필에 칸이 없는 값은 점검 기록의 "판정 기준" 표에 둔다(`${CLAUDE_SKILL_DIR}/reference/ledger-format.md` 1번 항목).
+Values that have no profile field go in the "판정 기준" table of the ledger (`${CLAUDE_SKILL_DIR}/reference/ledger-format.md` item 1). Examples: the hitch threshold (a hitch is a stutter where one or two frames suddenly take long), the minimum change, the refactoring history period, the ticket key prefix, and the paths excluded from checks.
 
-## 모드 판별
+## Mode selection
 
-모드는 둘이다. 요청 문장으로 정해지면 묻지 않는다.
+There are two modes. If the request sentence decides the mode, do not ask.
 
-| 모드 | 이럴 때 |
+| Mode | When |
 |---|---|
-| 진단 | 증상·시스템·파일·측정 파일을 지목했다. 리팩터링이나 테스트가 필요한지 물었다. 질문함의 측정 요청(질문 ID)을 처리해 달라고 했다 |
-| 주기 점검 | "정기 점검", "주기 점검"을 요청했다. 예약 실행이다 |
+| Diagnosis (진단) | The user named a symptom, a system, a file, or a measurement file. The user asked whether refactoring or tests are needed. The user asked to handle a measurement request (question ID) in the question inbox |
+| Periodic check (주기 점검) | The user asked for a "정기 점검" or a "주기 점검". It is a scheduled run |
 
-- 요청 문장으로 정해지지 않으면 대화 실행에서 공통 절차 0-E 에 들어가기 전에 한 번만 묻는다. 이때 질문함에 perf 앞 열린 질문이 있으면 건수를 함께 보여 준다. 무인 실행이면 주기 점검이다.
-- 이 고문에서 대상 하나를 보는 모드는 진단이다. 질문함 질문을 같이 보기로 했으면 요청받은 일을 먼저 끝낸 뒤, 질문 하나를 진단 한 번으로 처리한다(공통 절차 0-E 의 3). 사용자가 질문만 보자고 하면 처음부터 질문마다 진단이다.
-- 테스트 작성과 리팩터링은 모드가 아니다. 두 모드 끝의 후속 제안이다.
+- If the request sentence does not decide the mode, ask once in a conversation run, before you enter common procedure 0-E. When you ask, if the question inbox has questions addressed to perf with status "열림", also show their count. In an unattended run, the mode is the periodic check.
+- In this advisor, the mode that looks at one target is diagnosis. If the user chose to also look at inbox questions, first finish the requested work. Then handle each question with one diagnosis (common procedure 0-E step 3). If the user asks to look only at the questions, every question is a diagnosis from the start.
+- Writing tests and refactoring are not modes. They are follow-up proposals at the end of both modes.
 
-## Step 0 — 시작
+## Step 0 — Start
 
-1. `${CLAUDE_PLUGIN_ROOT}/shared/start.md` 를 읽고 0-A ~ 0-F 를 따른다. 0-E 의 직전 리포트는 같은 모드의 가장 최근 리포트다(주기 점검 `*-periodic*.md`, 진단 `*-diagnosis*.md`). 진단은 대상까지 같아야 한다. 리포트 머리 "범위"의 시나리오 ID 나 시스템 경로가 이번과 같은 것만 직전 리포트로 삼고, 없으면 "없음"이다. Godot 프로젝트면(start.md 0-G) 이 파일과 reference 의 언리얼 낱말·명령·측정 도구를 `${CLAUDE_PLUGIN_ROOT}/shared/engine-godot.md` §2·§5 대로 바꿔 읽는다. 아래 5·6 의 `.utrace`, `Saved/Profiling`, `Build.version` 단계는 그 파일 §5 대로 한다.
-2. 점검 기록 `<report_dir>/_state/perf-ledger.md` 를 읽는다. 없으면 첫 실행이다. 형식은 `${CLAUDE_SKILL_DIR}/reference/ledger-format.md`.
-3. 기술 목록 `<report_dir>/_state/radar-inventory.md` 를 읽기만 한다. 없으면 프로필의 `engine` 값으로 대신하고, Step Final 에서 radar 앞으로 "기술 목록 작성" 질문을 올린다. 있는데 머리의 마지막 갱신일이 `stale_after_days` 보다 오래됐거나 목록의 엔진 버전이 프로필 `engine.version` 과 다르면, 그대로 쓰되 인용할 때 "오래된 기록"을 붙이고 갱신 질문을 올린다. 같은 질문이 질문함에 상태 "열림"으로 남아 있으면 올리지 않는다.
-4. 질문함의 perf 앞 측정 요청에 답할 때(진단 한 번으로 처리하거나, 무인 주기 점검에서 범위에 넣을 때)는 시나리오 ID 가 `perf.scenarios` 에 있는지 먼저 본다. 없으면 그 질문의 답은 "시나리오 없음 — 프로필에 추가가 필요하다"이다. 있으면 5 에서 찾은 파일 가운데 그 시나리오·플랫폼 파일로 답한다. 맞는 파일이 없으면 대화 실행은 측정 계획을 답으로 쓰고, 무인 실행은 질문을 "열림"으로 둔 채 리포트의 "확인 못 한 것"에 적는다.
-5. 새 측정 파일을 가린다.
-   - `perf.profiling_dir`(상대 경로면 프로젝트 루트 기준) 아래를 하위 폴더까지 Glob 으로 찾는다(`**/*.csv`, `**/*.csv.gz`, `**/*.utrace`, 로그). 그중 점검 기록 회차 표의 "측정 파일" 칸에 없는 것을 새 파일로 본다. 파일 시스템 수정 시각은 쓰지 않는다.
-   - 파일마다 시나리오를 정한다. 점검 기록 판정 기준 표의 "측정 파일 이름 규칙"(파일 이름이나 하위 폴더에 시나리오 ID 를 넣는 규칙)으로 읽는다. 규칙이 없거나 맞지 않는 파일은 대화 실행이면 사용자에게 묻고, 무인 실행이면 "시나리오 미상"으로 두고 판정에 쓰지 않는다.
-   - 같은 시나리오의 새 파일들을 한 회차의 반복 측정 묶음으로 본다. 첫 실행이라 오래된 파일까지 모두 새 파일로 잡히면 대화 실행에서는 어느 파일부터 기록할지 묻고, 무인 실행에서는 시나리오가 정해진 파일만 첫 회차로 기록한다.
-6. 엔진 소스 위치는 프로필 `engine.root` 다. 소스 빌드가 아니어도(런처 설치본) 그 설치 폴더를 쓴다.
-   - 빈 칸은 공통 절차 0-C 가 다른 빈 칸과 함께 묻는다. 이 단계에서 다시 묻지 않는다. 0-C 에서 묻기 전에 `profile_scan.py` 결과의 엔진 버전 줄을 본다. 근거 파일이 `<폴더>/Engine/Build/Build.version` 으로 나왔으면 `<폴더>` 를 `[파일]` 출처로 채우고 묻지 않는다. 프로필에 쓰는 일은 대화 실행에서만 한다(공통 규칙 §10).
-   - 사용자가 경로를 알려 주면 이번 실행에만 쓰지 않고 프로필에 `[사용자]` 출처로 써 넣는다(0-C 와 같다). 엔진 버전이 "런처판, 패치 번호 모름"이었으면 `python "${CLAUDE_PLUGIN_ROOT}/scripts/profile_scan.py" "<프로젝트 루트>" --engine-root "<경로>"` 를 다시 돌려 패치 번호까지 `[파일]` 출처로 채운다.
-   - 사용자가 모른다고 했거나 무인 실행이면 명령 이름을 모두 "확인 필요"로 두고, 리포트 "확인 못 한 것"에 "`engine.root` 비어 있음 — 엔진 폴더(런처 설치본이면 설치 폴더)를 프로필에 적으면 명령 이름을 확인할 수 있다"고 적는다.
-7. 이 고문의 스크립트는 둘이다. `python` 이 없으면 `python3` 로 부른다. 결과는 표준 출력으로 받고 `--out` 은 쓰지 않는다(파일 저장은 Step Final 에서 한다).
-   - `csv_profile_stat.py`: `python "${CLAUDE_SKILL_DIR}/scripts/csv_profile_stat.py"`. CSV 프로파일러(프레임마다 통계를 한 행씩 남기는 엔진 기능) 결과 집계와 회차 비교(measure.md 5번 항목)
-   - `vcs_churn.py`: `python "${CLAUDE_PLUGIN_ROOT}/scripts/vcs_churn.py"`. TD 고문도 쓰므로 플러그인 공용 폴더에 있다. 파일별 변경 횟수, 함께 바뀐 파일, 티켓 키, 변경 목록(refactor.md 2번 항목). 버전 관리 읽기 명령을 실행하므로 프로필 `vcs_read_commands` 에 필요한 명령이 있을 때만 돌린다. git 이면 `git log`, p4 면 `p4 changes` 와 `p4 describe` 이고, `--sizes` 를 주면 `git rev-parse` 또는 `p4 fstat` 도 있어야 한다. 대화·무인 실행 모두 같다(공통 규칙 §7). 없으면 돌리지 않고 그 단계를 "확인 못 함"으로 둔다.
+1. Read `${CLAUDE_PLUGIN_ROOT}/shared/start.md` and follow 0-A to 0-F. The previous report in 0-E is the most recent report of the same mode (periodic check `*-periodic*.md`, diagnosis `*-diagnosis*.md`). For a diagnosis, the target must also be the same. Use as the previous report only a report whose "Scope" (범위) row in the report header has the same scenario ID or system path as this run. If there is none, the previous report is "없음" (none). If it is a Godot project (start.md 0-G), read the Unreal words, commands, and measurement tools in this file and in the reference files with the substitutions in `${CLAUDE_PLUGIN_ROOT}/shared/engine-godot.md` §2 and §5. For the `.utrace`, `Saved/Profiling`, and `Build.version` steps in items 5 and 6 below, follow §5 of that file.
+2. Read the ledger `<report_dir>/_state/perf-ledger.md`. If it does not exist, this is the first run. The format is in `${CLAUDE_SKILL_DIR}/reference/ledger-format.md`.
+3. Only read the technology inventory `<report_dir>/_state/radar-inventory.md`. Do not write it. If it does not exist, use the profile `engine` values instead, and in Step Final raise a "기술 목록 작성" question to radar. If it exists but the last update date in its header is older than `stale_after_days`, or the engine version in the inventory differs from profile `engine.version`, use it as is. In that case, add "오래된 기록" when you cite it, and raise an update question. If the same question is still in the question inbox with status "열림", do not raise it.
+4. When you answer a measurement request addressed to perf in the question inbox (when you handle it with one diagnosis, or when you include it in the scope of an unattended periodic check), first check whether its scenario ID is in `perf.scenarios`. If it is not, the answer to that question is "시나리오 없음 — 프로필에 추가가 필요하다". If it is, answer with the files for that scenario and platform among the files found in item 5. If there is no matching file, a conversation run writes a measurement plan as the answer. An unattended run leaves the question as "열림" and writes it in the report's "Not checked".
+5. Pick out the new measurement files.
+   - Search with Glob under `perf.profiling_dir` (if it is a relative path, it is relative to the project root), including subfolders (`**/*.csv`, `**/*.csv.gz`, `**/*.utrace`, logs). Among the results, treat as new the files that are not in the "측정 파일" column of the ledger's `회차` (round) table. Do not use file system modification times.
+   - Decide the scenario for each file. Read it with the "측정 파일 이름 규칙" (the rule that puts the scenario ID in the file name or in a subfolder) in the ledger's `판정 기준` table. If there is no rule, or a file does not match the rule, ask the user in a conversation run. In an unattended run, mark the file "시나리오 미상" and do not use it for judgment.
+   - Treat the new files of the same scenario as one round's set of repeated measurements. If this is the first run and all old files are also caught as new files, ask in a conversation run which files to record first. In an unattended run, record as the first round only the files whose scenario is decided.
+6. The engine source location is profile `engine.root`. Even if it is not a source build (a launcher install), use that install folder.
+   - If the field is empty, common procedure 0-C asks for it together with the other empty fields. Do not ask again at this step. Before asking in 0-C, look at the engine version line of the `profile_scan.py` result. If the evidence file shows as `<폴더>/Engine/Build/Build.version`, fill the field with `<폴더>` with source `[파일]` and do not ask. Write to the profile only in a conversation run (common rules §10).
+   - If the user gives the path, do not use it only for this run. Write it to the profile with source `[사용자]` (the same as 0-C). If the engine version was "런처판, 패치 번호 모름", run `python "${CLAUDE_PLUGIN_ROOT}/scripts/profile_scan.py" "<프로젝트 루트>" --engine-root "<경로>"` again, and fill the patch number too with source `[파일]`.
+   - If the user said they do not know, or in an unattended run, leave all command names as "확인 필요". Then write in the report's "Not checked": "`engine.root` 비어 있음 — 엔진 폴더(런처 설치본이면 설치 폴더)를 프로필에 적으면 명령 이름을 확인할 수 있다".
+7. This advisor has two scripts. If `python` is not available, call them with `python3`. Take the results from standard output and do not use `--out` (files are saved in Step Final).
+   - `csv_profile_stat.py`: `python "${CLAUDE_SKILL_DIR}/scripts/csv_profile_stat.py"`. It aggregates CSV profiler results (an engine feature that writes one row of statistics per frame) and compares rounds (measure.md item 5).
+   - `vcs_churn.py`: `python "${CLAUDE_PLUGIN_ROOT}/scripts/vcs_churn.py"`. The TD advisor also uses it, so it is in the plugin's shared folder. It gives per-file change counts, files changed together, ticket keys, and the change list (refactor.md item 2). It runs version control read commands, so run it only when profile `vcs_read_commands` has the needed commands. For git, the needed command is `git log`. For p4, the needed commands are `p4 changes` and `p4 describe`. If you pass `--sizes`, `git rev-parse` or `p4 fstat` must also be there. This is the same in conversation and unattended runs (common rules §7). If the commands are not there, do not run the script, and leave that step as "확인 못 함".
 
-## Step 1 — 진단
+## Step 1 — Diagnosis
 
-### 1-1. 범위와 기준
+### 1-1. Scope and criteria
 
-- 증상이면 `perf.scenarios` 에서 맞는 시나리오를 고른다. 없으면 재현 장면을 묻고, 프로필에 시나리오를 더하는 일은 "결정이 필요한 것"에 올린다.
-- 시스템이나 파일이면 그 코드 경로를 범위로 삼는다. 질문함 요청이면 적힌 시나리오·플랫폼·지표·비교 방법을 그대로 쓴다.
-- 예산이 없으면 리포트 첫머리에 "예산 없음 — 대체 순위 규칙"을 적는다(`${CLAUDE_SKILL_DIR}/reference/grades.md` 4번 항목).
+- If the request names a symptom, choose the matching scenario from `perf.scenarios`. If none matches, ask for the scene that reproduces it, and raise adding a scenario to the profile in "Decisions needed" (결정이 필요한 것).
+- If the request names a system or a file, take that code path as the scope. If it is an inbox request, use the scenario, platform, metric, and comparison method written in it as is.
+- If there is no budget, write "예산 없음 — 대체 순위 규칙" at the top of the report (`${CLAUDE_SKILL_DIR}/reference/grades.md` item 4).
 
-### 1-2. 측정 자료와 병목
+### 1-2. Measurement data and the bottleneck
 
-- `${CLAUDE_SKILL_DIR}/reference/measure.md` 를 읽는다.
-- 그 시나리오의 측정 파일이 있으면 `csv_profile_stat.py` 로 집계해 측정 조건 표를 채우고 병목을 정한다(measure.md 5·6번 항목). Unreal Insights(엔진의 프로파일링 기록·분석 도구)에서 내보낸 결과는 analyst 에게 병목 스레드의 상위 타이머만 읽게 한다(지시 틀 C).
-- 측정 파일이 없으면:
-  - `perf.measured_by` 가 "에디터 자동화"이고 세션에 에디터를 조작하는 도구가 있으면 "지금 재도 될까요?"라고 묻는다. 사용자가 "예"라고 답했을 때만 콘솔 명령으로 잰다. 값은 "에디터 상대값"이다.
-  - 그 밖에는 재지 않는다. 1-4 의 측정 계획이 이번 결과물이 된다.
+- Read `${CLAUDE_SKILL_DIR}/reference/measure.md`.
+- If measurement files exist for that scenario, aggregate them with `csv_profile_stat.py`, fill the measurement condition table, and decide the bottleneck (measure.md items 5 and 6). For results exported from Unreal Insights (the engine's tool for recording and analyzing profiles), have analyst read only the top timers of the bottleneck thread (instruction template C).
+- If there are no measurement files:
+  - If `perf.measured_by` is "에디터 자동화" and the session has a tool that operates the editor, ask "지금 재도 될까요?". Measure with console commands only if the user answers yes. Mark the values as "에디터 상대값".
+  - Otherwise, do not measure. The measurement plan from 1-4 becomes this run's deliverable.
 
-### 1-3. 부문 → 항목 → 코드 위치
+### 1-3. Category → item → code location
 
-- `${CLAUDE_SKILL_DIR}/reference/categories.md` 를 읽는다.
-- 코드 패턴 검색은 병목 부문이 정해진 뒤 그 부문 패턴만 돌린다. 측정이 없으면 사용자가 지목한 시스템 경로 안에서만 돌리고, 부문은 증상(예: 로딩이 길다 → 로딩·스트리밍)이나 그 시스템이 하는 일로 고른 뒤 고른 이유를 리포트에 적는다. 지목도 측정도 없으면 검색하지 않고 측정 계획만 쓴다.
-- 검색과 호출 경로 추적은 analyst 에게 맡긴다(지시 틀 A). 테스트 형식 찾기(지시 틀 B)가 필요하면 같은 메시지에서 함께 부른다.
-- 돌려받은 표에서 `grades.md` 5번 항목의 규칙으로 의심 목록을 만든다. 한 번만 불리는 것은 빼고, 10건을 넘으면 호출 빈도와 객체 수가 큰 순으로 자른다.
+- Read `${CLAUDE_SKILL_DIR}/reference/categories.md`.
+- Run the code pattern search only after the bottleneck category is decided, and only with that category's patterns. If there is no measurement, run it only inside the system path that the user named. In that case, choose the category from the symptom (for example, long loading → 로딩·스트리밍) or from what that system does, and write the reason for the choice in the report. If there is neither a named path nor a measurement, do not search. Write only a measurement plan.
+- Delegate the search and the call path tracing to analyst (instruction template A). If you also need to find the test format (instruction template B), call it in the same message.
+- From the returned table, build the suspect list with the rules in `grades.md` item 5. Leave out what is called only once. If there are more than 10, cut the list by call frequency and object count, largest first.
 
-### 1-4. 측정 계획
+### 1-4. Measurement plan
 
-측정으로 확인할 것이 남았으면 measure.md 4번 항목의 양식으로 3개 이내로 쓴다. 값이 실제로 일하는 구간(분기 조건, 인원 최대, 블렌드, 시작·끝)의 근거 파일:줄을 넣는다. 명령 이름마다 엔진 소스에서 찾은 위치나 "확인 필요"를 붙인다.
+If something remains to be confirmed by measurement, write at most 3 plans in the format of measure.md item 4. Include the evidence file:line for the region where the value actually does work (branch conditions, maximum headcount, blends, start and end). Attach to each command name the location found in the engine source, or "확인 필요".
 
-### 1-5. 등급과 개선안
+### 1-5. Grades and improvement proposals
 
-[확인] 항목에 grades.md 4번 항목의 등급을 매긴다. 1·2순위에는 원인 코드(파일:줄), 개선안, 효과 상한, 재측정 방법을 붙인다. 병목이 아닌 쪽 개선은 "여유 확보"로만 쓴다.
+Grade the [확인] items with the grades in grades.md item 4. For 1순위 and 2순위 items, attach the cause code (file:line), the improvement proposal, the effect ceiling, and the re-measurement method. Write improvements outside the bottleneck only as "여유 확보".
 
-### 1-6. 리팩터링·테스트 판단
+### 1-6. Refactoring and test judgment
 
-사용자가 물었거나 1·2순위 항목의 코드를 고칠 때만 한다. `${CLAUDE_SKILL_DIR}/reference/refactor.md` 와 `${CLAUDE_SKILL_DIR}/reference/tests.md` 를 읽는다. 변경 이력은 `vcs_churn.py` 로 센다(돌리는 조건은 Step 0 의 7). 티켓 종류는 스크립트가 조회하지 않는다. 세션에 이슈 트래커 도구가 있으면 모은 키 전체로 한 번에 질의한다.
+Do this only if the user asked, or when the code of a 1순위 or 2순위 item is going to be changed. Read `${CLAUDE_SKILL_DIR}/reference/refactor.md` and `${CLAUDE_SKILL_DIR}/reference/tests.md`. Count the change history with `vcs_churn.py` (the conditions for running it are in Step 0 item 7). The script does not look up ticket types. If the session has an issue tracker tool, query all collected keys in one query.
 
-### 1-7. 리포트 작성
+### 1-7. Write the report
 
-`${CLAUDE_SKILL_DIR}/reference/body-format.md` 의 진단 양식으로 쓴다.
+Write it in the diagnosis format (section "진단") of `${CLAUDE_SKILL_DIR}/reference/body-format.md`.
 
-**무인 실행이면**: 질문하지 않고, 측정하지 않는다. 이미 있는 측정 파일 읽기, 코드 읽기(Read·Glob·Grep), 허용된 버전 관리 읽기만 한다. `vcs_churn.py` 는 대화 실행과 같은 조건(Step 0 의 7)으로 돌린다. 엔진 설치 경로를 묻지 않고, 테스트 형식을 프로필에 채우지 않으며, 이슈 트래커를 조회하지 않는다. 리팩터링 판단에서 묻지 않고는 정할 수 없는 값은 refactor.md 2번 항목대로 "자료 없음"으로 둔다. 측정 계획과 결정이 필요한 것은 리포트에만 쓴다.
+**If it is an unattended run**: do not ask questions, and do not measure. Only read existing measurement files, read code (Read, Glob, Grep), and run the allowed version control reads. Run `vcs_churn.py` under the same conditions as a conversation run (Step 0 item 7). Do not ask for the engine install path, do not fill the test format into the profile, and do not query the issue tracker. In the refactoring judgment, leave values that cannot be decided without asking as "자료 없음", as refactor.md item 2 says. Write the measurement plan and the decisions needed only in the report.
 
-## Step 2 — 주기 점검
+## Step 2 — Periodic check
 
-### 2-1. 시작 조건
+### 2-1. Start condition
 
-Step 0 에서 찾은 새 측정 파일 가운데 시나리오가 정해진 것이 없으면 리포트를 만들지 않는다. 새 파일이 `.utrace` 뿐이고 내보낸 CSV 가 없을 때도 같다(대화 실행이면 measure.md 5-2 의 내보내기를 요청한다).
-- 점검 기록의 "측정 없음 기록"에 한 줄을 남기고 `다음 점검:` 줄을 갱신한다.
-- 대화 실행이면 시나리오 하나를 골라 "시나리오 <ID> 를 이렇게 재 주시겠어요?"와 측정 계획만 낸다. 시나리오는 점검 기록 항목 표에서 마지막 점검일이 가장 오래된 부문의 행에 적힌 것을 쓰고, 그런 행이 없으면 `perf.scenarios` 의 첫 시나리오를 쓴다. 여기서 끝낸다.
+If none of the new measurement files found in Step 0 has a decided scenario, do not make a report. The same applies if the new files are only `.utrace` files and there is no exported CSV (in a conversation run, request the export in measure.md 5-2).
+- Add one line to the "측정 없음 기록" of the ledger, and update the `다음 점검:` line.
+- In a conversation run, choose one scenario and give only "시나리오 <ID> 를 이렇게 재 주시겠어요?" and the measurement plan. For the scenario, use the one written in the row of the category with the oldest last check date in the ledger's `항목` (item) table. If there is no such row, use the first scenario in `perf.scenarios`. Stop here.
 
-### 2-2. 측정 조건 확인
+### 2-2. Check the measurement conditions
 
-- `${CLAUDE_SKILL_DIR}/reference/measure.md` 와 `${CLAUDE_SKILL_DIR}/reference/grades.md` 를 읽는다.
-- `csv_profile_stat.py list` 와 `summary` 로 새 파일의 메타데이터를 읽어 측정 조건 표(measure.md 2번 항목)를 채운다. 대화 실행이면 파일로 알 수 없는 칸(창 비활성 제한, 워밍업, 임시로 바꾼 설정)을 사용자에게 묻는다.
-- 무인 실행이면 묻지 않는다. 메타데이터로 확인되는 칸(빌드 구성, 플랫폼, CPU, 해상도, 엔진·빌드 버전)이 직전 회차 조건과 같고 `perf.measured_by` 가 "빌드 머신"일 때만 같은 조건 ID 를 이어 쓰고 "조건 일부 미확인"으로 표시한다. 그 밖에는 "비교 불가"다.
+- Read `${CLAUDE_SKILL_DIR}/reference/measure.md` and `${CLAUDE_SKILL_DIR}/reference/grades.md`.
+- Read the metadata of the new files with `csv_profile_stat.py list` and `summary`, and fill the measurement condition table (measure.md item 2). In a conversation run, ask the user for the fields that the files cannot tell (inactive-window throttling, warm-up, temporarily changed settings).
+- In an unattended run, do not ask. Continue the same condition ID and mark it "조건 일부 미확인" only if both of these hold: the fields that the metadata confirms (build configuration, platform, CPU, resolution, engine and build version) are the same as the previous round's conditions, and `perf.measured_by` is "빌드 머신". Otherwise, the result is "비교 불가".
 
-### 2-3. 볼 범위 고르기
+### 2-3. Choose the scope to look at
 
-모든 부문을 매번 보지 않는다. 아래 세 가지만 본다.
-1. 지난 회차에서 나빠진 항목
-2. 직전 회차 이후 변경이 건드린 부문. 점검 기록 "부문별 경로" 표의 버전 관리 경로를 `--path` 로 주고 `vcs_churn.py ... --since <직전 회차 날짜> --changes 50` 을 돌려 고른다. 대화·무인 실행 모두 같다. 표가 비었거나 `vcs_read_commands` 에 필요한 명령(Step 0 의 7)이 없으면 건너뛰고 "확인 못 한 것"에 적는다.
-3. 점검 기록 항목 표에서 마지막 점검일이 가장 오래된 부문 하나
+Do not look at all categories every time. Look only at the following three.
+1. Items that got worse in the last round
+2. Categories that the changes since the previous round touched. Choose them by passing the version control paths in the ledger's "부문별 경로" table as `--path` and running `vcs_churn.py ... --since <직전 회차 날짜> --changes 50`. This is the same in conversation and unattended runs. If the table is empty, or `vcs_read_commands` does not have the needed commands (Step 0 item 7), skip this and write it in "Not checked".
+3. The one category with the oldest last check date in the ledger's `항목` table
 
-무인 실행이면 질문함의 측정 요청 가운데 이번 새 측정 파일로 답할 수 있는 것(Step 0 의 4)도 범위에 넣는다. 대화 실행에서 같이 보기로 한 질문은 주기 점검을 마친 뒤 질문마다 진단 한 번으로 처리한다(모드 판별).
+In an unattended run, also include in the scope the inbox measurement requests that this round's new measurement files can answer (Step 0 item 4). In a conversation run, handle the questions that the user chose to look at together after you finish the periodic check, with one diagnosis per question (Mode selection).
 
-### 2-4. 비교와 판정
+### 2-4. Comparison and judgment
 
-`csv_profile_stat.py compare --a <비교 회차 파일들> --b <이번 파일들> --budget-ms <예산> --hitch-ms <히치 기준>` 을 직전 회차, 기준선 회차와 각각 돌린다. 예산은 `perf.budgets` 의 그 플랫폼 프레임 시간, 히치 기준은 점검 기록 판정 기준 표의 값이고, 없으면 그 인자를 빼고 리포트에 적는다. grades.md 6번 항목의 규칙으로 판정한다. 직전 대비로 판정이 안 나와도 기준선 대비 나빠짐이면 "누적 악화"다.
-- 그 시나리오의 첫 회차면 비교하지 않는다. `summary` 결과만 기록하고 비교한 회차 칸에 "없음(첫 회차)"을 쓴다. 판정은 예산으로만 한다(초과 / 통과). 예산도 없으면 판정 칸을 "-" 로 둔다(grades.md 6번 항목 끝부분).
-- 기준선 회차가 아직 없으면 직전 회차와만 비교하고 "기준선 없음"을 적는다.
+Run `csv_profile_stat.py compare --a <비교 회차 파일들> --b <이번 파일들> --budget-ms <예산> --hitch-ms <히치 기준>` twice: once against the previous round, and once against the baseline round. The budget is the frame time for that platform in `perf.budgets`. The hitch threshold is the value in the ledger's `판정 기준` table. If a value is missing, leave out that argument and write this in the report. Judge with the rules in grades.md item 6. If the comparison with the previous round gives no judgment but the comparison with the baseline shows a worsening, the result is "누적 악화".
+- If it is the first round for that scenario, do not compare. Record only the `summary` result, and write "없음(첫 회차)" in the compared-round field. Judge only by the budget (초과 / 통과). If there is also no budget, leave the judgment field as "-" (end of grades.md item 6).
+- If there is no baseline round yet, compare only with the previous round and write "기준선 없음".
 
-### 2-5. 나빠진 항목
+### 2-5. Items that got worse
 
-- 두 회차 리비전 사이의 변경 가운데 그 부문 경로를 건드린 것을 원인 후보로 붙인다(2-3 의 변경 목록). 확정은 두 리비전 사이를 나눠 재는 측정으로 제안만 한다.
-- `${CLAUDE_SKILL_DIR}/reference/categories.md` 의 그 부문 코드 의심 패턴을 변경된 경로에만 돌린다(지시 틀 A, 10건까지).
-- 변경 목록이 없으면(읽기 명령 미허용, 조회 실패) 원인 후보는 "확인 못 함"으로 두고, 의심 패턴은 점검 기록 "부문별 경로" 표에서 그 부문의 코드·설정 경로에 돌린다. 경로도 없으면 건너뛴다.
+- Attach as cause candidates the changes between the two rounds' revisions that touched that category's paths (the change list from 2-3). Only propose how to confirm it: measurements that split the range between the two revisions.
+- Run the suspect code patterns of that category in `${CLAUDE_SKILL_DIR}/reference/categories.md` only on the changed paths (instruction template A, at most 10).
+- If there is no change list (read commands not allowed, or the lookup failed), leave the cause candidates as "확인 못 함". Run the suspect patterns on that category's code and settings paths in the ledger's "부문별 경로" table. If there are no paths either, skip this.
 
-### 2-6. 리포트 작성
+### 2-6. Write the report
 
-body-format.md 의 주기 점검 양식으로 쓴다. 측정 조건 칸이 모두 채워진 회차는 "기준선 후보"로 올린다. 대화 실행에서 사용자가 조건을 확인하고 확정하면 기준선으로 바꾼다.
+Write it in the periodic check format (section "주기 점검") of body-format.md. Raise a round whose measurement condition fields are all filled as "기준선 후보". In a conversation run, if the user checks the conditions and confirms, change it to "기준선" (baseline).
 
-**무인 실행이면**: 측정, 질문, 기준선 확정을 하지 않는다. 코드 패턴 검색(Read·Glob·Grep)은 한다. 2-3 의 2 와 2-5 의 원인 후보는 `vcs_read_commands` 에 필요한 명령이 있으면 대화 실행과 똑같이 하고, 없으면 "확인 못 한 것"에 적는다(공통 규칙 §7·§10). 이번 회차는 기준선 후보까지만 쓴다.
+**If it is an unattended run**: do not measure, do not ask questions, and do not confirm a baseline. Do run the code pattern search (Read, Glob, Grep). For item 2 of 2-3 and for the cause candidates of 2-5, if `vcs_read_commands` has the needed commands, do exactly what a conversation run does. If it does not, write it in "Not checked" (common rules §7 and §10). Record this round only up to "기준선 후보".
 
-## 서브에이전트에 맡기기
+## Delegating to subagents
 
-- 판정, 등급, 리포트 작성은 이 스킬(메인 대화)이 한다. 서브에이전트에는 수집과 사실 정리만 맡긴다.
-- Agent 도구의 `subagent_type` 에 `advisors:analyst` 를 넣어 부른다. 서로 독립된 조사(코드 패턴 검색과 테스트 형식 찾기 등)는 한 메시지에서 여러 개를 함께 부른다.
-- 이 고문은 웹 수집을 하지 않으므로 `advisors:web-scout` 를 부르지 않는다. 바깥 자료가 필요하면 질문함으로 radar 에 넘긴다.
-- 서브에이전트는 이 대화를 보지 못한다. 지시에 오늘 날짜, 읽을 범위와 순서, 판단 기준 파일의 경로, 돌려받을 표의 칸을 모두 넣는다.
+- This skill (the main conversation) does the judgment, the grading, and the report writing. Give subagents only collection and fact organizing.
+- Call a subagent by putting `advisors:analyst` in the Agent tool's `subagent_type`. For independent investigations (such as the code pattern search and finding the test format), call several in one message.
+- This advisor does not collect from the web, so do not call `advisors:web-scout`. If outside material is needed, hand it to radar through the question inbox.
+- Subagents cannot see this conversation. Put all of these in the instruction: today's date, the scope and order of reading, the paths of the criteria files, and the columns of the table to return.
 
-**지시 틀 A — 코드 의심 패턴과 호출 빈도**
-
-```
-오늘 날짜: <YYYY-MM-DD>
-할 일: <부문> 부문의 코드 의심 패턴을 찾고, 걸린 곳마다 호출 빈도를 호출 경로로 확인한다.
-판단 기준: ${CLAUDE_SKILL_DIR}/reference/categories.md 의 4번 항목 "<부문>" 과
-           ${CLAUDE_SKILL_DIR}/reference/grades.md 의 5번 항목을 먼저 읽는다.
-읽을 범위: <경로 목록>. 이 밖은 읽지 않는다. 순서: <지목 파일부터, 헤더 → 구현>
-돌려받을 표: | # | 패턴 | 위치(파일:줄) | 들어 있는 함수 | 호출 경로(파일:함수 → 파일:함수) |
-             호출 빈도(매 프레임/잦은 이벤트/한 번/모름) | 그 코드를 가진 객체 수 근거 |
-             기본 동작과 달라지는 조건(분기·최대 인원·시작·끝)과 위치 |
-"한 번"으로 판단한 것은 표에 넣지 말고 "제외" 목록에 위치와 사유를 적는다.
-블루프린트 에셋은 텍스트로 판단하지 않고 "확인 못 함"으로 적는다.
-검색이 실패하거나 시간 초과면 0건으로 치지 말고 "검색 실패"로 적는다.
-```
-
-**지시 틀 B — 기존 테스트 형식**
+**Instruction template A — suspect code patterns and call frequency**
 
 ```
-오늘 날짜: <YYYY-MM-DD>
-할 일: 이 프로젝트에 이미 있는 C++ 자동화 테스트의 형식·위치·이름 규칙을 찾는다. 판정하지 않고 사실만 모은다.
-판단 기준: ${CLAUDE_SKILL_DIR}/reference/tests.md 의 2번 항목을 먼저 읽는다.
-읽을 범위: <source_roots 와 프로젝트 플러그인 소스 폴더>. 엔진 폴더는 읽지 않는다.
-순서: 검색 패턴(tests.md 2번 항목)을 Grep 으로 찾고, 걸린 파일마다 머리 20줄과 첫 테스트 정의를 읽는다.
-돌려받을 표: | 파일:줄 | 매크로 종류 | 테스트 이름 문자열 | 폴더 위치 | 조건부 컴파일 기호 |
-0건이면 폴더를 좁혀 한 번 더 찾은 뒤에만 "없음"으로 쓰고, 검색 범위·패턴·시간 초과 여부를 적는다.
+Today's date: <YYYY-MM-DD>
+Task: Find the suspect code patterns of the <category> category. For each hit, check the call frequency through the call path.
+Criteria: First read item 4 "<category>" in ${CLAUDE_SKILL_DIR}/reference/categories.md and
+          item 5 in ${CLAUDE_SKILL_DIR}/reference/grades.md.
+Read scope: <path list>. Do not read outside it. Order: <named files first, header → implementation>
+Return table: | # | Pattern | Location (file:line) | Containing function | Call path (file:function → file:function) |
+              Call frequency (매 프레임/잦은 이벤트/한 번/모름) | Evidence for the number of objects that have this code |
+              Conditions that change the default behavior (branch, maximum headcount, start, end) and their location |
+Do not put hits judged "한 번" in the table. Write their location and reason in an "Excluded" (제외) list.
+Do not judge Blueprint assets from their text. Record them as "확인 못 함".
+If a search fails or times out, do not count it as 0 results. Record it as "검색 실패".
 ```
 
-**지시 틀 C — 결과 파일 읽기**
+**Instruction template B — existing test format**
 
 ```
-오늘 날짜: <YYYY-MM-DD>
-할 일: 아래 측정 결과 파일에서 정해진 칸만 옮겨 적는다. 원인 추정이나 평가는 하지 않는다.
-판단 기준: ${CLAUDE_SKILL_DIR}/reference/measure.md 의 5번 항목을 먼저 읽는다.
-읽을 파일: <절대 경로>. 이 밖은 읽지 않는다. 순서: 머리 행으로 칸 이름 확인 → 지정한 스레드·구간 행
-볼 범위: <스레드 이름>, <구간 이름 또는 시간 범위>, 포함 시간이 큰 순으로 상위 <N>개
-돌려받을 표: <예: | 타이머 이름 | 포함 시간 | 자체 시간 | 호출 수 | 파일:줄 |>
-칸 이름이 지시와 다르면 머리 행의 실제 이름을 그대로 적고 "칸 이름 다름"으로 표시한다.
+Today's date: <YYYY-MM-DD>
+Task: Find the format, location, and naming rules of the C++ automation tests that already exist in this project. Do not judge. Collect only facts.
+Criteria: First read item 2 in ${CLAUDE_SKILL_DIR}/reference/tests.md.
+Read scope: <source_roots and the project plugin source folders>. Do not read the engine folder.
+Order: Search for the search patterns (tests.md item 2) with Grep. For each matched file, read the first 20 lines and the first test definition.
+Return table: | File:line | Macro kind | Test name string | Folder location | Conditional compilation symbol |
+If there are 0 results, narrow the folder and search once more. Only after that, write "없음", and record the search scope, the patterns, and whether the search timed out.
 ```
 
-**에이전트를 찾지 못할 때**: 그 이름의 에이전트를 찾지 못한다는 오류가 나면 analyst 몫은 메인 대화에서 같은 규칙으로 직접 읽는다. 리포트 머리의 "범위"에 "에이전트 없이 메인에서 수집함"을 적는다.
+**Instruction template C — read a result file**
 
-## 후속 제안 — 테스트와 리팩터링
+```
+Today's date: <YYYY-MM-DD>
+Task: From the measurement result file below, copy only the specified fields. Do not guess causes and do not evaluate.
+Criteria: First read item 5 in ${CLAUDE_SKILL_DIR}/reference/measure.md.
+File to read: <absolute path>. Do not read outside it. Order: check the field names in the header row → rows of the specified thread and region
+Scope to look at: <thread name>, <region name or time range>, top <N> by inclusive time
+Return table: <example: | Timer name | Inclusive time | Exclusive time | Call count | File:line |>
+If a field name differs from the instruction, write the actual name from the header row as is, and mark it "칸 이름 다름".
+```
 
-모드가 아니다. 리포트를 저장한 뒤 "할까요?"로 제안하고, 사용자가 답한 뒤에만 진행한다.
-- 테스트: `tests.md` 3번 항목의 명세를 리포트에 덧붙이고, 승인되면 `code_change_entry` 의 스킬을 Skill 도구로 불러 명세를 넘긴다(tests.md 5번 항목).
-- 리팩터링: `refactor.md` 판정이 "권장"인 대상만 제안한다. 동작 고정 테스트 명세를 먼저 넘긴다. 고치는 방식이 여럿이거나 모듈 경계·Build.cs 의존을 바꿔야 하면 "TD 고문에 방식 비교를 넘길까요?"를 함께 제안한다.
-- 팀 공용 구조를 바꾸는 수정(프로젝트 파일 모듈 등록, 모듈 빌드 설정 파일(Build.cs)에 의존 모듈 추가, 공용 헤더의 함수 내보내기)은 리포트에 "팀 공유 필요"를 표시한다(tests.md 4번 항목).
-- `perf.edit_scope` 가 `tests_only` 이면 소스 수정은 넘기지 않고 "결정이 필요한 것"에 올린다.
+**If the agent cannot be found**: if an error says that no agent with that name can be found, the main conversation reads analyst's part directly with the same rules. Write "에이전트 없이 메인에서 수집함" in the "Scope" row of the report header.
 
-## Step Final — 마무리
+## Follow-up proposals — tests and refactoring
 
-1. `${CLAUDE_PLUGIN_ROOT}/shared/start.md` 의 Step Final 을 따른다. 리포트 파일 이름은 `perf/<작성일>-diagnosis.md`(진단) 또는 `perf/<작성일>-periodic.md`(주기 점검)이다. 모드 부분은 영어 소문자로만 쓴다(공통 규칙 §12).
-2. 점검 기록을 갱신한다: 회차 표, 측정 조건 표, 항목 표(이번에 본 항목의 마지막 점검일, 직전 값, 판정, 측정 파일), `다음 점검:` 줄(마지막 실행일 + 7일). 이번에 재지 않은 항목의 값은 바꾸지 않는다.
-3. 질문함에 올릴 것(`${CLAUDE_PLUGIN_ROOT}/shared/inbox-format.md`):
-   - radar: 외부 해법이 필요한 병목. 필요한 답의 형태에 병목 스레드, 측정값, 시나리오 ID 를 넣는다. 기술 목록이 없거나 오래됐으면 갱신 요청.
-   - td: 리팩터링이 "권장"인데 고치는 방식이 여럿이거나 구조를 바꿔야 할 때. 세 축 수치, 대상 경로, 측정값을 붙인다.
-   - design: 비싼 기능의 유지·축소·제거 판단. 측정 비용과 같은 효과를 더 싸게 내는 대안의 비용을 붙이고, 입력 → 규칙 → 결과 한 단락을 함께 넣는다.
-   - 받은 측정 요청에 답했으면 상태를 "답함"으로 바꾸고 리포트 경로를 덧붙인다.
-4. 후속 제안은 아래에서 1~3개를 고른다.
+These are not modes. After you save the report, propose them with "할까요?". Proceed only after the user answers.
+- Tests: Append the spec from `tests.md` item 3 to the report. If it is approved, call the skill in `code_change_entry` with the Skill tool and hand over the spec (tests.md item 5).
+- Refactoring: Propose only targets whose `refactor.md` judgment is "권장". Hand over the behavior-locking test spec first. If there are several ways to fix it, or the module boundaries or the Build.cs dependencies must change, also propose "TD 고문에 방식 비교를 넘길까요?".
+- For a change that alters team-shared structure (registering a module in the project file, adding a dependency module in the module build settings file (Build.cs), exporting functions in a shared header), mark "팀 공유 필요" in the report (tests.md item 4).
+- If `perf.edit_scope` is `tests_only`, do not hand over source changes. Raise them in "Decisions needed".
+
+## Step Final — Finish
+
+1. Follow Step Final of `${CLAUDE_PLUGIN_ROOT}/shared/start.md`. The report file name is `perf/<작성일>-diagnosis.md` (diagnosis) or `perf/<작성일>-periodic.md` (periodic check). Write the mode part only in lowercase English (common rules §12).
+2. Update the ledger: the `회차` table, the `측정 조건` table, the `항목` table (for the items looked at this time: last check date, previous value, judgment, measurement file), and the `다음 점검:` line (last run date + 7 days). Do not change the values of items that were not measured this time.
+3. What to raise in the question inbox (`${CLAUDE_PLUGIN_ROOT}/shared/inbox-format.md`):
+   - radar: bottlenecks that need an outside solution. In the "필요한 답의 형태" column, put the bottleneck thread, the measurements, and the scenario ID. If the technology inventory is missing or old, raise an update request.
+   - td: when refactoring is "권장" but there are several ways to fix it or the structure must change. Attach the three-axis numbers, the target paths, and the measurements.
+   - design: a judgment on keeping, reducing, or removing an expensive feature. Attach the measured cost and the cost of an alternative that gives the same effect more cheaply. Also include one paragraph of input → rule → result.
+   - If you answered a received measurement request, change its status to "답함" and append the report path.
+4. Choose 1 to 3 follow-up proposals from the list below.
    - "측정 계획 MP-<번호>대로 재 주시겠어요?"
    - "1순위 <항목>의 동작 고정 테스트 명세를 <code_change_entry>로 넘길까요?"
-   - "이번 회차를 기준선으로 등록할까요?" (조건이 모두 채워졌을 때만)
-   - "다음 점검을 주 1회로 예약할까요?" (start.md Step Final 4 의 조건일 때. 절차는 start.md "예약 점검 만들기")
+   - "이번 회차를 기준선으로 등록할까요?" (only when all conditions are filled)
+   - "다음 점검을 주 1회로 예약할까요?" (only when the condition in start.md Step Final item 4 holds. For the procedure, see start.md "Make a scheduled check")
 
-## 기본 주기
+## Default cycle
 
-주 1회. 새 측정 파일이 들어왔을 때만 리포트를 만들고, 없으면 점검 기록에 "측정 없음" 한 줄만 남긴다. 예약 지시문의 호출 예: `/advisors:perf 주기 점검 --unattended`.
+Once a week. Make a report only when new measurement files have come in. If there are none, leave only one "측정 없음" line in the ledger. Example call in the scheduled instruction: `/advisors:perf 주기 점검 --unattended`.
 
-## 저장 전 자기 점검
+## Self-check before saving
 
-- [ ] 모든 발견에 [확인] / [의심] / [측정 못 함] 과 위치(측정 파일·명령·구간 또는 파일:줄과 호출 경로)가 붙었다.
-- [ ] 개선 효과를 수치로 예측하지 않았고, 일반론 배수를 쓰지 않았다. 효과 상한은 그 구간의 측정 포함 시간(하위 호출까지 합친 시간)까지다.
-- [ ] 병목이 아닌 쪽의 개선을 프레임 개선으로 쓰지 않았다.
-- [ ] 측정 조건 칸이 빈 회차를 기준선에 쓰지 않았고, 비교에는 2-2 의 무인 예외("조건 일부 미확인" 표시)로만 썼다. 에디터 안 값은 "에디터 상대값"으로 표시했다.
-- [ ] 평균만 보지 않고 p95(느린 쪽 5% 를 뺀 경계값), p99, 최대, 히치 횟수를 함께 봤다. 반복 1회 값으로 나빠짐을 판정하지 않았다.
-- [ ] 쓴 콘솔 명령·변수·인자마다 엔진 소스에서 찾은 위치나 "확인 필요"가 있다.
-- [ ] 의심은 10건 이하이고, 한 번만 불리는 것은 제외 사유와 함께 뺐다. 검색 실패를 0건으로 치지 않았다.
-- [ ] 무인 실행에서 측정, 질문, 수정 넘기기, 기준선 확정을 하지 않았다. 대화 실행에서도 승인 없이 수정을 넘기지 않았다.
-- [ ] 버전 관리 명령은 대화·무인 실행 모두 `vcs_read_commands` 에 적힌 읽기 명령만 썼다(`vcs_churn.py` 포함). 쓰기 명령은 쓰지 않았다.
-- [ ] 리포트 파일 이름의 모드 부분이 `diagnosis` 또는 `periodic` 이다.
-- [ ] 처음 나온 영어 용어에 풀이를 달았고, 계산은 스크립트 명령과 함께 남겼다.
-- [ ] 팀 기준 노트 원문을 리포트에 옮기지 않았고, 머리 "범위"에 읽은 결과 표시 행 ID 를 적었다(start.md 0-F).
+- [ ] Every finding has [확인] / [의심] / [측정 못 함] and a location (measurement file, command, and region; or file:line and call path).
+- [ ] I did not predict the improvement as a number, and I did not use generic multipliers. The effect ceiling is at most the measured inclusive time of that region (the time including child calls).
+- [ ] I did not write improvements outside the bottleneck as frame improvements.
+- [ ] I did not use a round with empty measurement condition fields as a baseline. I used such a round for comparison only under the unattended exception of 2-2 (marked "조건 일부 미확인"). I marked values measured inside the editor as "에디터 상대값".
+- [ ] I did not look only at the average. I also looked at p95 (the boundary value after excluding the slowest 5%), p99, the maximum, and the hitch count. I did not judge a worsening from a single-run value.
+- [ ] Every console command, variable, and argument I used has the location found in the engine source, or "확인 필요".
+- [ ] There are 10 or fewer suspects, and I left out what is called only once, with the exclusion reason. I did not count a failed search as 0 results.
+- [ ] In an unattended run, I did not measure, ask questions, hand over changes, or confirm a baseline. In a conversation run too, I did not hand over changes without approval.
+- [ ] For version control commands, in both conversation and unattended runs, I used only the read commands written in `vcs_read_commands` (including through `vcs_churn.py`). I did not use write commands.
+- [ ] The mode part of the report file name is `diagnosis` or `periodic`.
+- [ ] I defined each technical term at its first appearance (rules.md §11), and I kept each calculation together with its script command.
+- [ ] I did not copy the original text of the team reference notes into the report, and I wrote the IDs of the result feedback rows I read in the "Scope" row of the report header (start.md 0-F).

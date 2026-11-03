@@ -1,42 +1,42 @@
-# 어느 고문에게 묻나
+# Which advisor to ask
 
-고문끼리 일을 가르는 기준을 이 파일 한 곳에 둔다. 각 고문의 SKILL.md "안 하는 일" 표는 넘기는 곳만 적고, 가르는 기준이 헷갈리면 이 파일을 본다.
+The rules that divide work between the advisors are kept in this one file. The "does not do" (안 하는 일) table in each advisor's SKILL.md lists only where the work goes. If the dividing rule is unclear, look at this file.
 
-질문이 다른 고문의 일로 보일 때:
-- 사용자가 대화에서 한 요청이면 "<고문>이 맡는 질문이에요. <고문>으로 볼까요?"라고 한 번 묻는다. 예라고 하면 그 고문 스킬을 Skill 도구로 부른다(`advisors:<고문>`). 아니오라고 하면 지금 고문이 맡을 수 있는 부분만 하고(기술 동향 고문이면 그 기술의 바깥 변화), 맡을 부분이 없으면 리포트 없이 끝낸다.
-- 질문함에서 온 질문이면 사용자에게 묻지 않고 inbox-format.md 의 넘기는 규칙대로 맞는 고문 앞으로 넘긴다. 대화·무인 실행 모두 같다.
+When a question looks like another advisor's work:
+- If it is a request that the user made in the conversation, ask once: "<고문>이 맡는 질문이에요. <고문>으로 볼까요?". If the user says yes, call that advisor's skill with the Skill tool (`advisors:<고문>`). If the user says no, do only the part that the current advisor can handle (for the technology trend advisor, the outside changes of that technology). If there is no part to handle, finish without a report.
+- If the question came from the question inbox, do not ask the user. Pass it to the right advisor by the passing rules in inbox-format.md. This is the same in conversation runs and unattended runs.
 
-## 낱말 풀이
+## Word meanings
 
-- **우리 트리**: 우리 저장소에 있는 게임 코드, 프로젝트 플러그인, 로컬 엔진 소스 전체다.
-- **켜져 있는 기술**: 기술 동향 고문의 기술 목록(`_state/radar-inventory.md`)에서 상태가 "사용 중", "켜짐·사용 흔적 없음", "엔진을 고쳐서 씀"인 플러그인과, 프로젝트 설정 값으로 켜져 있는 엔진 기능이다.
-- **우리 트리에 없거나 꺼진 기술**: 그 밖의 모든 기술이다. 소스 빌드라 엔진 폴더에 플러그인이 있어도 꺼져 있으면 여기에 든다. 설정으로 켜는 엔진 기능(예: 렌더러 기능)은 프로젝트 설정 값으로 켜짐·꺼짐을 가린다.
+- **Our tree** (우리 트리): all the game code, project plugins, and local engine source in our repository.
+- **Enabled technology** (켜져 있는 기술): the plugins in the technology trend advisor's technology list (`_state/radar-inventory.md`) whose status is "사용 중", "켜짐·사용 흔적 없음", or "엔진을 고쳐서 씀", and the engine features that project setting values turn on.
+- **Technology not in our tree or turned off** (우리 트리에 없거나 꺼진 기술): all other technology. With a source build, a plugin that is in the engine folder but turned off also belongs here. For engine features that settings turn on (for example, renderer features), the project setting values decide whether they are on or off.
 
-## 기술 질문: td 와 radar
+## Technical questions: td and radar
 
-기준은 **답이 어디에 있는가**다.
+The rule is **where the answer is**.
 
-| 답이 있는 곳 | 고문 | 질문 예 |
+| Where the answer is | Advisor | Example questions |
 |---|---|---|
-| 우리 코드, 로컬 엔진 소스, 팀 문서 | td | "이거 구조 어떻게 잡지?", "A 랑 B 중 뭐가 나아?", "이미 켜져 있는 <엔진 기능>으로 할까 직접 만들까?", "자체 시스템을 그 엔진 기능으로 옮길까?", "이미 쓰는 <기능>을 우리 코드에서 어떻게 쓸까? 더 넓혀 써도 돼?", "이 기능 기술적으로 돼?", "이 버그 왜 자꾸 다시 터져?", "모듈 의존 점검", "엔진 수정 블록 줄이기", "기술 부채 순서", "작성 규칙 초안" |
-| 바깥(새 발표, 다른 엔진 버전, 외부 제품, 업계 소식) | radar | "요즘 엔진 소식", "<우리 트리에 없거나 꺼진 기술> 써도 돼?", "<버전>으로 올려야 해?", "<외부 제품> 도입 검토", "써 본 사람들 평은?", "우리가 쓰는 <엔진 기능>에 알려진 버그 있어? 몇 버전에서 고쳐졌어?" |
-| 둘 다 | td 가 받는다 | td 가 우리 쪽 사실로 견주고, 판정을 가르는 바깥 사실은 td evidence.md §4 의 조건(W2~W4)에서 1차 출처만 찾거나, 우리 트리에 없거나 꺼진 기술이면(W1) radar 에 질문으로 넘긴다 |
+| Our code, local engine source, team documents | td | "이거 구조 어떻게 잡지?", "A 랑 B 중 뭐가 나아?", "이미 켜져 있는 <엔진 기능>으로 할까 직접 만들까?", "자체 시스템을 그 엔진 기능으로 옮길까?", "이미 쓰는 <기능>을 우리 코드에서 어떻게 쓸까? 더 넓혀 써도 돼?", "이 기능 기술적으로 돼?", "이 버그 왜 자꾸 다시 터져?", "모듈 의존 점검", "엔진 수정 블록 줄이기", "기술 부채 순서", "작성 규칙 초안" |
+| Outside (new announcements, other engine versions, external products, industry news) | radar | "요즘 엔진 소식", "<우리 트리에 없거나 꺼진 기술> 써도 돼?", "<버전>으로 올려야 해?", "<외부 제품> 도입 검토", "써 본 사람들 평은?", "우리가 쓰는 <엔진 기능>에 알려진 버그 있어? 몇 버전에서 고쳐졌어?" |
+| Both | td takes it | td compares the options with the facts on our side. For an outside fact that decides the verdict, td finds only primary sources under the conditions of td evidence.md §4 (W2 to W4). If the technology is not in our tree or is turned off (W1), td passes a question to radar |
 
-- 기술 이름이 나왔다는 것만으로 radar 가 아니다. 켜져 있는 기술을 우리 코드에서 어떻게 쓸지, 우리 자체 구현을 그 기술로 바꿀지는 td 다.
-- 우리 트리에 없거나 꺼진 기술을 들일지, 그 기술의 성숙도·지원 플랫폼·알려진 문제가 무엇인지는 radar 다.
-- 우리가 쓰는 엔진 기능의 알려진 버그와 수정 버전만 묻는 질문(엔진 개발사 자료로 답이 나온다)은 radar 다. 우리 코드 안에서 그 버그의 원인을 찾거나 고치는 방식을 고르는 질문은 td 이고, td 는 그 안에서 조건 W3 으로 1차 출처만 찾는다.
+- A technology name in the question does not by itself make it a radar question. How to use enabled technology in our code, and whether to replace our own implementation with that technology, are td.
+- Whether to bring in technology that is not in our tree or is turned off, and what its maturity, supported platforms, and known problems are, are radar.
+- A question that asks only about the known bugs and fix versions of an engine feature that we use (the engine developer's material answers it) is radar. A question that looks for the cause of that bug inside our code, or chooses how to fix it, is td. Inside that work, td finds only primary sources under condition W3.
 
-## 그 밖의 고문
+## Other advisors
 
-| 질문 | 고문 |
+| Question | Advisor |
 |---|---|
-| 원인과 크기를 재는 질문(프레임이 왜 떨어지나, 얼마나 무거운가, 리팩터링이 필요한가) | perf |
-| 선택지를 고르는 질문(어느 구조로 고칠까, 모듈을 어떻게 나눌까) | td |
-| 재미, 게임 규칙, 이 기능이 게임에 필요한가(넣을까·뺄까) | design |
-| 이 기능을 만들 수 있나, 어느 구조로 만드나 | td |
-| AI 에이전트가 상태를 재현하고 결과를 글로 확인할 경로가 코드에 있나(에이전트 검증 가능성). 성능 측정 결과의 형식과 측정은 perf | td |
-| 언제 할까, 이번 마일스톤에 넣을까·미룰까, 작업 순서, 일정 위험, 회고, 다른 고문의 정기 점검이 언제인가 | pm |
-| 시장, 경쟁작, 이용자층, 하드웨어 보급 | market |
+| Questions that measure cause and size (why the frame rate drops, how heavy it is, whether refactoring is needed) | perf |
+| Questions that choose between options (which structure to fix it with, how to split modules) | td |
+| Fun, game rules, whether the game needs this feature (add it or remove it) | design |
+| Whether this feature can be built, which structure to build it with | td |
+| Whether the code has a path for an AI agent to reproduce a state and check the result as text (agent verifiability). The format of performance measurement results and the measurement itself are perf | td |
+| When to do it, whether to put it in this milestone or defer it, task order, schedule risks, retrospectives, when another advisor's periodic check is due | pm |
+| Market, competing games, player base, hardware adoption | market |
 
-- 기능 하나를 두고는 세 고문이 나눠 본다. 재미·원칙은 design, 만들 수 있는지·어느 구조로 만들지는 td, 이번 마일스톤에 넣을지·언제 할지는 pm 이다. pm 은 다른 둘의 판정을 대신 내리지 않고 질문함으로 묻는다.
-- 리팩터링이 필요한지는 perf, 어느 방식으로 고칠지는 td, 그 점검이나 작업을 언제 할지는 pm 이다.
+- Three advisors split the review of one feature. Fun and principles are design. Whether it can be built and which structure to build it with are td. Whether to put it in this milestone and when to do it are pm. pm does not make the verdicts of the other two in their place. It asks them through the question inbox.
+- Whether refactoring is needed is perf. Which way to fix it is td. When to do that check or that work is pm.

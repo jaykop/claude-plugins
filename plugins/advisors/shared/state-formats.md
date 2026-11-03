@@ -1,8 +1,8 @@
-# 고문끼리 함께 읽는 기록 파일 형식
+# Record file formats that advisors share
 
-`<report_dir>/_state/` 의 파일 가운데 **다른 고문이 읽는 것**과 **여러 고문이 함께 쓰는 것**(source-checks, feedback)만 형식을 여기서 고정한다. 질문함(inbox)의 형식은 `shared/inbox-format.md` 에 있다. 한 고문만 쓰고 읽는 파일(design-proposals, market-snapshot, perf-ledger, pm-cadence, pm-risks, pm-plan, td-ledger, td-debt)의 형식은 각 스킬의 reference 에 있다. 다만 td-debt 는 PM 고문의 정기 점검 계산(`pm_calc.py cadence`)이 머리의 `마지막 갱신` 날짜를 읽는다. radar-watchlist 는 기술 동향 고문만 쓰지만 TD 고문이 "다음 버전으로 올릴 때 걸리는 것"(UP 행)의 상태와 추적 행을 읽는다. 형식은 radar/reference/watchlist-format.md 에 있고, 그 표의 칸을 바꾸면 td 의 evidence.md §3 과 audit-scopes.md §3 도 맞춘다.
+Of the files in `<report_dir>/_state/`, this file fixes the format of only **the files that other advisors read** and **the files that several advisors write together** (source-checks, feedback). The format of the question inbox (inbox) is in `shared/inbox-format.md`. The formats of the files that only one advisor writes and reads (design-proposals, market-snapshot, perf-ledger, pm-cadence, pm-risks, pm-plan, td-ledger, td-debt) are in the reference files of each skill. But for td-debt, the periodic check calculation of the PM advisor (`pm_calc.py cadence`) reads the `마지막 갱신` date at the top. Only the technology trend advisor writes radar-watchlist, but the TD advisor reads the status of "다음 버전으로 올릴 때 걸리는 것" (blockers when upgrading to the next version) (UP rows) and the tracking rows. Its format is in radar/reference/watchlist-format.md. If you change the columns of that table, also update evidence.md §3 and audit-scopes.md §3 of td to match.
 
-모든 `_state` 파일의 첫 부분은 같다.
+The first part of every `_state` file is the same.
 
 ```markdown
 # <파일 제목>
@@ -11,12 +11,12 @@
 작성: <고문> / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <CL 또는 커밋>
 ```
 
-## radar-inventory.md — 프로젝트 기술 목록
+## radar-inventory.md — Project technology list
 
-- 만드는 고문: radar. 읽는 고문: perf, design(구현 확인 보조), td(이미 쓰는 기술과 성숙도 표시).
-- 다시 만드는 조건: 엔진 버전 파일, 프로젝트 파일(.uproject 등), Config 폴더, 게임 코드의 빌드 설정(Build.cs)이 바뀌었을 때, 또는 마지막 갱신이 프로필 `stale_after_days` 보다 오래됐을 때. 어느 쪽도 아니면 다시 만들지 않고 날짜만 확인한다. Godot 이면 엔진 version.py(커스텀 빌드), project.godot, export_presets.cfg, C# 프로젝트 파일, plugin.cfg, .gdextension 이 바뀌었을 때다.
-- Godot 판도 표와 상태 다섯 가지는 같다. 엔진 표에는 "엔진: Godot" 행이 맨 위에 있고, 플러그인 행은 addons 폴더(에디터 플러그인·GDExtension·스크립트 애드온)와 addons 밖 .gdextension 이다. 상태의 Godot 뜻은 목록 끝 설명에 있다.
-- 아래 표에 행을 더해도 된다(예: 프로젝트 모듈, 프로젝트 파일의 대상 플랫폼, 입력 지문). 끝에 `## 만든 방법과 검색 기록` 을 둬서 검색 범위, 상한, 실패 여부, 직전 목록과 달라진 것을 적는다.
+- Made by: radar. Read by: perf, design (as support for implementation checks), td (technologies already in use and maturity marks).
+- Conditions for making it again: when the engine version file, the project file (.uproject and so on), the Config folder, or the build settings of the game code (Build.cs) changed, or when the last update is older than profile `stale_after_days`. If neither is true, do not make it again; only check the date. For Godot, the conditions are when the engine version.py (custom build), project.godot, export_presets.cfg, C# project files, plugin.cfg, or .gdextension changed.
+- The Godot version also has the same tables and the same five statuses. The engine table has the "엔진: Godot" row at the top, and the plugin rows are for the addons folder (editor plugins·GDExtension·script add-ons) and for .gdextension files outside addons. The Godot meaning of the statuses is in the explanation at the end of the list.
+- You can add rows to the tables below (for example, "프로젝트 모듈" (project modules), "프로젝트 파일의 대상 플랫폼" (target platforms in the project file), "입력 지문" (input fingerprint)). At the end, put `## 만든 방법과 검색 기록`, and write in it the search scope, the limits, whether a search failed, and what changed from the previous list.
 
 ```markdown
 ## 엔진
@@ -40,10 +40,10 @@
 |---|---|---|
 ```
 
-## market-competitors.md — 경쟁작 목록
+## market-competitors.md — Competitor list
 
-- 만드는 고문: market. 읽는 고문: design(선례를 고를 때 먼저 본다).
-- design 이 이 목록 밖의 게임을 선례로 쓸 때는 리포트에 "선례 전용"이라고 표시한다.
+- Made by: market. Read by: design (looks at it first when choosing precedents).
+- When design uses a game outside this list as a precedent, mark it "선례 전용" in the report.
 
 ```markdown
 | ID | 게임 | 식별자 | 묶음 | 플랫폼 | 출시일 | 수익 모델 | 선정 근거 | 마지막 확인일 |
@@ -51,20 +51,20 @@
 | MC-001 | ... | steam:<앱 ID> | 직접 경쟁 | ... | ... | ... | ... | ... |
 ```
 
-식별자는 다시 조회할 때 쓰는 값이다. Steam 게임은 `steam:<앱 ID>`, 그 밖에는 스토어 페이지 URL 을 쓴다. 없으면 "없음".
+The identifier (식별자) is the value used to look the game up again. For a Steam game, use `steam:<앱 ID>`; for other games, use the store page URL. If there is none, write "없음".
 
-묶음은 다섯 가지 중 하나: 직접 경쟁 / 기준작(장르를 대표하는 성공작) / 부진 사례 / 이용자 시간 경쟁(과금은 달라도 같은 이용자의 시간을 쓰는 게임) / 선례 전용
+The group (묶음) is one of five: 직접 경쟁 (direct competitor) / 기준작(장르를 대표하는 성공작) (benchmark title: a successful title that represents the genre) / 부진 사례 (underperforming case) / 이용자 시간 경쟁(과금은 달라도 같은 이용자의 시간을 쓰는 게임) (competitor for player time: a game that uses the same players' time even if its monetization differs) / 선례 전용 (precedent only)
 
-## source-checks.md — 바깥 사실과 출처 확인 기록
+## source-checks.md — External facts and source check log
 
-- 쓰는 고문: radar, market, td(td/reference/evidence.md §4 의 W2~W4 조건으로 찾은 바깥 사실, "1차 없음(찾지 못함)" 행, 그때 연 출처의 접근 결과. evidence.md §8). 읽는 고문: 모두.
-- 재사용 조건은 rules.md §3 에 있다.
-- 한 행에는 출처 하나만 적는다. 출처끼리 말이 다르면 행을 나누고 값 칸에 "SC-xxx 와 어긋남"을 적는다.
-- 발표 단계·지원 플랫폼을 정하는 사실은 값 칸에 원문 문장을 따옴표로 옮기고 해당 버전과 범위를 좁히는 문구를 함께 적는다. 원문에 범위 한정이 없으면 "범위 한정 없음"이라고 적는다.
-- 출처 종류는 1차 / 2차 / 3차 / 1차 없음(찾지 못함) 가운데 하나다. "1차 없음(찾지 못함)"은 1차 출처를 찾아봤지만 없었다는 기록이고, 값 칸에 찾아본 곳을 적는다.
-- 여러 고문이 같이 쓰므로 행마다 "쓴 고문" 칸을 채운다. 다른 고문이 넣은 행은 지우지 않는다. 다시 확인했으면 값·출처 URL·출처 종류·확인일·다시 확인할 날짜를 갱신해도 된다. 이때 "쓴 고문"만 처음 넣은 고문 그대로 둔다.
-- 머리의 `다음 점검:` 은 두 표의 모든 행 가운데 가장 이른 "다시 확인할 날짜"로 정한다. 어느 고문이 쓰든 같은 규칙이다.
-- 지침 본문에 날짜가 붙은 바깥 사실(최신 엔진 버전, 행사 일정, 기능의 성숙도 등)을 박지 않는다. 그런 사실은 이 파일에 확인일과 함께 두고, 다시 확인할 날짜가 지나면 새로 확인한다.
+- Written by: radar, market, td (external facts found under the W2~W4 conditions of td/reference/evidence.md §4, "1차 없음(찾지 못함)" rows, and the access results of the sources opened at that time; evidence.md §8). Read by: all advisors.
+- The reuse conditions are in rules.md §3.
+- Write only one source in one row. If sources say different things, split them into separate rows and write "SC-xxx 와 어긋남" in the value column (값).
+- For a fact that decides an announcement stage·supported platforms, copy the original sentence into the value column in quotation marks, and write with it the wording that narrows the version and the scope it applies to. If the original has no scope limit, write "범위 한정 없음".
+- The source kind (출처 종류) is one of 1차 / 2차 / 3차 / 1차 없음(찾지 못함) (primary / secondary / tertiary / no primary source (not found)). "1차 없음(찾지 못함)" is a record that you looked for a primary source but there was none; write the places you looked in the value column.
+- Several advisors write this file together, so fill in the "쓴 고문" (written by) column in every row. Do not delete rows that another advisor added. If you checked a row again, you can update the value, the source URL, the source kind, the check date, and the recheck date. In this case, only the "쓴 고문" column stays unchanged: keep the advisor that first added the row.
+- Set the `다음 점검:` at the top to the earliest "다시 확인할 날짜" (recheck date) among all rows of the two tables. This is the same rule whichever advisor writes the file.
+- Do not hard-code external facts that have dates (the latest engine version, event schedules, the maturity of features, and so on) in the instruction text. Keep such facts in this file with the check date, and check them again when the recheck date has passed.
 
 ```markdown
 ## 바깥 사실
@@ -80,12 +80,12 @@
 결과의 "도구가 막음"은 사이트가 아니라 Claude Code 의 웹 도구가 그 주소를 열지 않는 경우다("unable to fetch", "not accessible" 같은 오류). 이 경우 다른 방법으로 돌아가지 않고 "사람이 내보내 줘야 함"으로 분류한다.
 ```
 
-## td-engine-mods.md — 엔진 수정 블록 묶음 분류
+## td-engine-mods.md — Classification of engine modification block groups
 
-- 만드는 고문: td(구조 점검 '엔진 수정' 범위). 읽는 고문: radar(엔진 버전 점검표 4번 항목).
-- 머리의 다음 점검은 조건 문장이다: `다음 점검: 조건 — 엔진 버전을 올리기로 했거나 블록 수가 바뀌었을 때`. 날짜 알림을 하지 않는다.
-- 블록 수는 기준 리비전과 센 날짜와 함께 적는다. radar-inventory 의 블록 수와 다르면 두 값을 센 날짜와 함께 모두 적고, 늦게 센 쪽을 쓴다. 기술 목록은 엔진 소스가 바뀌어도 다시 만들지 않을 수 있기 때문이다(기술 목록의 다시 만드는 조건에 엔진 소스는 없다).
-- 묶음 이름과 수정 사유는 프로젝트 내부 정보다. 어느 고문도 검색어에 넣지 않는다.
+- Made by: td (the '엔진 수정' (engine modification) scope of the structure audit). Read by: radar (item 4 of the engine version checklist).
+- The next check at the top is a condition sentence: `다음 점검: 조건 — 엔진 버전을 올리기로 했거나 블록 수가 바뀌었을 때`. It does not give date notices.
+- Write the block count with the base revision and the date it was counted. If it differs from the block count in radar-inventory, write both values with the dates they were counted, and use the one counted later. This is because the technology list may not be made again even when the engine source changes (the engine source is not in the conditions for making the technology list again).
+- Group names and modification reasons are internal project information. No advisor puts them in search queries.
 
 ```markdown
 | ID | 묶음(주제 태그 또는 파일) | 엔진 영역(블록 수) | 폴더 | 블록 수 | 파일 수 | 줄 수 합 | 분류 | 근거 | 머지 위험 근거 | 기준 리비전 | 마지막 확인일 |
@@ -93,15 +93,15 @@
 | TD-E-001 | [<태그>] | 런타임 3, 에디터 1 | <엔진 폴더 기준 경로> | 4 | 2 | 21 | 엔진 개발사가 고쳤는지 확인 필요 | <경로:줄> | 파일당 블록 2, 순정 엔진 쪽 변경 3회 | <CL> | YYYY-MM-DD |
 ```
 
-엔진 영역은 런타임 / 에디터 / 도구 프로그램 / 플러그인(그 모듈 종류) / 셰이더 / 그 밖(경로) 가운데 하나다. 묶음이 둘 이상의 영역에 걸치면 영역별 블록 수를 함께 적는다. 분류는 다섯 가운데 하나: 엔진 밖으로 옮길 후보(게임 코드·도구·설정으로 옮길 수 있음) / 엔진 버전을 올리면 지울 수 있음(수정 버전과 근거) / 엔진 개발사가 고쳤는지 확인 필요 / 유지 필요 / 모름. 머지 위험 근거에는 셀 수 있는 것(파일당 블록 수, 줄 수 합, 순정 엔진 쪽 변경 횟수)만 적는다. 수정자 ID 는 적지 않는다.
+The engine area (엔진 영역) is one of 런타임 / 에디터 / 도구 프로그램 / 플러그인(그 모듈 종류) / 셰이더 / 그 밖(경로) (runtime / editor / tool program / plugin (its module kind) / shader / other (path)). If a group spans two or more areas, write the block count of each area together. The classification (분류) is one of five: 엔진 밖으로 옮길 후보(게임 코드·도구·설정으로 옮길 수 있음) (candidate to move out of the engine: it can move to game code·tools·settings) / 엔진 버전을 올리면 지울 수 있음(수정 버전과 근거) (can be removed after an engine upgrade: the fixed version and the evidence) / 엔진 개발사가 고쳤는지 확인 필요 (check needed whether the engine developer fixed it) / 유지 필요 (must be kept) / 모름 (unknown). In the merge risk evidence (머지 위험 근거), write only things that can be counted (blocks per file, total line count, number of changes on the stock engine side). Do not write modifier IDs.
 
-## feedback.md — 결과 표시 기록
+## feedback.md — Result feedback log
 
-사용자가 리포트 항목에 붙인 표시를 모은다. 고문은 다음 실행에서 자기 앞 행을 읽고 같은 잘못을 피한다(start.md 0-F). 고문이 플러그인 파일을 고치지는 않는다. 고칠 곳을 제안하는 데까지만 한다(rules.md §13).
+This file collects the marks that the user put on report items. In the next run, each advisor reads the rows for itself and avoids the same mistake (start.md 0-F). Advisors do not change plugin files. They only go as far as proposing a place to fix (rules.md §13).
 
-- 쓰는 쪽: 사용자(파일을 직접 고쳐도 된다), 그리고 대화 실행의 모든 고문(start.md "결과 표시 받기"). 무인 실행에서는 어느 고문도 쓰지 않는다. 읽는 쪽: 모든 고문. 각 고문은 고문 칸이 자기인 행만 읽는다.
-- 머리의 `다음 점검:` 은 조건 문장이다: `다음 점검: 조건 — 반영 전 행이 있을 때 그 행의 고문 실행 시작 시`. 날짜 알림을 하지 않는다. 파일 이름이 고문 이름으로 시작하지 않아 세션 시작 알림 대상도 아니다. 머리의 `작성:` 칸에는 마지막으로 쓴 쪽(고문 이름 또는 "사용자")을 적는다.
-- 행은 지우지 않는다. 상태만 바꾼다.
+- Writers: the user (who can edit the file directly), and every advisor in a conversation run (start.md "Receive result feedback"). In an unattended run, no advisor writes it. Readers: all advisors. Each advisor reads only the rows whose advisor column (고문) is itself.
+- The `다음 점검:` at the top is a condition sentence: `다음 점검: 조건 — 반영 전 행이 있을 때 그 행의 고문 실행 시작 시`. It does not give date notices. The file name does not start with an advisor name, so it is also not a target of the session start notice. In the `작성:` field at the top, write the last writer (the advisor name or "사용자").
+- Do not delete rows. Change only the status.
 
 ```markdown
 # 결과 표시 기록
@@ -114,39 +114,39 @@
 | FB-0001 | 2026-10-15 | radar | radar/2026-10-14-single.md | 판정 표 2행 | 틀림 | 우리 코드에서 어떻게 쓸지 물었는데 커뮤니티 글부터 모았다 | 다른 고문 몫 | | 반영 전 |
 ```
 
-| 칸 | 적는 것 |
+| Column | What to write |
 |---|---|
-| ID | `FB-` 뒤에 네 자리 번호. 표의 마지막 번호 다음 번호 |
-| 날짜 | 표시한 날 YYYY-MM-DD |
-| 고문 | 그 리포트를 쓴 고문(design · radar · market · perf · pm · td). 다른 고문 몫인 일을 잘못 맡은 경우에도 그 리포트를 쓴 고문이다 |
-| 리포트 | `report_dir` 기준 리포트 경로 |
-| 항목 | 리포트 안의 위치. 제목, 표 이름과 행, 제안 ID 등. 리포트 전체에 대한 표시면 "전체" |
-| 표시 | 셋 가운데 하나. **틀림**: 사실이나 판정이 틀렸다. **일반론**: 이 프로젝트가 아니어도 어디에나 맞는 말이라 판단에 쓸 수 없다. **놓침**: 봤어야 할 자료나 위험을 보지 않았다 |
-| 설명 | 사용자가 한 말을 한 줄로. 고문이 다른 말로 바꿔 쓰지 않는다 |
-| 원인 | 다섯 가운데 하나. 아래 "원인별 고칠 곳" 표. 가리지 못했으면 "모름" |
-| 고친 곳 | 반영한 곳. 파일 경로(플러그인의 reference·스크립트·SKILL.md, 팀 기준 노트, 프로필 칸)나 커밋. 반영 전이면 비운다 |
-| 상태 | 반영 전 / 반영함 / 반영 안 함 — <이유> |
+| ID | `FB-` followed by a four-digit number. The number after the last number in the table |
+| 날짜 | The day of the mark, YYYY-MM-DD |
+| 고문 | The advisor that wrote that report (design · radar · market · perf · pm · td). Even if the advisor wrongly took work that belongs to another advisor, this is the advisor that wrote that report |
+| 리포트 | The report path relative to `report_dir` |
+| 항목 | The location in the report: a heading, a table name and row, a proposal ID, and so on. If the mark is about the whole report, "전체" |
+| 표시 | One of three. **틀림** (wrong): a fact or a judgment is wrong. **일반론** (generic): it is true anywhere, even for a project other than this one, so it cannot be used for a judgment. **놓침** (missed): the advisor did not look at material or a risk that it needed to look at |
+| 설명 | What the user said, in one line. The advisor does not rephrase it |
+| 원인 | One of five. See the "Where to fix by cause" table below. If the cause was not found, "모름" |
+| 고친 곳 | Where the fix was applied: a file path (the plugin's reference·script·SKILL.md, team reference notes, a profile field) or a commit. Leave it empty while the status is "반영 전" |
+| 상태 | 반영 전 (not applied yet) / 반영함 (applied) / 반영 안 함 — <이유> (not applied — <reason>) |
 
-- 사용자가 직접 쓸 때는 ID, 날짜, 고문, 리포트, 항목, 표시, 설명만 채워도 된다. 원인이 비면 "모름", 상태가 비면 "반영 전"으로 읽는다. 칸 수가 맞지 않는 행은 건너뛰고, 읽은 고문이 리포트의 "확인 못 한 것"에 그 행의 ID(없으면 줄 내용 앞부분)를 적는다.
-- 상태를 "반영함"이나 "반영 안 함"으로 바꾸는 것은 사람이다. 대화 실행에서 사용자가 "고쳤어(<곳>)", "반영 안 해도 돼(<이유>)"라고 말하면 고문이 그대로 옮겨 적는다. 고문이 스스로 판단해서 바꾸지 않는다. "반영함"이면 고친 곳 칸이 채워져 있어야 한다.
+- When the user writes a row directly, the user can fill in only ID, 날짜, 고문, 리포트, 항목, 표시, and 설명. Read an empty 원인 as "모름" and an empty 상태 as "반영 전". Skip a row whose column count does not match, and the advisor that read it writes the ID of that row (if there is none, the start of the line) in the report's "확인 못 한 것" (not checked) section.
+- A person changes the status to "반영함" or "반영 안 함". In a conversation run, if the user says "고쳤어(<곳>)" or "반영 안 해도 돼(<이유>)", the advisor writes it down as it is. The advisor does not change the status by its own judgment. If the status is "반영함", the 고친 곳 column must be filled.
 
-### 원인별 고칠 곳
+### Where to fix by cause
 
-고문은 이 표로 고칠 곳 후보를 제안만 한다. 플러그인 파일은 사람이 고치고, 팀 기준 노트는 팀이 쓴다.
+Advisors only use this table to propose candidate places to fix. People change plugin files, and the team writes team reference notes.
 
-| 원인 | 뜻 | 고칠 곳 후보 |
+| Cause | Meaning | Candidate places to fix |
 |---|---|---|
-| 근거를 못 읽음 | 판정에 필요한 자료가 있었는데 읽지 않았거나 읽지 못했다(프로필에 경로가 없음, 읽기 명령이 막힘, 검색 실패) | 프로필의 경로 칸(그 고문 SKILL.md 의 "필요한 프로필 값" 표), `vcs_read_commands`, 그 고문 SKILL.md 에서 자료를 읽는 단계 |
-| 판정 기준 없음 | 자료는 읽었지만 그 경우를 가르는 기준이 지침과 팀 기준 노트 어디에도 없다 | 이 프로젝트에만 맞는 기준이면 그 고문의 팀 기준 노트(프로필 `<고문>.knowledge_dir`). 어느 프로젝트에나 맞는 기준이면 그 고문의 reference 파일 |
-| 기준이 틀림 | 기준이 있었고 그대로 따랐는데 기준이 틀렸다 | 그 기준이 적힌 곳(reference 파일과 줄, 스크립트, 팀 기준 노트의 항목) |
-| 다른 고문 몫 | 이 고문이 맡지 않을 일을 맡았다 | `shared/routing.md`, 그 고문 SKILL.md 의 모드 판별과 "안 하는 일" 표 |
-| 모름 | 아직 가리지 못했다 | 정하지 않는다. 같은 질문을 시험 질문(플러그인 `evals/`)으로 만들어 다시 돌려 보자고 제안한다 |
+| 근거를 못 읽음 (evidence not read) | Material needed for the judgment existed, but the advisor did not read it or could not read it (no path in the profile, a read command was blocked, a search failed) | The path fields of the profile (the "Required profile values" table of that advisor's SKILL.md), `vcs_read_commands`, the step in that advisor's SKILL.md that reads the material |
+| 판정 기준 없음 (no judgment criterion) | The advisor read the material, but neither the instructions nor the team reference notes have a criterion that decides that case | If the criterion fits only this project, the team reference notes of that advisor (profile `<고문>.knowledge_dir`). If the criterion fits any project, the reference files of that advisor |
+| 기준이 틀림 (wrong criterion) | A criterion existed and the advisor followed it, but the criterion was wrong | The place where that criterion is written (the reference file and line, the script, the item in the team reference notes) |
+| 다른 고문 몫 (another advisor's work) | This advisor took work that it must not take | `shared/routing.md`, the mode selection and the "what it does not do" table of that advisor's SKILL.md |
+| 모름 (unknown) | The cause is not found yet | Do not decide one. Propose to make the same question into a test question (plugin `evals/`) and run it again |
 
-"반영함"이 된 행은 그 잘못을 다시 하지 않는지 확인할 시험 질문으로 옮기자고 제안한다(플러그인 `evals/`, README 의 '시험 질문'). 옮기는 일도 사람이 한다.
+For a row that became "반영함", propose to move it into a test question that checks that the mistake does not happen again (plugin `evals/`, '시험 질문' in the README). People also do the moving.
 
-## 프로필에 올리는 값
+## Values to put in the profile
 
-여러 고문이 쓰는 값은 `_state` 가 아니라 프로필에 둔다. 예: 대상 사양(`target_spec`), 타깃 이용자(`market.target_player`), 측정 장면(`perf.scenarios`).
+Values that several advisors use go in the profile, not in `_state`. Examples: target spec (`target_spec`), target player (`market.target_player`), measurement scenes (`perf.scenarios`).
 
-- 고문이 이 값을 바꾸자고 할 때는 직접 고치지 않는다. 리포트의 "결정이 필요한 것"에 바꿀 값과 근거를 적고, 사용자가 확정하면 그때 프로필에 쓴다.
-- 하드웨어 보급 분포는 market 만 조회한다. radar 와 perf 는 프로필의 `target_spec` 만 읽는다.
+- When an advisor wants to change one of these values, it does not change it directly. It writes the value to change and the evidence in the report's "결정이 필요한 것" (decisions needed) section, and writes the value in the profile only when the user confirms it.
+- Only market looks up the hardware adoption distribution. radar and perf read only the profile's `target_spec`.

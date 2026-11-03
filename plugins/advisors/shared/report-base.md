@@ -1,45 +1,47 @@
-# 리포트 공통 양식
+# Common report format
 
-모든 고문 리포트는 아래 머리와 항목 순서를 따른다. 고문별 본문은 "본문" 자리에 각 스킬의 양식을 넣는다.
+Every advisor report follows the header and the section order below. In the "Body" (본문) place, put the body format of each skill.
+
+A report uses the English names and fixed values below when profile `report_language` is `en` (the default), and the Korean ones in parentheses when it is `ko`.
 
 ```markdown
-# <고문 이름> <모드> — <YYYY-MM-DD>
+# <advisor name> <mode> — <YYYY-MM-DD>
 
-| 항목 | 값 |
+| Item (항목) | Value (값) |
 |---|---|
-| 작성일 | YYYY-MM-DD (시스템 날짜) |
-| 실행 방식 | 대화 / 무인 |
-| 기준 리비전 | P4 CL 번호 또는 git 커밋 앞 12자. 확인 못 했으면 "확인 못 함" |
-| 프로필 갱신일 | profile.md 의 updated 값 |
-| 직전 리포트 | 같은 모드의 가장 최근 리포트 경로. 없으면 "없음" |
-| 기준 리포트 | (선택) 비교의 기준으로 삼는 리포트. 예: 변화 점검이 기준으로 삼는 전면 평가. 없으면 줄을 지운다 |
-| 범위 | 이번에 본 것. 읽은 팀 기준 노트(경로)와 결과 표시 행 ID 도 적는다(start.md 0-F) |
+| Written (작성일) | YYYY-MM-DD (system date) |
+| Run mode (실행 방식) | conversation (대화) / unattended (무인) |
+| Base revision (기준 리비전) | P4 CL number, or the first 12 characters of the git commit. If it could not be checked, "not checked" (확인 못 함) |
+| Profile updated (프로필 갱신일) | the updated value of profile.md |
+| Previous report (직전 리포트) | path of the most recent report of the same mode. If there is none, "none" (없음) |
+| Baseline report (기준 리포트) | (optional) the report that is the baseline for the comparison. Example: the full review that a change check uses as its baseline. If there is none, delete the row |
+| Scope (범위) | what this run looked at. Also write the team reference notes that were read (paths) and the result feedback row IDs (start.md 0-F) |
 
-## 요약
-세 줄 이내. 결론과 가장 중요한 근거만.
+## Summary (요약)
+At most three lines. Only the conclusion and the most important evidence.
 
-## 결정이 필요한 것
-사람이 정해야 하는 것만. 항목마다 결정권자(프로필 decision_owners)를 적는다. 없으면 "없음".
+## Decisions needed (결정이 필요한 것)
+Only what a person must decide. For each item, write the decision owner (profile decision_owners). If there is nothing, "none" (없음).
 
-## 본문
-<고문별 양식>
+## Body (본문)
+<format of each advisor>
 
-## 지난 리포트와 달라진 것
-직전 리포트가 있을 때만. 새로 생긴 것 / 사라진 것 / 등급이 바뀐 것.
+## Changes since the previous report (지난 리포트와 달라진 것)
+Only when there is a previous report. New items / items that are gone / items whose grade changed.
 
-## 확인 못 한 것
-읽지 못한 자료, 실패한 검색, 비어 있는 프로필 값. 각각 무엇이 있으면 확인할 수 있는지.
+## Not checked (확인 못 한 것)
+Material that could not be read, failed searches, empty profile values. For each one, what would make it possible to check.
 
-## 다른 고문에게 넘긴 질문
-_state/inbox.md 에 올린 질문의 ID 목록.
+## Questions passed to other advisors (다른 고문에게 넘긴 질문)
+The list of IDs of the questions posted to _state/inbox.md.
 
-## 다음 점검 조건
-날짜 또는 조건. _state 파일의 "다음 점검:" 줄과 같은 값.
+## Next check condition (다음 점검 조건)
+A date or a condition. It must be the same value as the `다음 점검:` line of the _state file. That line itself stays literally `다음 점검:` in every report language.
 ```
 
-## 근거 표기 예
+## Evidence notation examples
 
-- 파일: `Docs/Combat/dodge.md:42` — 경로와 줄 번호
-- 웹: `<제목> (<URL>, 발행 YYYY-MM-DD, 조회 YYYY-MM-DD)` — 발행일을 못 찾았으면 "발행일 미상"
-- 측정: `<파일 경로> — <시나리오 ID>, <빌드 구성>, <측정 횟수>`
-- 계산: 식, 입력 파일·행, 실행한 명령
+- File: `Docs/Combat/dodge.md:42` — path and line number
+- Web: `<title> (<URL>, 발행 YYYY-MM-DD, 조회 YYYY-MM-DD)` — 발행 is the publish date and 조회 is the access date. If the publish date was not found, "발행일 미상"
+- Measurement: `<file path> — <scenario ID>, <build configuration>, <measurement count>`
+- Calculation: the formula, the input file and rows, the command that was run

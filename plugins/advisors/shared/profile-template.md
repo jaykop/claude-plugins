@@ -1,134 +1,135 @@
 ---
-# advisors 프로필 — 프로젝트마다 하나. 위치: <프로젝트 루트>/.claude/advisors/profile.md
-# 값 옆 주석에 출처를 적는다: [사용자] 사용자가 확정 / [파일] 프로젝트 파일에서 읽음 / [추정] 고문이 추정, 확인 필요
-# 고문마다 knowledge_dir 칸이 있다: 그 고문이 판정 기준으로 먼저 따를 팀 기준 노트 폴더. 비공개 자료여도 된다. index.md 부터 읽는다
+# advisors profile — one per project. Location: <project root>/.claude/advisors/profile.md
+# In the comment next to a value, write its source tag: [사용자] confirmed by the user / [파일] read from a project file / [추정] estimated by the advisor, needs confirmation
+# Each advisor has a knowledge_dir key: the team reference notes folder that the advisor follows first as its decision criteria. It can hold private material. Read index.md first
 profile_version: 1
 updated:                      # YYYY-MM-DD
 
-# ── 공통 ─────────────────────────────────────────────
+# ── Common ───────────────────────────────────────────
 project_name:
-genre:                        # 예: 3인칭 액션, 협동 슈터
-play_mode:                    # 싱글 / 협동 / 대전 / 혼합
-ip_based:                     # false, 또는 원작 이름
-platforms: []                 # 1순위부터. 예: [PC-Steam, PS5]
-target_spec:                  # 최저 사양과 권장 사양
-regions: []                   # 출시 지역. 1순위부터
-business_model:               # 패키지 / 부분 유료 / 구독 / 미정
-release_window:               # 예: 2027 하반기, 미정
-dev_stage:                    # 프리프로덕션 / 본 제작 / 알파 / 베타 / 라이브
-next_milestone:               # 이름과 날짜. 예: 알파 2027-03-31 (날짜는 YYYY-MM-DD)
-team_size:                    # 개발 인원과 출처. 예: 약 40명 [사용자]. 기술 동향 고문이 '비슷한 규모의 출시 사례'를 가릴 때 쓴다
-feature_cutoff:               # 기능 추가 마감일 YYYY-MM-DD. 지났으면 기획 고문이 큰 추가 제안을 '다음 단계 후보'로 돌린다
+genre:                        # e.g. third-person action, co-op shooter
+play_mode:                    # 싱글 / 협동 / 대전 / 혼합 (= single / co-op / versus / mixed)
+ip_based:                     # false, or the name of the original work
+platforms: []                 # Highest priority first. e.g. [PC-Steam, PS5]
+target_spec:                  # Minimum spec and recommended spec
+regions: []                   # Release regions. Highest priority first
+business_model:               # 패키지 / 부분 유료 / 구독 / 미정 (= premium / free-to-play with paid items / subscription / undecided)
+release_window:               # e.g. 2027 H2, 미정 (= undecided)
+dev_stage:                    # 프리프로덕션 / 본 제작 / 알파 / 베타 / 라이브 (= preproduction / production / alpha / beta / live)
+next_milestone:               # Name and date. e.g. 알파 2027-03-31 (date in YYYY-MM-DD)
+team_size:                    # Number of developers and its source. e.g. about 40 people [사용자]. The technology trend advisor uses it to pick '비슷한 규모의 출시 사례' (shipped cases of similar scale)
+feature_cutoff:               # Feature addition deadline YYYY-MM-DD. If it has passed, the design advisor moves large addition proposals to '다음 단계 후보' (next-stage candidates)
+report_language: en           # en / ko. Language of the report body. The conversation with the user uses the conversation language. Lines that scripts read, such as 다음 점검:, stay unchanged
 
 engine:
-  kind:                       # unreal / godot. 고문 문서는 언리얼 기준이고, godot 이면 shared/engine-godot.md 대로 바꿔 읽는다
-  name:                       # 예: Unreal Engine, Godot Engine
-  version:                    # 예: 5.6.1, 4.3.0
-  source_build:               # true 면 소스 빌드(커스텀 엔진)
-  run_wrapper:                # Godot 만: Godot 를 띄우는 프로젝트 명령의 앞부분(잠금·출력 받기 래퍼나 콘솔판 실행 파일). 고문이 측정 계획·테스트 명세에 Godot 명령을 적을 때 앞에 붙인다. 예: 'python tools/godot_run.py --timeout=300 --'
-  root:                       # 엔진 폴더 경로. 언리얼은 소스 빌드가 아니어도(런처 설치본) 적는다. 콘솔 명령·설정 이름이 실제로 있는지 엔진 소스에서 확인할 때 쓴다. Godot 은 커스텀 빌드일 때만 엔진 소스 폴더(version.py 가 있는 곳)
+  kind:                       # unreal / godot. Advisor documents are written for Unreal. If godot, read them remapped as in shared/engine-godot.md
+  name:                       # e.g. Unreal Engine, Godot Engine
+  version:                    # e.g. 5.6.1, 4.3.0
+  source_build:               # true means a source build (custom engine)
+  run_wrapper:                # Godot only: the leading part of the project command that launches Godot (a locking and output-capturing wrapper, or the console executable). When the advisor writes a Godot command in a measurement plan or a test spec, it puts this in front. e.g. 'python tools/godot_run.py --timeout=300 --'
+  root:                       # Engine folder path. For Unreal, fill it even if it is not a source build (launcher install). Used to check in the engine source that console command and setting names really exist. For Godot, only for a custom build: the engine source folder (where version.py is)
 
-source_roots: []              # 게임 코드 폴더 (design · radar · perf · td 공용). `Plugins/*/Source` 같은 패턴을 쓸 수 있다. Godot 은 비우면 project.godot 가 있는 폴더 전체다. 그 폴더가 하위 폴더(예: game/)면 바깥 코드는 범위 밖이므로, 같이 볼 때는 프로젝트 폴더와 바깥 폴더를 모두 적는다
-project_file:                 # 프로젝트 파일. 예: Game/MyGame.uproject, project.godot
+source_roots: []              # Game code folders (shared by design · radar · perf · td). Patterns such as `Plugins/*/Source` are allowed. For Godot, empty means the whole folder that contains project.godot. If that folder is a subfolder (e.g. game/), code outside it is out of scope, so to include that code, list both the project folder and the outside folders
+project_file:                 # Project file. e.g. Game/MyGame.uproject, project.godot
 
-vcs: git                      # git / p4 / 기타
-vcs_read_commands: []         # 고문이 써도 되는 읽기 명령. 예: [git log, git show] 또는 [p4 filelog, p4 changes, p4 describe, p4 fstat]
+vcs: git                      # git / p4 / 기타 (= other)
+vcs_read_commands: []         # Read commands the advisor can use. e.g. [git log, git show] or [p4 filelog, p4 changes, p4 describe, p4 fstat]
 
-decision_owners:              # 영역별 결정권자. 사용자가 아니면 제안을 '참고 선택지'로 낮춘다
+decision_owners:              # Decision owner per area. If it is not the user, downgrade proposals to '참고 선택지' (reference options)
   design:
-  business:                   # 출시 시점, 지역, 가격, 수익 모델
-  tech:                       # 엔진 버전 올리기, 기술 도입(radar), 코드 구조·설계 선택(td)
-  schedule:                   # 마일스톤 범위, 작업 순서, 일정 (PM 고문)
-user_role:                    # 이 프로필을 쓰는 사람의 역할. 예: 클라이언트 프로그래머
+  business:                   # Release timing, regions, price, business model
+  tech:                       # Engine version upgrades, technology adoption (radar), code structure and design choices (td)
+  schedule:                   # Milestone scope, task order, schedule (PM advisor)
+user_role:                    # Role of the person who uses this profile. e.g. client programmer
 
-report_dir: .claude/advisors/reports   # 프로젝트 루트 기준 상대 경로 또는 절대 경로
+report_dir: .claude/advisors/reports   # Path relative to the project root, or an absolute path
 share_scope: personal         # personal / team
-stale_after_days: 90          # 다른 고문 리포트를 인용할 때 이보다 오래되면 '오래된 리포트'로 표시
-code_change_entry:            # 코드 수정을 맡길 스킬 이름. 없으면 비움
-search_banned_terms: []       # 검색어에 넣으면 안 되는 말. 내부 코드 이름, 미발표 기능 이름 등
-search_banned_combos: []      # 함께 넣으면 미발표 정보가 되는 조합. 예: ["<IP 이름> + 협동"]
+stale_after_days: 90          # When you cite another advisor's report older than this, mark it as '오래된 리포트' (stale report)
+code_change_entry:            # Name of the skill to hand code changes to. Leave empty if there is none
+search_banned_terms: []       # Words that must not go into search queries. Internal code names, names of unannounced features, and so on
+search_banned_combos: []      # Combinations that reveal unannounced information when used together. e.g. ["<IP 이름> + 협동"]
 
-# ── 기획 고문 ─────────────────────────────────────────
+# ── Design advisor ───────────────────────────────────
 design:
-  roots: []                   # 현재 기획서 폴더
-  exclude: []                 # 참고 자료라서 현재 기획으로 보지 않을 폴더
-  summaries:                  # 영역 요약 문서의 경로 패턴. 없으면 비움
-  principles:                 # 최상위 원칙 / 필러 / 필러 우선순위 / 금지 원칙이 적힌 문서와 위치
-  principles_status:          # 확정 / 가안
-  playtest_records: []        # 플레이테스트 기록 폴더
-  data_paths: []              # 밸런스 데이터 파일
-  data_status:                # 확정 / 임시값 (임시값이면 수치 계산 대신 규칙만 보고 판단)
-  principles_confirmed:       # 원칙을 마지막으로 확인한 날짜와 기준 리비전. 형식: "YYYY-MM-DD, 기준 리비전 <값>"
-  archive_dirs: []            # 채택되지 않은 안을 보관하는 폴더. 근거로 쓰지 않고, 이미 기각된 안인지 확인할 때만 읽는다
-  deprecated_marker: []       # 폐기된 문서에 붙는 표시. 여러 개면 목록으로. 예: ["[폐기]", "DEPRECATED"]
-  glossary:                   # 용어집 문서 위치
-  area_file_patterns: {}      # 기획서가 영역별 폴더로 나뉘지 않았을 때 영역별 파일 이름 패턴. 예: {전투: "combat_*.md"}
-  existing_tools: []          # 이미 쓰는 기획 도구. 항목 형식 "<역할>: <도구 이름> — <산출물 위치>"
-                              # 역할은 넷 중 하나: 문서 리뷰 / 관찰 포인트 게시 / 피드백 정리 / 수치 분석
-  knowledge_dir:              # 기획 판단 기준 노트 폴더(팀이 정한 심사 기준, 지난 판정에서 배운 것). 원칙(필러)은 principles 에 둔다. 읽는 규칙은 shared/rules.md §13
+  roots: []                   # Folders of the current design documents
+  exclude: []                 # Folders that are reference material, so they do not count as the current design
+  summaries:                  # Path pattern of area summary documents. Leave empty if there are none
+  principles:                 # Document and location where the top principles / pillars / pillar priority / prohibition principles are written
+  principles_status:          # 확정 / 가안 (= confirmed / draft)
+  playtest_records: []        # Playtest record folders
+  data_paths: []              # Balance data files
+  data_status:                # 확정 / 임시값 (= confirmed / placeholder values). If 임시값, judge by rules only instead of numeric calculation
+  principles_confirmed:       # Date and base revision when the principles were last confirmed. Format: "YYYY-MM-DD, 기준 리비전 <값>"
+  archive_dirs: []            # Folders that keep proposals that were not adopted. Do not use them as evidence. Read them only to check whether a proposal was already rejected
+  deprecated_marker: []       # Marker on deprecated documents. If there are several, use a list. e.g. ["[폐기]", "DEPRECATED"]
+  glossary:                   # Location of the glossary document
+  area_file_patterns: {}      # File name patterns per area, when the design documents are not split into folders per area. e.g. {전투: "combat_*.md"}
+  existing_tools: []          # Design tools already in use. Item format "<role>: <tool name> — <output location>"
+                              # The role is one of four: 문서 리뷰 / 관찰 포인트 게시 / 피드백 정리 / 수치 분석 (= document review / posting observation points / organizing feedback / numeric analysis)
+  knowledge_dir:              # Folder of notes on design judgment criteria (review criteria the team set, lessons from past verdicts). Put principles (pillars) in principles. Reading rules: shared/rules.md §13
 
-# ── 기술 동향 고문 ─────────────────────────────────────
+# ── Technology trend advisor ─────────────────────────
 radar:
-  engine_mod_marker:          # 엔진 수정 블록의 시작 줄 표시. 기본은 정규식으로 읽는다. 시작 줄에만 걸려야 한다(끝 줄에도 걸리면 블록 수가 두 배가 된다). 예: '// MYGAME_BEGIN'
-  engine_mod_end_marker:      # 엔진 수정 블록의 끝 줄 표시. td 가 블록 목록을 낼 때 쓴다. 예: '// MYGAME_END'
-  engine_mod_tag_re:          # 시작 표시 뒤 글에서 주제 태그를 뽑는 정규식. 캡처 그룹(괄호로 묶은 부분)이 하나 있어야 한다. 비면 대괄호 안 글을 쓴다. 예: '\[([^\]]+)\]'
-  engine_mod_dirs: []         # 엔진 수정 블록을 셀 폴더. 상대 경로는 engine.root 기준. 엔진 전체를 검색하지 않도록 좁힌다
-  interests: []               # 특히 볼 분야
-  excluded: []                # 보지 않을 분야
-  ai_tool_policy:             # 회사의 AI 도구 정책 확인 여부. 미확인 / 허용 / 제한
-  community_sources:          # 소식을 찾는 커뮤니티 채널. 판정 근거가 아니라 '무엇이 화제인지' 찾는 곳이다
-    auto: [qiita, geeknews, tencent-gameinstitute]   # 자동으로 읽는 곳. 채널 이름은 skills/radar/reference/sources.md 의 '커뮤니티 채널' 항목
-    manual: [reddit, zhihu]   # 자동 조회가 막힌 곳. 사용자가 글을 붙여 넣거나 파일로 넘겨 줄 때만 읽는다
-  knowledge_dir:              # 기술 도입 판단 기준 노트 폴더(사내 도입 절차, 피하는 기술 종류 등). 읽는 규칙은 shared/rules.md §13
+  engine_mod_marker:          # Marker of the start line of an engine modification block. By default it is read as a regular expression. It must match only the start line (if it also matches the end line, the block count doubles). e.g. '// MYGAME_BEGIN'
+  engine_mod_end_marker:      # Marker of the end line of an engine modification block. td uses it when it lists the blocks. e.g. '// MYGAME_END'
+  engine_mod_tag_re:          # Regular expression that extracts a topic tag from the text after the start marker. It must have one capture group (the part in parentheses). If empty, the text inside square brackets is used. e.g. '\[([^\]]+)\]'
+  engine_mod_dirs: []         # Folders in which to count engine modification blocks. Relative paths are relative to engine.root. Narrow them so that the whole engine is not searched
+  interests: []               # Areas to watch closely
+  excluded: []                # Areas not to watch
+  ai_tool_policy:             # Whether the company's AI tool policy has been checked. 미확인 / 허용 / 제한 (= unchecked / allowed / restricted)
+  community_sources:          # Community channels for finding news. They are for finding 'what people are talking about', not evidence for verdicts
+    auto: [qiita, geeknews, tencent-gameinstitute]   # Channels read automatically. Channel names are in the '커뮤니티 채널' section of skills/radar/reference/sources.md
+    manual: [reddit, zhihu]   # Channels where automatic access is blocked. Read them only when the user pastes posts or hands them over as files
+  knowledge_dir:              # Folder of notes on technology adoption criteria (internal adoption process, kinds of technology to avoid, and so on). Reading rules: shared/rules.md §13
 
-# ── 시장 동향 고문 ─────────────────────────────────────
+# ── Market advisor ───────────────────────────────────
 market:
-  competitors_seed: []        # 사용자가 지정한 비교 게임
-  target_player:              # 팀이 정한 타깃 이용자 (결정. 시장 고문은 이것과 확인된 이용자층의 차이를 본다)
-  paid_data_files: []         # 사용자가 넣어 준 유료 데이터 파일
-  price_band:                 # 예상 가격대와 통화. 예: 39.99~49.99 USD
-  check_interval: quarterly   # 변화 점검 주기. source-checks.md 에서 market 이 넣은 행의 '다시 확인할 날짜' 기본값으로도 쓴다
-  knowledge_dir:              # 시장 판단 기준 노트 폴더(사내 지표 해석 기준, 지역별 사정 등). 읽는 규칙은 shared/rules.md §13
+  competitors_seed: []        # Comparison games that the user named
+  target_player:              # Target players that the team set (a decision. The market advisor looks at the gap between this and the confirmed player base)
+  paid_data_files: []         # Paid data files that the user provided
+  price_band:                 # Expected price band and currency. e.g. 39.99~49.99 USD
+  check_interval: quarterly   # Change check interval. Also used as the default '다시 확인할 날짜' (recheck date) of rows that market adds to source-checks.md
+  knowledge_dir:              # Folder of notes on market judgment criteria (internal rules for reading metrics, regional conditions, and so on). Reading rules: shared/rules.md §13
 
-# ── 최적화 고문 ───────────────────────────────────────
+# ── Optimization advisor ─────────────────────────────
 perf:
-  budgets: {}                 # 플랫폼별 목표. 예: {PC-min: {fps: 60, frame_ms: 16.6, memory_gb: 8}}. 처리 시간이 예산인 게임은 {PC: {day_ms: 300, match_ms: 30}} 처럼 쓴다
-  scenarios: []               # 대표 측정 장면. 예: [{id: S01, map: ..., 설명: 적 20명 전투}]
-  profiling_dir:              # 측정 파일(.utrace, .csv)을 두는 폴더. 상대 경로면 프로젝트 루트 기준. Godot 은 측정용 스크립트가 CSV 를 남기는 폴더
-  measured_by:                # 측정 주체. 사용자 / 빌드 머신 / 에디터 자동화
-  test_command:               # 자동화 테스트 실행 명령
-  test_convention:            # 기존 테스트의 위치·이름 규칙
+  budgets: {}                 # Targets per platform. e.g. {PC-min: {fps: 60, frame_ms: 16.6, memory_gb: 8}}. For a game whose budget is processing time, write it like {PC: {day_ms: 300, match_ms: 30}}
+  scenarios: []               # Representative measurement scenes. e.g. [{id: S01, map: ..., 설명: 적 20명 전투}]
+  profiling_dir:              # Folder for measurement files (.utrace, .csv). A relative path is relative to the project root. For Godot, the folder where the measurement script saves CSV files
+  measured_by:                # Who measures. 사용자 / 빌드 머신 / 에디터 자동화 (= user / build machine / editor automation)
+  test_command:               # Command that runs the automated tests
+  test_convention:            # Location and naming rules of the existing tests
   edit_scope: tests_only      # tests_only / source
-  knowledge_dir:              # 성능 판단 기준 노트 폴더(팀의 측정 절차, 플랫폼별 주의점 등). 읽는 규칙은 shared/rules.md §13
+  knowledge_dir:              # Folder of notes on performance judgment criteria (the team's measurement procedure, cautions per platform, and so on). Reading rules: shared/rules.md §13
 
-# ── PM 고문 ───────────────────────────────────────────
+# ── PM advisor ───────────────────────────────────────
 pm:
-  knowledge_dir:              # 일정·위험·회고 기준 노트 폴더(비공개 자료여도 된다). 읽는 규칙은 shared/rules.md §13
+  knowledge_dir:              # Folder of notes on schedule, risk, and retrospective criteria (it can hold private material). Reading rules: shared/rules.md §13
   tracker:                    # github / none
   tracker_repo:               # owner/repo
-  size_hours: {}              # 규모 라벨 → 시간. 예: {"size: S": 1, "size: M": 2, "size: L": 5.5}
-  must_label:                 # 필수 작업 라벨. 예: "priority: must"
-  blocked_label:              # 대기 라벨. 예: "status: blocked"
-  progress_label:             # 진행 중 라벨
-  order_labels: []            # 프로젝트 순서 라벨, 앞일수록 먼저. 예: ["grade: A1", "grade: A2", "grade: B1"]
-  next_task_entry:            # 이슈 순서 확정·게시를 맡길 스킬. 예: workflow:next-task
-  capacity:                   # {weekday_hours: 2, holiday_hours: 4, plan_ratio: 0.7}. 개인 값이면 아래 capacity_file 을 쓴다
-  capacity_file:              # 하루 작업 시간을 적어 둔 다른 파일(버전 관리 밖). 값은 이 프로필에 옮겨 적지 않는다
-  capacity_keys: {}           # capacity_file 의 키 이름. 예: {weekday_hours: time_budget_weekday, holiday_hours: time_budget_holiday}
-  holidays: []                # 공휴일 YYYY-MM-DD 목록. 비우면 공휴일을 평일로 센다
-  must_ratio_limit: 0.6       # 필수 작업 규모가 계획 가능 시간에서 차지할 수 있는 한도
-  week_start: 월              # 주간 점검 기준 요일
+  size_hours: {}              # Size label → hours. e.g. {"size: S": 1, "size: M": 2, "size: L": 5.5}
+  must_label:                 # Label for required tasks. e.g. "priority: must"
+  blocked_label:              # Label for waiting tasks. e.g. "status: blocked"
+  progress_label:             # Label for in-progress tasks
+  order_labels: []            # Project order labels. Earlier labels come first. e.g. ["grade: A1", "grade: A2", "grade: B1"]
+  next_task_entry:            # Skill to hand issue order confirmation and posting to. e.g. workflow:next-task
+  capacity:                   # {weekday_hours: 2, holiday_hours: 4, plan_ratio: 0.7}. For personal values, use capacity_file below
+  capacity_file:              # Another file (outside version control) that holds the daily work hours. Do not copy its values into this profile
+  capacity_keys: {}           # Key names in capacity_file. e.g. {weekday_hours: time_budget_weekday, holiday_hours: time_budget_holiday}
+  holidays: []                # List of public holidays YYYY-MM-DD. If empty, public holidays count as weekdays
+  must_ratio_limit: 0.6       # Limit on the share of the plannable time that the size of required tasks can take
+  week_start: 월              # Day of the week that weekly checks start from (월 = Monday)
 
-# ── TD 고문 ─────────────────────────────────────────
+# ── TD advisor ───────────────────────────────────────
 td:
-  rule_docs: []               # 팀 기술 규칙 문서(경로나 와일드카드 패턴. 예: Docs/*.md). 근거 1순위. 예: [Dev/Client/CLAUDE.md, Docs/CodingStandard.md]
-  record_roots: []            # 설계 기록·사고 기록·백로그 폴더. 그 문서 속 원인 분석은 '출처 문서의 추정'으로 읽는다
-  extra_roots: []             # source_roots 밖에서 읽을 빌드·배포·서버·도구 폴더
-  vanilla_engine_root:        # 순정 엔진 소스 폴더(로컬). 있으면 엔진 수정 블록과 버전별 동작을 로컬에서 비교한다
-  engine_base_ref:            # 버전 관리 서버에 있는 순정 엔진 기준(p4 스트림·git 브랜치). 엔진 수정 블록이 든 파일이 순정 엔진 쪽에서 바뀐 이력을 셀 때 쓴다
-  knowledge_dir:              # 설계 판단 기준 노트 폴더(구조 선택 원칙, 엔진 수정 방침 등). 코드 작성 규칙 문서는 rule_docs 에 둔다. 읽는 규칙은 shared/rules.md §13
+  rule_docs: []               # Team technical rule documents (paths or wildcard patterns. e.g. Docs/*.md). First-priority evidence. e.g. [Dev/Client/CLAUDE.md, Docs/CodingStandard.md]
+  record_roots: []            # Folders of design records, incident records, and backlogs. Read the cause analyses in those documents as '출처 문서의 추정' (estimates of the source document)
+  extra_roots: []             # Build, deploy, server, and tool folders outside source_roots to read
+  vanilla_engine_root:        # Vanilla engine source folder (local). If set, compare engine modification blocks and per-version behavior locally
+  engine_base_ref:            # Vanilla engine baseline on the version control server (p4 stream or git branch). Used to count the change history, on the vanilla engine side, of files that contain engine modification blocks
+  knowledge_dir:              # Folder of notes on design judgment criteria (principles for structural choices, engine modification policy, and so on). Put coding rule documents in rule_docs. Reading rules: shared/rules.md §13
 ---
 
-# 프로필 메모
+# Profile notes
 
-위 값으로 다 담지 못한 사정을 적는다. 예: 데이터가 임시값인 이유, 결정권자가 둘인 영역, 검색어 주의 사항.
+Older profiles and the Korean reference files call this section "프로필 메모". Write here the circumstances that the values above cannot fully hold. Examples: why the data is provisional, areas with two decision owners, cautions about search terms.
