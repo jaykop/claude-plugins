@@ -726,7 +726,12 @@ def apply_results(data, results_path):
                     fail(problem)
                     continue
                 start, count = selected["lineHint"] - 1, new.count("\n") + 1
-                original = write_block(entry["selector"]["path"], start, selected["endLineHint"], new)
+                try:
+                    original = write_block(entry["selector"]["path"], start, selected["endLineHint"], new)
+                except OSError as error:
+                    # 읽기 전용(체크아웃하지 않은 Perforce 파일 등)이면 그 항목만 거절하고 나머지를 계속한다.
+                    fail(f"cannot write the file: {error}")
+                    continue
                 selector = reanchor(entry["selector"], start, count)
                 if selector is None:
                     project_path(entry["selector"]["path"]).write_bytes(original)
