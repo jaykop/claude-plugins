@@ -535,7 +535,7 @@ Step 0-C 의 위험 등급으로 정한다.
 
 ### 설명 변경 기록 — 구현을 마치거나 확인을 기다릴 때 먼저
 
-프로필 `description_review` 가 true 면, 사용자의 빌드·실행 확인을 기다리기 전에도 ko-review `record` 스킬의 "끝날 때" 절차(`capture` → `register` / `no-impact` → `pending` 대조)를 한다. 이 기록은 인계 절차이며 별도 코드 리뷰·테스트 실행이 아니다. 검토하는 AI 를 자동으로 부르거나 사용자 빌드·커밋을 막지 않는다.
+프로필 `description_review` 가 true 면, 사용자의 빌드·실행 확인을 기다리기 전에도 ko-review `record` 스킬의 "끝날 때" 절차(`capture` → `register` / `no-impact` → `pending` 대조)를 한다. 검토를 넘길 때는 이어서 ko-review `record` 스킬의 "검토 넘기기" 절차를 따른다. 이 기록은 인계 절차이며 별도 코드 리뷰·테스트 실행이 아니다. 검토하는 AI 를 자동으로 부르거나 사용자 빌드·커밋을 막지 않는다.
 
 공개 API·UI·설정·실행 방법이 바뀌었으면 관련 manual 을 같은 작업에서 갱신한다. 이미 요청받은 문서 반영을 후속 질문까지 미루지 않는다.
 

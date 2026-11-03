@@ -31,6 +31,7 @@ allowed-tools: Read, Glob, Write
 - 작업 ID 만 받으면 목록 폴더의 `<task>.request.md` 를 연다.
 - 대기 전체를 요청받으면 목록 폴더의 `*.request.md` 파일 이름만 찾아 차례로 처리한다.
 - 목록 파일(`*.descriptions.json`), 소스 파일, `polish` 스킬 파일과 참고 파일, `review_queue.py`, 프로젝트 지침, 버전 관리 상태는 읽지 않는다. 저장소를 훑는 검색을 하지 않는다.
+- 요청서가 없으면 목록 파일(`*.descriptions.json`)을 대신 읽지 않는다. 아무것도 고치지 않고, 작성 쪽이 `prepare` 를 실행해야 한다고 보고한 뒤 끝낸다.
 
 ## 읽기와 교정
 
@@ -42,7 +43,7 @@ allowed-tools: Read, Glob, Write
 
 ## 결과 기록
 
-요청서에 적힌 결과 파일 경로에 다음 형식으로 쓴다. 요청서의 모든 항목을 넣고, `status` 는 `reviewed` 또는 `needs-decision` 으로 쓴다. 결과 파일은 작성 쪽이 `items` 가 빈 형식으로 미리 만들어 둔다. 파일을 지우거나 새로 만들지 않고 내용만 바꾼다. Windows 의 Codex 샌드박스가 새로 만든 파일은 작성 쪽 계정이 읽지 못할 수 있다.
+요청서에 적힌 결과 파일 경로에 다음 형식으로 쓴다. 요청서의 모든 항목을 넣고, `status` 는 `reviewed` 또는 `needs-decision` 으로 쓴다. 결과 파일은 작성 쪽이 `items` 가 빈 형식으로 미리 만들어 둔다. 파일을 지우거나 새로 만들지 않고 내용만 바꾼다. Windows 의 Codex 샌드박스가 새로 만든 파일은 작성 쪽 계정이 읽지 못할 수 있다. 결과 파일을 먼저 읽은 뒤 내용을 바꾼다.
 
 `{"requestId": "<요청 ID>", "items": [{"id": "...", "status": "reviewed", "text": "...", "note": "..."}]}`
 

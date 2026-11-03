@@ -514,7 +514,9 @@ def polish_criteria(kinds):
 
 def banned_terms():
     """프로젝트 낱말 목록의 확정 금지 표현. 문맥 확인 후보는 넣지 않는다."""
-    path = project_path(profile_value(ROOT, "terms_file") or ".claude/ko-review/terms.json")
+    # 낱말 목록은 여러 프로젝트가 함께 쓰도록 프로젝트 밖에 둘 수 있으므로 project_path 로 제한하지 않는다.
+    value = Path(profile_value(ROOT, "terms_file") or ".claude/ko-review/terms.json")
+    path = value if value.is_absolute() else ROOT / value
     if not path.is_file():
         return []
     terms = json.loads(path.read_text(encoding="utf-8-sig"))
