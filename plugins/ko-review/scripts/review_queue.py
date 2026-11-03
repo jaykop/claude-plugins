@@ -531,6 +531,8 @@ def request_text(task, request_id, result_rel, entries):
              fenced(json.dumps({"requestId": request_id, "items": [
                  {"id": "<항목 id>", "status": "reviewed 또는 needs-decision",
                   "text": "<고칠 글 전체를 대신할 글>", "note": "<한 줄 메모>"}]}, ensure_ascii=False, indent=2), "json"), ""]
+    # 여러 항목이 같은 근거를 쓰면 처음 한 번만 싣는다. 근거가 요청서의 절반 가까이를 차지한다.
+    shown = {}
     for number, entry in enumerate(entries, 1):
         selected = block(entry["selector"], with_text=True)
         start, end = selected["lineHint"] - 1, selected["endLineHint"]
@@ -542,7 +544,13 @@ def request_text(task, request_id, result_rel, entries):
                   "### 고칠 글", "", fenced(selected["text"].rstrip("\n")), "",
                   "### 앞뒤 줄 (참고만)", "", fenced("\n".join(context)), "",
                   "### 근거 (참고만)", ""]
-        lines += [evidence_view(s) + "\n" for s in entry["evidence"]]
+        for evidence in entry["evidence"]:
+            view = evidence_view(evidence)
+            if view in shown:
+                lines += [f"`{evidence['path']}` 의 같은 구간. 항목 {shown[view]}의 근거를 본다.", ""]
+            else:
+                shown[view] = number
+                lines += [view + "\n"]
     terms = banned_terms()
     if terms:
         lines += ["## 프로젝트가 금지한 표현", "", *terms, ""]
@@ -678,6 +686,30 @@ def apply_results(data, results_path):
     report = {"applied": [], "unchanged": [], "unchecked": [], "needsDecision": [], "failed": []}
     mine = [e for e in data["entries"] if e.get("ticket", {}).get("token") == request["id"]]
     report["failed"] += [{"id": i, "reason": "not in this request"} for i in answers if i not in {e["id"] for e in mine}]
+    # 반영 전에 기준과 같던 항목. 이번 반영이 다른 항목의 근거 구간 안에 있는 설명을 바꿔도,
+    # 그 항목이 다음 pending 에서 다시 대기가 되지 않게 끝에서 기준을 새로 잡는다.
+    clean = set()
+    for entry in data["entries"]:
+        if entry["status"] == "retired":
+            continue
+        try:
+            if fingerprints(snapshot(entry)) == fingerprints(entry.get("review", {}).get("snapshot", entry["snapshot"])):
+                clean.add(entry["id"])
+        except (OSError, ValueError):
+            pass
+    # 쓰기 전에 모든 항목을 확인한다. 쓰면서 확인하면 앞서 쓴 교정문이 뒤 항목의 근거를 바꿔 거절된다.
+    checked = {}
+    for entry in mine:
+        try:
+            current = snapshot(entry)
+        except (OSError, ValueError) as error:
+            checked[entry["id"]] = str(error)
+            continue
+        if fingerprints(current)[1:] != fingerprints(entry["ticket"]["snapshot"])[1:]:
+            checked[entry["id"]] = "evidence changed after prepare"
+        elif current["description"]["sha256"] != entry["ticket"]["snapshot"]["description"]["sha256"]:
+            checked[entry["id"]] = "description changed after prepare"
+    handled = []
     # 같은 파일 안에서는 아래쪽 항목부터 바꿔야 위쪽 항목의 줄 번호가 밀리지 않는다.
     mine.sort(key=lambda e: (e["selector"]["path"], -e["ticket"]["snapshot"]["description"]["lineHint"]))
     for entry in mine:
@@ -690,16 +722,13 @@ def apply_results(data, results_path):
         if answer is None:
             fail("no result for this item")
             continue
-        try:
-            current = snapshot(entry)
-        except (OSError, ValueError) as error:
-            fail(str(error))
+        if entry["id"] in checked:
+            fail(checked[entry["id"]])
             continue
-        if fingerprints(current)[1:] != fingerprints(ticket["snapshot"])[1:]:
-            fail("evidence changed after prepare")
-            continue
+        current = snapshot(entry)
         if current["description"]["sha256"] != ticket["snapshot"]["description"]["sha256"]:
-            fail("description changed after prepare")
+            # 설명 구간이 겹치는 다른 항목을 이번에 먼저 썼다. 덮어쓰면 그 교정이 사라진다.
+            fail("overlaps another item applied in this request")
             continue
         note = (answer.get("note") or "").strip() or "교정함"
         status = answer.get("status")
@@ -739,8 +768,15 @@ def apply_results(data, results_path):
                     project_path(entry["selector"]["path"]).write_bytes(original)
                     fail("no unique anchor in the new text; file restored")
                     continue
-                entry["selector"] = selector
-                current = snapshot(entry)
+                previous_selector, entry["selector"] = entry["selector"], selector
+                try:
+                    current = snapshot(entry)
+                except (OSError, ValueError):
+                    # 근거의 anchor 가 이번 교정문 안에 있었다. 목록과 파일이 어긋나지 않게 되돌린다.
+                    entry["selector"] = previous_selector
+                    project_path(entry["selector"]["path"]).write_bytes(original)
+                    fail("evidence anchor is gone after the edit; file restored")
+                    continue
                 report["applied"].append(entry["id"])
                 if before is None:
                     report["unchecked"].append(entry["id"])
@@ -750,6 +786,20 @@ def apply_results(data, results_path):
         entry["snapshot"] = current
         entry["review"] = {"reviewer": ticket["reviewer"], "finishedAt": now(), "snapshot": current,
                            "note": note, "status": status}
+        handled.append(entry["id"])
+    # 모든 쓰기가 끝난 뒤의 내용을 기준으로 삼는다. 설명이 바뀐 항목은 그대로 두어 다시 대기가 되게 한다.
+    for entry in data["entries"]:
+        if entry["id"] not in clean and entry["id"] not in handled:
+            continue
+        try:
+            current = snapshot(entry)
+        except (OSError, ValueError):
+            continue
+        reference = entry.get("review", {}).get("snapshot", entry["snapshot"])
+        if entry["id"] in handled or current["description"]["sha256"] == reference["description"]["sha256"]:
+            entry["snapshot"] = current
+            if "review" in entry:
+                entry["review"]["snapshot"] = current
     data.pop("request")
     report["remaining"] = sum(1 for e in data["entries"] if e["status"] not in ("reviewed", "retired"))
     return report
