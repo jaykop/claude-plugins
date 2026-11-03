@@ -1,38 +1,38 @@
 ---
 name: feature-doc-sync
-description: "기능을 개발하거나 수정한 뒤 영향을 받는 문서(사용법 manual, 변경 기록 devlog, 설계 plan)를 갱신하고, 연결 이슈의 결과 기록 초안을 작성한다. 해당하지 않는 경우 — 커밋 직전 누락 확인(commit-doc-review)."
-when_to_use: "feature-impl 의 Step Final 에서 문서화를 고른 뒤, 사용자가 '문서 정리해', '매뉴얼 갱신해' 라고 할 때."
-argument-hint: "[#이슈번호 또는 작업 범위]"
+description: "After you develop or change a feature, update the documents that it affects (usage manual, change record devlog, design plan), and write a draft of the result record for the linked issue. Not for: the missing-document check just before a commit (commit-doc-review)."
+when_to_use: "After the user chooses documentation in Step Final of feature-impl, or when the user says '문서 정리해' or '매뉴얼 갱신해'."
+argument-hint: "[#issue number or work scope]"
 ---
 
-# 기능 문서 반영
+# Feature document sync
 
-프로젝트 지침과 사용자 요청을 우선한다. 구현 뒤 현재 사용법을 관련 문서에 반영한다. 이 절차는 빌드·테스트·별도 코드 검사를 실행할 권한을 주지 않는다.
+The project instructions and the request of the user take priority. After the implementation, put the current usage in the related documents. This procedure gives no permission to run builds, tests, or separate code checks.
 
-프로필은 `<프로젝트 루트>/.claude/workflow/profile.md` 다. 쓰는 칸: `docs`(index·manual·devlog·plan·templates), `tracker`·`tracker_public`, `status_labels`, `threads_dir`. 프로필이 없으면 프로젝트 지침과 `docs/` 구성을 읽어 문서 위치를 확인받는다.
+The profile is `<project root>/.claude/workflow/profile.md`. Keys used: `docs` (index, manual, devlog, plan, templates), `tracker`, `tracker_public`, `status_labels`, `threads_dir`. If there is no profile, read the project instructions and the `docs/` layout, and get the document locations confirmed.
 
-## 1. 영향과 작업 상태
+## 1. Effect and work state
 
-연결 이슈, 이번 구현 범위, 사용자 확인 결과와 남은 작업을 구분한다. 작업 상태는 이슈, 현재 사용법·제한은 manual, 중요한 결정 이유는 devlog 에 둔다. 이슈에 게시하기 전에 초안을 준비해 사용자에게 확인받는다. 개인 시행착오·로컬 설정·세션 메모는 인계 메모(`threads_dir`)에 둔다.
+Keep these items separate: the linked issue, the scope of this implementation, the result of user confirmation, and the remaining work. The work state goes in the issue, the current usage and limits go in the manual, and the reasons for important decisions go in the devlog. Before you post to an issue, prepare a draft and get confirmation from the user. Personal trial and error, local settings, and session notes go in the handoff note (`threads_dir`).
 
-공개 API·UI·설정·실행 방법·기존 데이터 처리 방법이 바뀌면 같은 작업에서 관련 manual 을 갱신한다. 전체 상태 요약 문서를 만들지 않는다. 내부 구현 변경도 기존 설명에 영향을 주는지 판단한다.
+If a public API, UI, setting, run procedure, or the handling of existing data changes, update the related manual in the same work. Do not make a document that summarizes the whole state. Also decide whether an internal implementation change affects an existing description.
 
-## 2. 관련 문서 갱신
+## 2. Update the related documents
 
-문서의 언어와 문체는 프로젝트 지침을 따른다.
+The language and style of the documents follow the project instructions.
 
-고치기 전에 해당 카테고리의 실제 템플릿(`docs.templates`)을 읽는다. 이 스킬에 템플릿을 복사해 두지 않는다.
+Before you change a document, read the actual template of its category (`docs.templates`). Do not copy templates into this skill.
 
-- 현재 사용법: manual 템플릿
-- 변경·결정·진단: devlog 템플릿
-- 이슈의 설계안: plan 템플릿. 정하지 않은 사항을 현재 사양으로 쓰지 않는다
+- Current usage: manual template
+- Change, decision, diagnosis: devlog template
+- Design of an issue: plan template. Do not write undecided items as the current specification
 
-같은 주제의 기존 문서부터 갱신한다. 새 문서를 만들거나 문서 경로를 바꾸면 문서 목록(`docs.index`)과 관련 링크를 갱신한다. 단순 오탈자마다 devlog 를 추가하지 않는다. 과거 기록의 당시 판단과 사용자 확인 범위는 보존하고, 후속 변경은 링크로 연결한다.
+Update the existing document of the same topic first. If you make a new document or change a document path, update the document index (`docs.index`) and the related links. Do not add a devlog for each simple typo. Keep the judgment of that time and the scope of user confirmation in past records, and link later changes.
 
-## 3. 기술 설명 대조
+## 3. Technical check
 
-작성·수정한 문단과 인접 항목을 읽고, 설정 대상·조건·단위·결과·제한이 실제 구현과 맞는지 대조한다. 알 수 없는 동작은 추정해 쓰지 않고 남은 의문으로 보고한다.
+Read the paragraphs that you wrote or changed and the items next to them. Check that the configured target, conditions, units, results, and limits match the actual implementation. Do not guess behavior that you do not know. Report it as an open question.
 
-## 완료 보고
+## Completion report
 
-관련 문서 경로, 판단이 필요한 항목, 사용자 확인 결과와 실행하지 않은 검사를 간결하게 보고한다. 이슈가 있으면 결과 기록 초안과 문서 링크를 준비하고, 게시 여부는 사용자에게 묻는다. 구현만 끝나고 사용자 확인 전이면 `status_labels.needs_verification` 라벨을 제안한다.
+Report briefly: the paths of the related documents, items that need a decision, the result of user confirmation, and the checks that did not run. If there is an issue, prepare a draft of the result record and the document links, and ask the user whether to post it. If only the implementation is done and the user has not confirmed it, suggest the `status_labels.needs_verification` label.

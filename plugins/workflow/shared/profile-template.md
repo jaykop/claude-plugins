@@ -1,82 +1,82 @@
 ---
-# workflow 프로필 — 프로젝트마다 하나. 위치: <프로젝트 루트>/.claude/workflow/profile.md
-# 팀과 공유할 값만 둔다. 개인 값(작업 가능 시간 등)은 같은 폴더의 profile.local.md 에 두고 버전 관리에서 뺀다.
-# 값 옆 주석에 출처를 적는다: [사용자] 사용자가 확정 / [파일] 프로젝트 파일에서 읽음 / [추정] 확인 필요
-# 훅과 스크립트는 이 머리 부분의 최상위 `키: 값` 한 줄만 읽는다. 목록과 하위 항목은 스킬이 읽는다.
+# workflow profile. One per project, at <project root>/.claude/workflow/profile.md
+# Keep only the values the team shares. Put personal values (such as available hours) in profile.local.md in the same folder, and keep that file out of version control.
+# Write the source next to each value: [user] the user confirmed it / [file] read from a project file / [guess] must be confirmed
+# Hooks and scripts read only the top-level `key: value` lines of this header. Skills read the lists and nested items.
 profile_version: 1
 updated:                      # YYYY-MM-DD
 project_name:
 
-# ── 지침과 범위 ─────────────────────────────────────
-instructions: [AGENTS.md]     # 프로젝트 지침 파일. 이 플러그인의 스킬보다 우선한다
-scope_sections: []            # 범위·구조·모듈 경계가 적힌 지침의 위치. 예: ["AGENTS.md 프로젝트와 현재 범위", "AGENTS.md 모듈 경계"]
-coding_rules: []              # 코딩 규칙이 적힌 위치. 스킬은 규칙을 복사하지 않고 매번 이 위치를 읽는다
-source_roots: []              # 코드 탐색 범위. 예: [Plugins/*/Source, Source]
-risk_paths:                   # 위험 등급을 정하는 경로(glob). 어디에도 걸리지 않는 코드 변경은 mid. 경로와 무관한 기준은 feature-impl Step 0-C
-  high: []                    # 예: [Source/**/Save*/**, .github/workflows/**, Config/Default*.ini]
-  low: []                     # 예: [Docs/**, Tools/Scripts/**]
+# ── Instructions and scope ──────────────────────────
+instructions: [AGENTS.md]     # Project instruction files. They take priority over the skills of this plugin
+scope_sections: []            # Where the instructions describe scope, structure, and module boundaries. Example: ["AGENTS.md Project and current scope", "AGENTS.md Module boundaries"]
+coding_rules: []              # Where the coding rules are. Skills do not copy the rules. They read this location each time
+source_roots: []              # Code search scope. Example: [Plugins/*/Source, Source]
+risk_paths:                   # Path globs that set the risk level. A code change that matches no glob is mid. For criteria that do not depend on the path, see feature-impl Step 0-C
+  high: []                    # Example: [Source/**/Save*/**, .github/workflows/**, Config/Default*.ini]
+  low: []                     # Example: [Docs/**, Tools/Scripts/**]
 
-# ── 이슈 트래커 ─────────────────────────────────────
-tracker: github               # github / jira / none. jira 는 지금 work-start 만 읽는다
+# ── Issue tracker ───────────────────────────────────
+tracker: github               # github / jira / none. Only work-start reads jira now
 tracker_repo:                 # github: owner/repo
-tracker_project:              # jira: 프로젝트 키. 예: ABC
-tracker_site:                 # jira: 사이트 주소. 예: example.atlassian.net. 사이트가 하나면 비워도 된다
-tracker_query:                # jira: 진행 중 이슈를 찾는 JQL. 비우면 work-start 의 기본 조건을 쓴다
-tracker_public: true          # 공개 저장소면 이슈·커밋에 로컬 경로, 개인 설정, 시행착오를 쓰지 않는다
-issue_template:               # 이슈 본문 양식. 예: .github/ISSUE_TEMPLATE/work.md
-status_labels:                # 상태 라벨 이름. 비우면 상태 라벨 제안을 건너뛴다
+tracker_project:              # jira: project key. Example: ABC
+tracker_site:                 # jira: site address. Example: example.atlassian.net. Leave empty if there is only one site
+tracker_query:                # jira: JQL that finds issues in progress. If empty, work-start uses its default condition
+tracker_public: true          # If the repository is public, do not write local paths, personal settings, or trial and error in issues and commits
+issue_template:               # Issue body template. Example: .github/ISSUE_TEMPLATE/work.md
+status_labels:                # Status label names. If empty, the skills do not suggest status labels
   in_progress: "status: in-progress"
   needs_verification: "status: needs-verification"
   blocked: "status: blocked"
-priority_scheme: grade        # grade(중요도×규모, shared/priority-scheme.md) / none
-backlog_goal:                 # 마일스톤 없는 이슈의 중요도를 매기는 기준 목표
-milestone_view_url:           # 마일스톤을 시작할 때 갱신을 안내할 이슈 뷰 주소. 없으면 비움
+priority_scheme: grade        # grade (importance x size, shared/priority-scheme.md) / none
+backlog_goal:                 # The goal that sets the importance of issues without a milestone
+milestone_view_url:           # Address of the issue view to update when a milestone starts. Leave empty if there is none
 
-# ── 버전 관리와 커밋 ────────────────────────────────
-vcs: git                      # git / p4. p4 는 지금 work-start 의 상태 조회만 다룬다
-commit_policy:                # 커밋 범위·대상 규칙이 적힌 위치. 예: "AGENTS.md 커밋과 저장소별 추적 범위"
-commit_gate: false            # true 면 트레일러 없는 git commit 을 훅이 막는다
+# ── Version control and commits ─────────────────────
+vcs: git                      # git / p4. For p4, only the status query of work-start works now
+commit_policy:                # Where the rules for commit scope and targets are. Example: "AGENTS.md Commits and tracking scope"
+commit_gate: false            # If true, the hook blocks git commit without the trailer
 commit_trailer: "Docs-Reviewed:"
 
-# ── 문서 ────────────────────────────────────────────
+# ── Documents ───────────────────────────────────────
 docs:
-  index:                      # 문서 목록. 예: docs/README.md
-  manual:                     # 현재 사용법 폴더
-  devlog:                     # 변경·결정 기록 폴더
-  plan:                       # 설계 문서 폴더
-  templates: []               # 카테고리별 템플릿 경로
-threads_dir: .claude/workflow/threads   # 로컬 인계 메모 폴더. 공개 저장소면 버전 관리에서 빠지는 폴더를 고른다
-archive_dir: .claude/workflow/archive   # 완료한 인계 메모 보관 폴더
+  index:                      # Document index. Example: docs/README.md
+  manual:                     # Folder for current usage documents
+  devlog:                     # Folder for change and decision records
+  plan:                       # Folder for design documents
+  templates: []               # Template path for each category
+threads_dir: .claude/workflow/threads   # Folder for local handoff notes. For a public repository, choose a folder that is not in version control
+archive_dir: .claude/workflow/archive   # Folder for handoff notes of finished work
 
-# ── 검증 ────────────────────────────────────────────
-verification: user            # user: 빌드·테스트·검사는 사용자 담당 / agent: 스킬이 필요하면 실행
-build_commands: []            # 사용자가 직접 쓰는 빌드 명령 (안내용)
-test_setup_mcp:               # 테스트 셋업을 대신할 수 있는 MCP 서버 이름. 예: unreal-mcp. 없으면 비움
-test_candidates: []           # feature-impl 결정 카드에 올릴 자동화 테스트 후보의 기준. 비우면 후보 절을 뺀다. 예: ["입출력으로 확인할 수 있는 로직"]
-agent_review: true            # false 면 feature-impl 의 에이전트 리뷰(읽기 전용)를 건너뛴다. 칸이 없으면 켜진 것으로 본다
-review_guide:                 # 에이전트 리뷰가 읽는 리뷰 지침(프로젝트의 실패 유형). 예: REVIEW.md. 양식 shared/review-guide-template.md
+# ── Verification ────────────────────────────────────
+verification: user            # user: the user runs builds, tests, and checks / agent: skills run them when necessary
+build_commands: []            # Build commands that the user runs (for guidance only)
+test_setup_mcp:               # Name of an MCP server that can do the test setup. Example: unreal-mcp. Leave empty if there is none
+test_candidates: []           # Criteria for automated test candidates on the feature-impl decision card. If empty, the card has no candidate section. Example: ["Logic that you can check through input and output"]
+agent_review: true            # If false, feature-impl skips the read-only agent review. If the key is missing, the review is on
+review_guide:                 # Review guide that the agent review reads (the failure types of the project). Example: REVIEW.md. Template: shared/review-guide-template.md
 
-# ── 연동 ────────────────────────────────────────────
-handoff_reminder_turns: 25    # 이 턴 수마다 context-handoff 를 권한다. 0 이면 끈다
+# ── Integration ─────────────────────────────────────
+handoff_reminder_turns: 25    # Suggest context-handoff each time the session reaches a multiple of this many turns. 0 turns it off
 ---
 
-# 변경 → 문서 대응표
+# Change → document map
 
-commit-doc-review 가 커밋 파일마다 검토할 문서를 고를 때 쓴다. 해당하는 줄만 본다.
+commit-doc-review uses this map to select the documents to review for each committed file. It reads only the rows that apply. Older profiles call this section "변경 → 문서 대응표".
 
-| 변경 경로 | 검토할 문서 |
+| Changed path | Documents to review |
 |---|---|
-| 코드 전체 | 연결 이슈의 구현·확인 상태와 변경에 영향을 받는 manual·devlog |
-| 문서 추가·삭제·이름 변경 | 문서 목록, 그 문서를 가리키는 링크 |
-| 공개 API·UI·설정·실행 방법 변경 | 관련 manual |
-| 설계 결정, 반복될 수 있는 문제의 해결 | 주제별 devlog 필요 여부 |
+| All code | Implementation and confirmation state of the linked issue, and the manual and devlog that the change affects |
+| Added, removed, or renamed documents | Document index, and the links that point to the document |
+| Change to a public API, UI, setting, or run procedure | Related manual |
+| Design decision, or fix for a problem that can happen again | Whether a topic devlog is necessary |
 
-# 설계 점검 항목
+# Design checklist
 
-feature-impl 이 구현 계획에서 반드시 확인할 프로젝트 설계 원칙. 지침에 이미 있으면 위치만 적는다.
+Project design principles that feature-impl must check in the implementation plan. If the instructions already contain a principle, write only its location. Older profiles call this section "설계 점검 항목".
 
 -
 
-# 메모
+# Notes
 
-<!-- 프로젝트 고유의 작업 흐름 결정을 짧게 적는다 -->
+<!-- Write short decisions about the work process of this project -->

@@ -1,100 +1,102 @@
-# 에이전트 리뷰 지시서
+# Agent review brief
 
-feature-impl 의 에이전트 리뷰(Full Lane L6, Fast Lane 의 고위험 리뷰)에서 리뷰 에이전트와 검증 에이전트가 읽는다. 오케스트레이터는 이 파일 경로와 아래 "입력"을 넘긴다.
+The review agents and the verifier agent of the feature-impl agent review (Full Lane L6, and the high-risk review of the Fast Lane) read this file. The orchestrator passes the path of this file and the "Input" below.
 
-## 1. 역할
+## 1. Role
 
-- 이 변경에서 **실제로 잘못될 수 있는 것**을 찾는다. 고치지 않는다.
-- 읽기만 한다. 파일을 고치지 않고, 빌드·테스트·실행을 하지 않는다. `git diff`, `git log`, `git show` 같은 읽기 명령과 파일 읽기·검색만 쓴다.
-- 작성자의 설명을 믿지 말고 코드로 확인한다. 의도와 다르게 구현된 것도 문제다.
+- Find **what can actually go wrong** in this change. Do not fix it.
+- Only read. Do not change files, and do not build, test, or run. Use only read commands such as `git diff`, `git log`, and `git show`, and file reads and searches.
+- Do not trust the description of the author. Check it in the code. An implementation that differs from the intent is also a problem.
 
-## 2. 입력
+## 2. Input
 
-오케스트레이터가 넘긴다. 빠진 것이 있으면 결과의 "본 범위"에 적는다.
+The orchestrator passes these items. If an item is missing, write it in "Scope covered" of the result.
 
-| 입력 | 내용 |
+| Input | Content |
 |---|---|
-| 의도 | 결정 카드의 의도와 확정 결정 (Fast Lane 은 요청 한두 줄) |
-| 변경 | 비교 기준(`git diff <기준>` 의 기준)과 바뀐 파일 목록 |
-| 위험 | 위험 등급, 결정 카드의 "깨질 수 있는 것" 표 |
-| 리뷰 지침 | 프로필 `review_guide` 파일 경로. 없으면 "없음" |
-| 초점 | `전체`(Standard) / `정확성` / `실패 유형`(Deep 의 두 리뷰어) |
-| 차수 | 1, 2, 3 |
-| 이전 결과 | 2차 이후만. 수정 diff 의 기준, 지적별 처리(고침 / 이유를 적고 고치지 않음). 같은 리뷰어가 이어 보는 게 아니면 앞 차수 결과 전문도 |
+| Intent | Intent and confirmed decisions of the decision card (for the Fast Lane, one or two lines of the request) |
+| Change | Comparison base (the base of `git diff <base>`) and the list of changed files |
+| Risk | Risk level, and the "What can break" table of the decision card |
+| Review guide | File path in the profile `review_guide`. "None" if there is none |
+| Focus | `all` (Standard) / `correctness` / `failure types` (the two reviewers of Deep) |
+| Round | 1, 2, 3 |
+| Previous result | Only for round 2 and later. Base of the fix diff, and how each finding was handled (fixed / not fixed, with a reason). If a different reviewer continues, also the full result of the previous round |
 
-## 3. 1차 범위
+## 3. Scope of round 1
 
-| 초점 | 본다 |
+| Focus | What to read |
 |---|---|
-| `전체` | 바뀐 줄, 바뀐 함수 전체, 바뀐 선언을 쓰는 곳과 호출부. 리뷰 지침의 실패 유형 가운데 이 변경 경로에 걸리는 것 |
-| `정확성` | 위에 더해 로직·경계값·널·오류 처리, 수명과 자원 정리(완료·취소·중단·소유자 파괴 때), 이벤트 구독 해제, 동시성, 저장·직렬화 데이터의 이전 형식 호환 |
-| `실패 유형` | 리뷰 지침의 실패 유형과 "깨질 수 있는 것" 표를 한 줄씩 이 변경에 대조한다. 각 줄마다 "해당 없음 / 문제 없음 / 문제" 를 판정하고 문제만 지적으로 올린다 |
+| `all` | Changed lines, whole changed functions, and the places that use or call the changed declarations. Failure types in the review guide that match the changed paths |
+| `correctness` | All of the above, and also logic, boundary values, null, error handling, lifetime and resource cleanup (on completion, cancel, interrupt, and owner destruction), event unsubscription, concurrency, and compatibility with older formats of saved or serialized data |
+| `failure types` | Compare each line of the failure types in the review guide and of the "What can break" table with this change. Give each line a verdict: "not applicable / no problem / problem". Report only the problems as findings |
 
-리뷰 지침의 "제외 경로"는 보지 않는다.
+Do not read the "Excluded paths" of the review guide.
 
-## 4. 지적하지 않는 것
+Review guides made from the older template use Korean headings: 영역별 실패 유형 (Failure types by area), 늘 확인 (Always check), 지적하지 않는 것 (Do not report), 제외 경로 (Excluded paths), 놓친 버그 기록 (Missed bug log). Read them as the same sections.
 
-- 스타일, 이름, 포매팅, 주석 문구, 로그 메시지
-- 동작이 같은 정리성 리팩터링 제안
-- 측정 근거 없는 성능 추측
-- 리뷰 지침의 "지적하지 않는 것"
+## 4. Do not report
 
-## 5. 지적 규칙
+- Style, names, formatting, comment wording, and log messages
+- Cleanup refactoring that keeps the same behavior
+- Performance guesses without measurement
+- The "Do not report" items of the review guide
 
-- **버그 유형 단위로 쓴다.** 한 곳을 찾으면 같은 유형이 3절 범위 안의 다른 곳에도 있는지 찾고, 위치를 한 지적에 모두 모은다. 범위 밖은 검색하지 않는다.
-- 근거는 `파일:줄` 과 "어떤 입력·상태에서 → 무엇이 잘못되는가" 로 쓴다. 이 둘을 댈 수 없으면 쓰지 않는다.
-- 분류:
+## 5. Finding rules
 
-| 분류 | 기준 |
+- **Write one finding for each bug type.** When you find one place, look for the same type in other places inside the scope of section 3. Put all locations in one finding. Do not search outside the scope.
+- Give the evidence as `file:line` and "with this input or state → this goes wrong". If you cannot give both, do not write the finding.
+- Categories:
+
+| Category | Criterion |
 |---|---|
-| `Important` | 이 변경이 만들었거나 드러낸 문제. 잘못된 동작, 데이터 손상, 충돌, 자원 누수, 의도와 다른 구현 |
-| `Nit` | 동작에는 문제가 없지만 고치면 나은 것. 최대 3개 |
-| `Pre-existing` | 이 변경 전부터 있던 문제. 작성자 잘못으로 보이지 않게 분리한다 |
+| `Important` | A problem that this change made or exposed: wrong behavior, data damage, a crash, a resource leak, or an implementation that differs from the intent |
+| `Nit` | No problem in behavior, but a fix makes it better. 3 at most |
+| `Pre-existing` | A problem that existed before this change. Keep it separate, so that it does not look like a mistake of the author |
 
-## 6. 2차 이후 범위
+## 6. Scope of round 2 and later
 
-2차 이후는 **변경분만** 본다. 처음부터 다시 리뷰하지 않는다.
+From round 2, read **only the changes**. Do not review again from the start.
 
-1. 이전 지적마다 해소됐는지 판정한다.
-2. 수정 diff 자체에 새 문제가 있는지 본다.
-3. 해소된 지적의 버그 유형이 1차 범위(3절) 안의 다른 곳에 남았는지 찾는다.
+1. For each previous finding, decide whether it is resolved.
+2. Check whether the fix diff itself has a new problem.
+3. Look for the bug type of each resolved finding in other places inside the scope of round 1 (section 3).
 
-- 수정 diff 밖의 코드는 3의 검색 외에는 보지 않는다.
-- 이전 차수에 낸 지적을 다시 내지 않는다.
+- Do not read code outside the fix diff, except for the search in step 3.
+- Do not report a finding again that you reported in a previous round.
 
-## 7. 출력 형식
+## 7. Output format
 
 ```
-## 리뷰 결과 (<차수>차, 초점 <초점>)
+## Review result (round <round>, focus <focus>)
 
-| ID | 분류 | 버그 유형 | 위치 | 문제 (입력·상태 → 잘못된 결과) |
+| ID | Category | Bug type | Location | Problem (input or state → wrong result) |
 |---|---|---|---|---|
-| F1 | Important | <유형> | a.cpp:12, b.cpp:40 | <...> |
+| F1 | Important | <type> | a.cpp:12, b.cpp:40 | <...> |
 
-### 이전 지적 (2차 이후만)
-| 이전 ID | 판정 | 근거 |
+### Previous findings (round 2 and later only)
+| Previous ID | Verdict | Evidence |
 |---|---|---|
-| F1 | 해소 / 남음 / 일부 해소 | <파일:줄> |
+| F1 | resolved / remains / partly resolved | <file:line> |
 
-### 실패 유형 대조 (초점이 실패 유형일 때만)
-| 항목 | 판정 |
+### Failure type check (only when the focus is failure types)
+| Item | Verdict |
 |---|---|
 
-### 본 범위
-<본 파일, 비교 기준, 빠진 입력, 보지 못한 것>
+### Scope covered
+<Files read, comparison base, missing input, and what you could not read>
 ```
 
-지적이 없으면 표 대신 "지적 없음" 을 쓰고 "본 범위"는 그대로 쓴다. ID 는 차수가 바뀌어도 이어서 매긴다(2차의 첫 새 지적이 F4 이런 식).
+If there are no findings, write "No findings" in place of the table, and still write "Scope covered". Continue the ID numbers across rounds (for example, the first new finding in round 2 is F4).
 
-## 8. 검증 에이전트 (Deep 만)
+## 8. Verifier agent (Deep only)
 
-두 리뷰어의 지적을 받아 하나씩 코드에서 확인한다. 새 지적을 찾지 않는다.
+Take the findings of the two reviewers and check each one in the code. Do not look for new findings.
 
 ```
-| ID | 판정 | 이유 |
+| ID | Verdict | Reason |
 |---|---|---|
-| F1 | 확인 / 기각 / 분류 변경(<새 분류>) | <파일:줄 근거> |
+| F1 | confirmed / rejected / category changed (<new category>) | <file:line evidence> |
 ```
 
-- 두 리뷰어가 같은 문제를 냈으면 하나로 합치고 합친 ID 를 적는다.
-- 코드에서 재현 경로를 따라갈 수 없으면 기각한다.
+- If the two reviewers reported the same problem, merge the two findings into one and write the merged ID.
+- If you cannot follow the path to the failure in the code, reject the finding.

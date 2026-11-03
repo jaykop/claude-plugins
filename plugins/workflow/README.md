@@ -67,7 +67,7 @@ codex plugin marketplace add jaykop/claude-plugins
 | `tracker`, `tracker_repo`, `tracker_public` | 이슈 연동 여부와 공개 저장소 주의 사항. `next-task` 는 `github` 일 때만 동작한다. `work-start` 는 `jira` 도 읽는다(`tracker_project`, `tracker_site`, `tracker_query`) |
 | `threads_dir` | 인계 메모 위치. 공개 저장소면 버전 관리에서 빠지는 폴더여야 한다 |
 | `verification` | `user` 면 빌드·테스트를 사용자가 맡는다 |
-| 본문 "변경 → 문서 대응표" | 커밋 전 검토할 문서를 고르는 표 |
+| 본문 "Change → document map" (예전 프로필은 "변경 → 문서 대응표") | 커밋 전 검토할 문서를 고르는 표 |
 
 ### 리뷰와 테스트를 맞추는 값
 

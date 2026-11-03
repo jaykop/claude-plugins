@@ -1,77 +1,79 @@
 ---
 name: work-start
-description: "작업 세션을 시작할 때 쓴다. 나에게 배정된 진행 중 이슈, 인계 메모, 아직 커밋·제출하지 않은 변경을 가볍게 모아 짧게 알려 주고 멈춘다. 사용자가 방향을 정하면 이슈와 인계 메모의 상태 맞추기, 설계 문서 찾기, 고른 작업의 이슈 상태 전환과 인계 메모 만들기를 한다. '작업 시작', '오늘 작업 시작', '어디까지 했지', '이어서 하자', '하던 일 뭐 있지' 같은 요청에 쓴다. 이슈 트래커는 GitHub·Jira, 버전 관리는 git·Perforce 를 읽는다. 해당하지 않는 경우 — 새로 할 작업을 우선순위로 고르거나 이슈를 만드는 일(next-task), 코드 수정(feature-impl), 인계 메모 저장(context-handoff)."
-when_to_use: "세션을 처음 열었을 때, 며칠 쉬었다가 하던 작업으로 돌아올 때, 진행 중인 작업이 여럿이라 무엇부터 이어 갈지 정할 때."
-argument-hint: "[이슈 번호·이슈 키 또는 thread 이름]"
+description: "Use at the start of a work session. Collect the in-progress issues assigned to me, the handoff notes, and the changes that are not committed or submitted yet. Give a short report and stop. After the user chooses a direction, align issue and note states, find design documents, change the issue state of the chosen work, and make a handoff note. Use for requests such as '작업 시작', '오늘 작업 시작', '어디까지 했지', '이어서 하자', '하던 일 뭐 있지'. It reads GitHub and Jira as issue trackers, and git and Perforce as version control. Not for: choosing new work by priority or making an issue (next-task), changing code (feature-impl), saving a handoff note (context-handoff)."
+when_to_use: "When you open a session for the first time, when you return to work after some days, when several pieces of work are in progress and you must choose which one to continue."
+argument-hint: "[issue number, issue key, or thread name]"
 allowed-tools: Read, Glob, Grep, Bash(git status*), Bash(git branch*), Bash(git rev-parse*), Bash(gh issue list*), Bash(gh issue view*), Bash(p4 opened*)
 ---
 
 # Work Start
 
-세션 첫머리에 하던 일을 알려 주는 진입점이다. 먼저 짧은 브리핑만 주고 멈춘다. 상태 맞추기, 설계 문서 찾기, 작업 고르기의 후속 처리는 사용자가 방향을 정한 뒤에만 한다.
+This is the entry point that reports the work in progress at the start of a session. First give only a short briefing and stop. Do the follow-up steps (align states, find design documents, choose work) only after the user chooses a direction.
 
-## 경로와 프로필
+## Paths and profile
 
-- 플러그인 폴더: `${CLAUDE_PLUGIN_ROOT}`. 값이 변수 이름 그대로 보이면 이 SKILL.md 의 두 단계 위 폴더다.
-- 프로필: `<프로젝트 루트>/.claude/workflow/profile.md`, 개인 값은 `profile.local.md`. 쓰는 칸: `tracker`·`tracker_repo`·`tracker_project`·`tracker_site`·`tracker_query`, `status_labels`, `vcs`, `docs`(manual·plan), `threads_dir`·`archive_dir`.
-- 프로필이 없으면 만들지 묻는다. 만드는 방법은 `feature-impl` 의 "경로와 프로필" 과 같다. 거절하면 버전 관리 상태만 읽고 브리핑한다.
+- Plugin folder: `${CLAUDE_PLUGIN_ROOT}`. If the value shows as the variable name, it is the folder two levels above this SKILL.md.
+- Profile: `<project root>/.claude/workflow/profile.md`. Personal values are in `profile.local.md`. Keys used: `tracker`, `tracker_repo`, `tracker_project`, `tracker_site`, `tracker_query`, `status_labels`, `vcs`, `docs` (manual, plan), `threads_dir`, `archive_dir`.
+- If there is no profile, ask whether to make one. Make it as "Paths and profile" of `feature-impl` describes. If the user says no, read only the version control state and give the briefing.
 
-## 공통 규칙
+## Common rules
 
-- 프로젝트 지침이 이 스킬보다 앞선다.
-- 브리핑(1·2단계)은 읽기만 한다. 파일을 고치지 않고 이슈 트래커에 쓰지 않는다.
-- 이슈 상태 전환, 라벨 변경, 댓글은 트래커에 게시하는 작업이다. 내용을 보여 주고 확인받은 뒤에만 한다.
-- 버전 관리는 상태만 읽는다. `git pull`, `p4 sync` 처럼 작업 사본을 바꾸는 명령은 실행하지 않는다. 받아 와야 하면 명령만 알려 준다.
+- The project instructions take priority over this skill.
+- The briefing (steps 1 and 2) only reads. Do not change files, and do not write to the issue tracker.
+- Changing an issue state, changing labels, and comments are publishing actions on the tracker. Show the content and do them only after confirmation.
+- Read only the version control state. Do not run commands that change the working copy, such as `git pull` or `p4 sync`. If an update is necessary, only tell the user the command.
 
-## 트래커 도구
+## Tracker tools
 
-- `github`: 로그인된 `gh` CLI 를 쓴다.
-- `jira`: Atlassian MCP 서버의 도구를 쓴다. 도구 이름 앞부분(`mcp__<서버 이름>__`)은 설치 방식마다 다르다. 그래서 이름 뒷부분으로 찾는다: `searchJiraIssuesUsingJql`, `getJiraIssue`, `getTransitionsForJiraIssue`, `transitionJiraIssue`, `getAccessibleAtlassianResources`.
-  - 도구 목록에 없으면 도구 검색(ToolSearch)에 이 이름을 넣어 불러온다. 서버 이름은 이 스킬과 프로필에 적지 않는다.
-  - 도구가 `cloudId` 를 요구하면 `getAccessibleAtlassianResources` 로 얻는다. 사이트가 여럿이면 프로필 `tracker_site` 와 주소가 같은 것을 고른다. 도구 설명에 사이트 주소도 받는다고 적혀 있으면 `tracker_site` 를 바로 넣어도 된다.
-  - 도구를 찾지 못하면 Jira 조회를 건너뛰고 브리핑에 그 사실을 한 줄로 적는다.
-- `none` 이거나 비었으면 이슈 조회를 건너뛴다.
+- `github`: use the logged-in `gh` CLI.
+- `jira`: use the tools of the Atlassian MCP server. The prefix of the tool names (`mcp__<server name>__`) depends on the installation. Find the tools by the end of the name: `searchJiraIssuesUsingJql`, `getJiraIssue`, `getTransitionsForJiraIssue`, `transitionJiraIssue`, `getAccessibleAtlassianResources`.
+  - If a tool is not in the tool list, load it with the tool search (ToolSearch) by this name. Do not write the server name in this skill or in the profile.
+  - If a tool needs `cloudId`, get it with `getAccessibleAtlassianResources`. If there are several sites, choose the one whose address matches profile `tracker_site`. If the tool description says that it also accepts a site address, you can pass `tracker_site` directly.
+  - If you cannot find the tools, skip the Jira query and write one line about it in the briefing.
+- If the value is `none` or empty, skip the issue query.
 
-## 1. 가벼운 조회
+## 1. Light query
 
-아래 셋을 함께 모은다. 이슈마다 본문을 읽거나 설계 문서를 찾는 일은 여기서 하지 않는다.
+Collect the three items below together. Do not read issue bodies or look for design documents here.
 
-### 1-A. 내 이슈
+### 1-A. My issues
 
-`github` 면 내 열린 이슈를 읽는다.
+For `github`, read my open issues.
 
 ```bash
 gh issue list --repo <tracker_repo> --assignee @me --state open --limit 20 --json number,title,labels,milestone,updatedAt
 ```
 
-`status_labels.in_progress` 라벨이 붙은 이슈를 진행 중으로 본다. 라벨을 정하지 않았으면 열린 이슈 전체를 최근에 바뀐 순서로 본다.
+An issue with the `status_labels.in_progress` label is in progress. If no label is set, use all open issues in order of the latest change.
 
-`jira` 면 `searchJiraIssuesUsingJql` 을 부른다.
+For `jira`, call `searchJiraIssuesUsingJql`.
 
-- JQL: 프로필 `tracker_query` 가 있으면 그 값을 쓴다. 없으면 `assignee = currentUser() AND statusCategory = "In Progress" ORDER BY priority DESC, updated DESC` 를 쓴다. `tracker_project` 가 있으면 앞에 `project = <tracker_project> AND` 를 붙인다.
-- 필드: `summary`, `status`, `issuetype`, `priority`, `updated`, `parent`. 본문과 댓글은 받지 않는다.
-- 최대 20건만 받는다.
+- JQL: if profile `tracker_query` has a value, use it. If not, use `assignee = currentUser() AND statusCategory = "In Progress" ORDER BY priority DESC, updated DESC`. If `tracker_project` has a value, add `project = <tracker_project> AND` at the start.
+- Fields: `summary`, `status`, `issuetype`, `priority`, `updated`, `parent`. Do not get the body or the comments.
+- Get at most 20 issues.
 
-### 1-B. 인계 메모
+### 1-B. Handoff notes
 
-`<threads_dir>/*.md` 를 찾는다. 파일마다 머리의 `> Last updated`, `> Issue` 줄과 "다음에 할 일" 의 첫 항목만 읽는다. 마지막 활동 시각은 파일 수정 시각으로 정한다. 인계 메모의 양식과 이름 규칙은 `context-handoff` 를 따른다.
+Find `<threads_dir>/*.md`. For each file, read only the `> Last updated` and `> Issue` lines of the header and the first item of "Next steps" (older notes: "다음에 할 일"). The time of the last activity is the file modification time. For the note format and the name rules, follow `context-handoff`.
 
-### 1-C. 버전 관리 상태
+### 1-C. Version control state
 
-프로필 `vcs` 에 맞춰 상태만 읽는다.
+Read only the state, as profile `vcs` sets.
 
-| `vcs` | 명령 | 읽는 것 |
+| `vcs` | Command | What to read |
 |---|---|---|
-| `git` | `git branch --show-current`, `git status --short` | 현재 브랜치, 커밋하지 않은 파일 수 |
-| `p4` | `p4 opened` | 열린 파일 수, 체인지리스트 번호 |
+| `git` | `git branch --show-current`, `git status --short` | Current branch, number of uncommitted files |
+| `p4` | `p4 opened` | Number of open files, changelist numbers |
 
-칸이 비었으면 `git rev-parse --is-inside-work-tree` 로 git 저장소인지 본다. git 저장소가 아니면 이 조회를 건너뛴다.
+If the key is empty, check with `git rev-parse --is-inside-work-tree` whether the folder is a git repository. If it is not a git repository, skip this query.
 
-## 2. 브리핑
+## 2. Briefing
 
-모은 것을 짧게 알려 주고 멈춘다. 질문을 늘어놓지 않는다.
+Give a short report of what you collected and stop. Do not ask a list of questions.
 
-인계 메모가 4개 이하면 이 형식으로 쓴다.
+Write the briefing in the language of the conversation with the user. The examples below are in Korean.
+
+If there are 4 handoff notes or fewer, use this format.
 
 ```
 오늘 (YYYY-MM-DD)
@@ -85,7 +87,7 @@ gh issue list --repo <tracker_repo> --assignee @me --state open --limit 20 --jso
 이어 갈 것: <대상> (<한 줄 이유>)
 ```
 
-인계 메모가 5개 이상이면 줄여서 쓴다.
+If there are 5 handoff notes or more, use the short format.
 
 ```
 오늘 (YYYY-MM-DD)
@@ -93,65 +95,65 @@ gh issue list --repo <tracker_repo> --assignee @me --state open --limit 20 --jso
 이어 갈 것: <대상>
 ```
 
-- 이슈 제목은 트래커의 제목을 한 줄로 줄인다. 본문은 넣지 않는다.
-- "이어 갈 것" 은 이 순서로 고른다.
-  1. 마지막 활동이 가장 최근인 인계 메모
-  2. 인계 메모가 없으면 진행 중 이슈 가운데 우선순위가 가장 높은 것. 우선순위가 같으면 최근에 바뀐 것
-  3. 둘 다 없고 `tracker` 가 `github` 면 `next-task` 로 새 작업을 고르자고 적는다
-- 마지막 줄에 선택지를 한 줄로 적는다: "더 필요하면 상태 맞추기, 설계 문서 찾기, 이슈 상세, 바로 시작 가운데 말해 주세요."
-- 여기서 멈추고 사용자의 말을 기다린다. 3단계로 저절로 넘어가지 않는다.
+- Shorten the issue title of the tracker to one line. Do not include the body.
+- Choose "이어 갈 것" (what to continue) in this order.
+  1. The handoff note with the most recent activity
+  2. If there is no handoff note, the in-progress issue with the highest priority. If priorities are equal, the issue that changed most recently
+  3. If there is neither, and `tracker` is `github`, suggest choosing new work with `next-task`
+- On the last line, give the choices in one line: "더 필요하면 상태 맞추기, 설계 문서 찾기, 이슈 상세, 바로 시작 가운데 말해 주세요."
+- Stop here and wait for the user. Do not go to step 3 automatically.
 
-## 3. 사용자가 방향을 정한 뒤
+## 3. After the user chooses a direction
 
-요청받은 항목만 한다.
+Do only the items that the user asks for.
 
-### 3-A. 상태 맞추기
+### 3-A. Align states
 
-인계 메모의 `> Issue` 줄과 트래커 상태를 비교한다. 이슈마다 `gh issue view <N> --json state,labels` 또는 `getJiraIssue` 로 상태를 읽는다.
+Compare the `> Issue` line of each handoff note with the tracker state. Read the state of each issue with `gh issue view <N> --json state,labels` or `getJiraIssue`.
 
-상태는 이렇게 나눈다.
+Use these states.
 
-- 완료: GitHub 는 닫힌 이슈, Jira 는 상태 분류 `done`
-- 진행 중: GitHub 는 `status_labels.in_progress` 라벨, Jira 는 상태 분류 `indeterminate`
-- 할 일: 그 밖의 열린 이슈
+- Done: a closed issue on GitHub, status category `done` on Jira
+- In progress: the `status_labels.in_progress` label on GitHub, status category `indeterminate` on Jira
+- To do: other open issues
 
-| 인계 메모 | 이슈 상태 | 제안 |
+| Handoff note | Issue state | Suggestion |
 |---|---|---|
-| 있음 | 진행 중 | 그대로 둔다 |
-| 있음 | 완료 | 메모를 보관할지 묻는다(`context-handoff` Step 4) |
-| 있음 | 할 일 | 메모를 그대로 둘지 묻는다 |
-| 없음 | 진행 중 | 메모를 만들지 묻는다 |
-| 이슈가 적히지 않은 메모 | 없음 | 이슈와 연결할지 묻는다 |
+| Exists | In progress | Keep it |
+| Exists | Done | Ask whether to archive the note (`context-handoff` Step 4) |
+| Exists | To do | Ask whether to keep the note |
+| None | In progress | Ask whether to make a note |
+| Note without an issue | None | Ask whether to link it to an issue |
 
-### 3-B. 설계 문서 찾기
+### 3-B. Find design documents
 
-고른 이슈의 설계 문서를 이 순서로 찾는다.
+Look for the design documents of the chosen issue in this order.
 
-1. 이슈 본문과 댓글에 있는 문서 링크와 경로
-2. 인계 메모의 "주요 파일 및 경로" 에 적힌 문서
-3. 프로필 `docs.plan` 과 `docs.manual` 폴더. 이슈 제목의 낱말로 찾고, 후보를 1~3개만 낸다. 후보마다 맞는 정도를 높음·중간·낮음으로 적는다. 높음이 없으면 후보 파일의 앞부분을 읽어 다시 판단한다.
+1. Document links and paths in the issue body and comments
+2. Documents in "Key files" (older notes: "주요 파일 및 경로") of the handoff note
+3. The profile `docs.plan` and `docs.manual` folders. Search with the words of the issue title, and give only 1 to 3 candidates. For each candidate, write how well it matches: high, medium, or low. If no candidate is high, read the start of the candidate files and decide again.
 
-사용자가 확정한 문서만 인계 메모의 "주요 파일 및 경로" 에 적는다. 트래커에는 적지 않는다. 사용자가 요청하면 댓글 초안을 보여 주고 확인받은 뒤에 게시한다.
+Write only the documents that the user confirms in "Key files" of the handoff note. Do not write them in the tracker. If the user asks for it, show a comment draft and post it only after confirmation.
 
-### 3-C. 작업을 고른 뒤
+### 3-C. After the user chooses work
 
-사용자가 이슈나 인계 메모를 고르면 차례로 한다.
+When the user chooses an issue or a handoff note, do these steps in order.
 
-1. 읽기: 이슈 본문·댓글과 인계 메모 전체를 읽는다. 3-B 에서 확정한 설계 문서가 있으면 관련 항목만 읽는다.
-2. 이슈 상태: 이슈가 진행 중이 아니면 진행 중으로 바꿀지 묻는다. 승인을 받으면 바꾼다.
-   - `github`: `status_labels.in_progress` 라벨을 붙인다. 라벨을 정하지 않았으면 이 단계를 건너뛴다.
+1. Read: read the issue body, the comments, and the whole handoff note. If you confirmed a design document in 3-B, read only the related items.
+2. Issue state: if the issue is not in progress, ask whether to change it to in progress. Change it after approval.
+   - `github`: add the `status_labels.in_progress` label. If no label is set, skip this step.
      ```bash
-     gh issue edit <N> --repo <tracker_repo> --add-label "<라벨>"
+     gh issue edit <N> --repo <tracker_repo> --add-label "<label>"
      ```
-   - `jira`: `getTransitionsForJiraIssue` 결과에서 도착 상태의 분류(`statusCategory.key`)가 `indeterminate` 인 전환을 고른다. 여럿이면 이름을 보여 주고 묻는다. 맞는 전환이 없으면 바꾸지 않고 그 사실을 알린다.
-3. 인계 메모:
-   - 고른 이슈의 메모가 있으면 그대로 이어 쓴다.
-   - 메모가 없으면 이슈가 적히지 않은 메모 가운데 주제가 맞는 것을 찾는다. 메모 이름의 낱말, 본문, 직전 대화를 본다. 후보가 있으면 그 메모에 이슈를 연결할지 따로 만들지 묻는다. 연결하면 `> Issue` 줄을 채우고 이름을 바꿀지 묻는다.
-   - 맞는 메모가 없으면 `<플러그인 폴더>/shared/thread-template.md` 로 새 메모를 만들고 경로를 알린다. 이름은 `context-handoff` Step 1 을 따른다.
-4. 겹침 확인: 미제출 변경 파일이 다른 인계 메모의 "주요 파일 및 경로" 에 있으면 경고를 한 줄 적는다.
-5. 넘기기: 코드를 바꾸는 일은 `feature-impl`, 새 이슈는 `next-task`, 문서만 고치는 일은 해당 문서 스킬로 넘긴다.
+   - `jira`: from the result of `getTransitionsForJiraIssue`, choose the transition whose target status category (`statusCategory.key`) is `indeterminate`. If there are several, show the names and ask. If no transition matches, do not change the state, and say so.
+3. Handoff note:
+   - If the chosen issue has a note, continue in that note.
+   - If there is no note, look for a note without an issue whose topic matches. Use the words of the note name, the body, and the previous conversation. If there is a candidate, ask whether to link the issue to that note or to make a new note. If you link it, fill in the `> Issue` line and ask whether to rename the note.
+   - If no note matches, make a new note with `<plugin folder>/shared/thread-template.md` and give its path. For the name, follow `context-handoff` Step 1.
+4. Overlap check: if an uncommitted file is in "Key files" of another handoff note, write a one-line warning.
+5. Hand over: code changes go to `feature-impl`, new issues go to `next-task`, and document-only changes go to the matching document skill.
 
-## 주의
+## Cautions
 
-- 시간이 지났다는 이유로 인계 메모를 지우거나 보관하지 않는다. 트래커 상태를 근거로 묻거나, 사용자가 요청할 때만 정리한다.
-- 인증 정보와 비밀 값은 브리핑과 인계 메모에 적지 않는다.
+- Do not delete or archive a handoff note only because time passed. Ask based on the tracker state, or clean up only when the user asks.
+- Do not write credentials or secret values in the briefing or in handoff notes.

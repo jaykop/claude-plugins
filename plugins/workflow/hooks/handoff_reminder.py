@@ -43,9 +43,9 @@ def main():
             "hookSpecificOutput": {
                 "hookEventName": "Stop",
                 "additionalContext": (
-                    "이번 세션이 길어졌다({0}턴). 사용자가 다음 작업으로 넘어가거나 마무리할 시점이면 "
-                    "workflow 플러그인의 context-handoff 실행을 제안한다. 인계 메모를 갱신해 두면 다음 세션에서 "
-                    "맥락을 잃지 않고 이어 갈 수 있다.".format(turns)
+                    "This session is long ({0} turns). If the user is about to move to other work or to finish, "
+                    "suggest running context-handoff of the workflow plugin. An updated handoff note lets the next "
+                    "session continue without losing context.".format(turns)
                 ),
             },
         },

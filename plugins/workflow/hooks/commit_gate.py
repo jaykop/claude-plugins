@@ -34,9 +34,10 @@ def main():
         return 0
 
     reason = (
-        "커밋 전 문서 검토가 필요하다. workflow 플러그인의 commit-doc-review 스킬로 이번 커밋과 관련된 문서의 "
-        "반영 여부를 검토하고 사용자에게 보고한 뒤, 커밋 메시지 트레일러에 '{0} <검토 결과 요약>' 한 줄을 넣어 "
-        "다시 커밋한다. 검토 없이 트레일러만 붙이지 않는다.".format(trailer)
+        "A document review is required before this commit. Use the commit-doc-review skill of the workflow plugin "
+        "to check the documents and description comments related to this commit, report to the user, then add one "
+        "trailer line '{0} <review summary>' to the commit message and commit again. Do not add the trailer "
+        "without the review.".format(trailer)
     )
     json.dump(
         {

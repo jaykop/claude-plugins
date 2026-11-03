@@ -1,598 +1,604 @@
 ---
 name: feature-impl
-description: "코드 구현·수정 요청의 단일 진입점. 먼저 규모(Small / Large), 작업 종류(feature / improvement / bug), 위험 등급(low / mid / high)을 판별해 빠른 경로나 전체 경로로 진행하고, 끝나면 문서·커밋·이슈·인계 메모를 제안하는 체크포인트로 마무리한다. 신규 기능, 버그 수정, 수치 조정, 변수 이름 변경, '살짝', '간단히', '수치만', '빠르게', '조금만' 같은 모든 코드 변경 요청에 쓴다. 해당하지 않는 경우 — 다음 작업 고르기와 이슈 만들기(next-task), 문서만 고치는 일, 코드 리뷰만 하는 일."
-when_to_use: "workflow 프로필이 있는 프로젝트에서 코드를 바꾸는 요청을 받았을 때. 프로필이 없어도 쓸 수 있고, 그때는 처음에 프로필을 만들지 묻는다."
-argument-hint: "[#이슈번호] <요청 내용>"
+description: "The single entry point for requests to implement or change code. First decide the size (Small / Large), the work type (feature / improvement / bug), and the risk level (low / mid / high). Then go through the Fast Lane or the Full Lane, and finish with a checkpoint that suggests documents, commit, issue, and handoff note. Use it for every code change request: new features, bug fixes, value tuning, variable renames, and requests with '살짝', '간단히', '수치만', '빠르게', '조금만'. Not for: choosing the next work and making issues (next-task), document-only changes, code review only."
+when_to_use: "When you get a request to change code in a project that has a workflow profile. It also works without a profile. Then it first asks whether to make a profile."
+argument-hint: "[#issue number] <request>"
 ---
 
-# Feature Implementation (규모별 경로)
+# Feature Implementation (path by size)
 
-코드 구현·수정 요청 때 들어오는 통합 스킬이다. Step 0 에서 규모를 판별해 **Fast Lane (Small)** 이나 **Full Lane (Large)** 로 나뉘고, 두 경로 모두 **Step Final 체크포인트**로 끝난다.
+This is the combined skill for requests to implement or change code. Step 0 decides the size and goes to the **Fast Lane (Small)** or the **Full Lane (Large)**. Both paths end with the **Step Final checkpoint**.
 
-이 스킬은 프로젝트 지침을 대체하지 않는다. 충돌하면 **프로젝트 지침이 이긴다.**
+This skill does not replace the project instructions. If they conflict, **the project instructions win.**
 
-## 경로와 프로필
+## Paths and profile
 
-- 플러그인 폴더: `${CLAUDE_PLUGIN_ROOT}`
-- 프로젝트 루트: `${CLAUDE_PROJECT_DIR}`
+- Plugin folder: `${CLAUDE_PLUGIN_ROOT}`
+- Project root: `${CLAUDE_PROJECT_DIR}`
 
-값이 변수 이름 그대로 보이면 플러그인 폴더는 이 SKILL.md 의 두 단계 위 폴더, 프로젝트 루트는 세션을 시작한 폴더다.
+If the values show as variable names, the plugin folder is two levels above this SKILL.md, and the project root is the folder where the session started.
 
-프로필은 `<프로젝트 루트>/.claude/workflow/profile.md`, 개인 값은 같은 폴더의 `profile.local.md` 다. 양식은 `<플러그인 폴더>/shared/profile-template.md` 와 `profile-local-template.md` 다.
+The profile is `<project root>/.claude/workflow/profile.md`. Personal values are in `profile.local.md` in the same folder. The templates are `<plugin folder>/shared/profile-template.md` and `profile-local-template.md`.
 
-- **있으면** 읽는다. 이 스킬에서 쓰는 칸: `instructions`, `scope_sections`, `coding_rules`, `source_roots`, `risk_paths`, `tracker`·`tracker_repo`·`tracker_public`, `status_labels`, `threads_dir`, `verification`, `build_commands`, `test_setup_mcp`, `test_candidates`, `agent_review`, `review_guide`, 본문의 "설계 점검 항목".
-- **없으면** "이 프로젝트에 workflow 프로필이 없어요. 만들까요?" 라고 묻는다. 동의하면 프로젝트 지침(`AGENTS.md`, `CLAUDE.md`, `README.md`)과 폴더 구성에서 알 수 있는 값을 `[파일]` 로 채우고, 모르는 값만 한 번에 묻는다. 거절하면 아래의 기본값으로 진행한다: 이슈 트래커 없음, 인계 메모 없음, 검증은 사용자 담당.
+- **If the profile exists**, read it. Keys used in this skill: `instructions`, `scope_sections`, `coding_rules`, `source_roots`, `risk_paths`, `tracker`, `tracker_repo`, `tracker_public`, `status_labels`, `threads_dir`, `verification`, `build_commands`, `test_setup_mcp`, `test_candidates`, `agent_review`, `review_guide`, and the "Design checklist" section of the body (older profiles: "설계 점검 항목").
+- **If there is no profile**, ask: "이 프로젝트에 workflow 프로필이 없어요. 만들까요?" If the user agrees, fill in the values that the project instructions (`AGENTS.md`, `CLAUDE.md`, `README.md`) and the folder layout show, marked `[file]`, and ask for the unknown values in one message. If the user says no, continue with these defaults: no issue tracker, no handoff note, the user does verification.
 
----
-
-## 공통 규칙 (두 경로 모두)
-
-### 범위
-
-- 범위·구조·모듈 경계는 이 스킬에 복사하지 않는다. 매번 프로필 `scope_sections` 가 가리키는 지침을 기준으로 한다.
-- 판단 근거의 우선순위는 프로젝트 지침을 따른다. 지침이 정하지 않았으면 이 순서다.
-  1. 사용자의 현재 요청과 명시적으로 확정한 결정
-  2. 프로젝트 지침의 구조·경계와 현재 사용법을 적은 문서
-  3. 열린 이슈와 이슈에서 링크한 설계 문서
-- 폐기된 구현 전 설계 문서를 현재 사양으로 쓰지 않는다. **사용자 요청에 없는 기능이나 정하지 않은 설계를 구현으로 확정하지 않는다.**
-
-### 코딩 규칙
-
-- 프로필 `coding_rules` 가 가리키는 규칙을 따른다. 규칙을 이 스킬에 복사하지 않는다.
-- 규칙이 없으면 주변 코드의 명명, 주석 밀도와 언어, 들여쓰기, 인코딩(BOM 유무), 줄바꿈을 그대로 따른다.
-- 함수·프로퍼티·타입·태그의 동작을 바꾸면 같은 편집에서 그 선언의 설명 주석을 현재 동작에 맞게 고친다. 에디터 툴팁으로 보이는 주석과 태그 설명(`DevComment` 등)도 포함한다. 이름을 바꾸면 그 이름을 언급하는 주석도 고친다.
-
-### 버전 관리 규칙
-
-- **작업 시작 전 `git status --short` 로 현재 상태를 확인한다.** 다른 작업자의 미커밋 변경을 덮어쓰거나 되돌리지 않는다.
-- 요청 범위에 필요한 변경만 한다. 같은 파일을 건드리는 진행 중 작업이 보이면 현재 상태를 확인한 뒤 이어서 작업한다.
-- **커밋·푸시는 사용자가 요청할 때만 한다.** 구현이 끝났다는 이유로 자동으로 커밋하지 않는다. 커밋 범위와 대상은 프로필 `commit_policy` 를 따른다.
-
-### 검증 담당
-
-- 프로필 `verification` 이 `user` 거나 프로필이 없으면 **빌드·테스트·lint·정적 분석은 사용자가 담당한다.** 사용자가 명시적으로 요청했을 때만 실행한다.
-- 에이전트 리뷰(L6)는 코드를 읽기만 하므로 이 규칙과 별개다. 프로필 `agent_review` 를 따르고, 칸이 없거나 프로필이 없으면 켜진 것으로 본다. 리뷰 에이전트도 빌드·테스트를 실행하지 않는다.
-- 기능 구현 요청만으로 테스트 코드를 추가·확장하지 않는다. 테스트 코드는 결정 카드의 "테스트 후보"에서 사용자가 고른 것만 쓴다. 검증용 프로젝트 사본이나 별도 테스트 환경을 만들지 않는다.
-- 에디터나 사용자 프로세스를 강제로 종료하지 않는다.
-- 사용자에게 빌드를 부탁할 때 프로필 `build_commands` 가 있으면 함께 안내한다.
-- **완료 보고에는 실제 검증 여부만 적는다.** 실행하지 않은 검사를 성공했다고 보고하지 않는다.
-
-### 단계 표시
-
-각 단계 시작 때 머리줄을 낸다.
-
-```
-[Fast F2/3] 수정
-```
-```
-[Full L3/7] 구현 계획 수립 + thread 영속화
-```
-
-### 시행착오 기록
-
-에러 해결, 비결정적 결정, 피한 함정은 **인계 메모의 "참고 사항"에 쌓는다**(`<threads_dir>/<thread-name>.md`). 남길 가치가 있는 것은 나중에 `feature-doc-sync` 에서 devlog 로 옮긴다.
+Speak to the user in the language of the conversation. The quoted messages below are examples in Korean. Write handoff notes, code comments, and commit messages in the languages that the project instructions set.
 
 ---
 
-## Step 0 — 진입 및 규모·종류·위험 등급 판별
+## Common rules (both paths)
 
-> **수행: 오케스트레이터 (직접)**
+### Scope
 
-사용자 요청을 분석해 **규모 + work_type + 위험 등급** 세 축을 판별한다. 셋은 서로 독립이다.
+- Do not copy the scope, structure, or module boundaries into this skill. Each time, use the instructions that profile `scope_sections` points to.
+- The priority of evidence follows the project instructions. If the instructions do not set it, use this order.
+  1. The current request of the user and decisions that the user confirmed explicitly
+  2. The structure and boundaries in the project instructions, and the documents that describe current usage
+  3. Open issues and the design documents that they link
+- Do not use a discarded pre-implementation design document as the current specification. **Do not implement a feature that the user did not ask for, or a design that is not decided.**
 
-### A. 규모 판별
+### Coding rules
 
-| 규모 | 기준 | 분기 |
+- Follow the rules that profile `coding_rules` points to. Do not copy the rules into this skill.
+- If there are no rules, follow the surrounding code for naming, comment density and language, indentation, encoding (with or without BOM), and line endings.
+- When the behavior of a function, property, type, or tag changes, update the description comment of that declaration in the same edit to match the current behavior. Include comments that show as editor tooltips, and tag descriptions (such as `DevComment`). When a name changes, also update the comments that mention that name.
+
+### Version control rules
+
+- **Before you start, check the current state with `git status --short`.** Do not overwrite or revert uncommitted changes of other people.
+- Make only the changes that the request needs. If you see work in progress on the same file, check its current state, then continue.
+- **Commit and push only when the user asks.** Do not commit automatically because the implementation is done. The commit scope and targets follow profile `commit_policy`.
+
+### Verification owner
+
+- If profile `verification` is `user`, or there is no profile, **the user does builds, tests, lint, and static analysis.** Run them only when the user asks explicitly.
+- The agent review (L6) only reads code, so it is separate from this rule. Follow profile `agent_review`. If the key is missing or there is no profile, the review is on. The review agents also do not run builds or tests.
+- Do not add or extend test code only because of a feature request. Write only the tests that the user chose from the "Test candidates" of the decision card. Do not make a copy of the project or a separate test environment for verification.
+- Do not force-quit the editor or user processes.
+- When you ask the user to build, give the profile `build_commands` if they exist.
+- **In the completion report, write only what was actually verified.** Do not report a check that did not run as successful.
+
+### Step header
+
+At the start of each step, print a header line.
+
+```
+[Fast F2/3] Fix
+```
+```
+[Full L3/7] Implementation plan + thread save
+```
+
+### Trial and error log
+
+Collect error fixes, non-obvious decisions, and avoided traps **in "Notes" of the handoff note** (`<threads_dir>/<thread-name>.md`; older notes: "참고 사항"). For the other Korean headings of older notes, see `context-handoff` Step 3. Later, `feature-doc-sync` moves the items worth keeping to a devlog.
+
+---
+
+## Step 0 — Entry, and decide size, type, and risk level
+
+> **Done by: the orchestrator (directly)**
+
+Analyze the request of the user and decide three axes: **size + work_type + risk level**. The three are independent.
+
+### A. Size
+
+| Size | Criterion | Path |
 |---|---|---|
-| **Small** | 수치 조정 · 변수 이름 변경 · 1~2줄 수정 · 단일 파일 단순 버그 수정 | → Fast Lane |
-| **Large** | 신규 기능 · 여러 파일 · 모듈 경계에 걸침 · 설계 결정 필요 | → Full Lane |
+| **Small** | Value tuning, variable rename, a 1 to 2 line fix, a simple bug fix in one file | → Fast Lane |
+| **Large** | New feature, several files, crosses a module boundary, needs a design decision | → Full Lane |
 
-판단이 모호하면 짧게 묻는다.
+If it is not clear, ask briefly.
 
 > "이거 Fast lane (소규모) 갈까요, Full lane (큰 작업) 갈까요?"
 
-중간 크기는 Full Lane 으로 가되, 사용자가 도중에 "여기서 끊자" 라고 하면 바로 Step Final 로 간다.
+Medium work goes to the Full Lane. If the user says "여기서 끊자" during the work, go to Step Final at once.
 
-### B. work_type 판별
+### B. work_type
 
-대화 맥락에서 추정하고, 모호하면 후보를 내서 확인받는다.
+Guess it from the conversation. If it is not clear, give candidates and get confirmation.
 
-| work_type | 영향 |
+| work_type | Effect |
 |---|---|
-| **`feature`** (신규 기능) | Full Lane 표준. L1 강력 권장. Step Final 의 manual 갱신 강력 추천 |
-| **`improvement`** (기존 개선) | 규모에 따라. 테스트 가이드에서 회귀 확인 강조. Step Final 에서 manual **갱신** 권장 |
-| **`bug`** (버그 수정) | L1 자동 건너뜀 + 안전망 메시지. 재현 시나리오 중심. manual 은 보통 불필요 |
+| **`feature`** (new feature) | Full Lane standard. L1 strongly recommended. Strongly suggest a manual update in Step Final |
+| **`improvement`** (improve existing behavior) | Depends on size. The test guide stresses regression checks. Suggest a manual **update** in Step Final |
+| **`bug`** (bug fix) | Skip L1 automatically, with a safety message. Focus on the reproduction scenario. A manual update is usually not necessary |
 
-### C. 위험 등급 판별
+### C. Risk level
 
-등급은 변경 자체로 정한다. 규모나 작성자(사용자·에이전트)와 무관하다. 1줄 수정이라도 저장 데이터 형식을 바꾸면 high 다.
+The change itself sets the level. Size and author (user or agent) do not matter. A one-line fix that changes a saved data format is high.
 
-위에서부터 먼저 걸리는 등급을 쓴다.
+Use the first level that matches, from the top.
 
-| 등급 | 기준 |
+| Level | Criterion |
 |---|---|
-| **high** | 프로필 `risk_paths.high` 에 걸리는 파일을 건드린다. 또는 경로와 무관하게 저장 데이터 형식·직렬화되는 타입 이름 변경, 빌드·CI·릴리스 설정 변경, 사용자 데이터를 지우거나 덮어쓰는 코드, 나중 코드가 따라 할 공용 구조 신설 |
-| **low** | 바꾸는 파일이 모두 `risk_paths.low` 에 걸린다. 또는 문서·주석·UI 문구만, 테스트 코드만, 기본값이 꺼진 기능 플래그 뒤의 코드만 바꾼다 |
-| **mid** | 그 밖의 모든 코드 변경 |
+| **high** | The change touches a file that matches profile `risk_paths.high`. Or, independent of the path: a change to a saved data format or to the name of a serialized type, a change to build, CI, or release settings, code that deletes or overwrites user data, or a new shared structure that later code will copy |
+| **low** | All changed files match `risk_paths.low`. Or the change is only documents, comments, or UI text, only test code, or only code behind a feature flag that is off by default |
+| **mid** | All other code changes |
 
-- 파일마다 등급을 매기고 가장 높은 등급을 쓴다. 모호하면 높은 쪽으로 정한다.
-- 계획이나 구현 중에 바꿀 파일이 늘면 다시 판별한다. 등급이 오르면 사용자에게 알린다.
+- Give each file a level, and use the highest one. If it is not clear, use the higher level.
+- If the planning or the implementation adds files to change, decide again. If the level goes up, tell the user.
 
-등급에 따라 에이전트 리뷰 깊이(L6)와 사람이 볼 범위가 정해진다.
+The level sets the depth of the agent review (L6) and what a person must read.
 
-| 등급 | 에이전트 리뷰 | 사람이 볼 것 |
+| Level | Agent review | What a person reads |
 |---|---|---|
-| low | 생략 | 빌드·테스트 결과 같은 증거 |
-| mid | Standard — 리뷰어 1명 | 증거 + 판단이 들어간 코드 조각 |
-| high | Deep — 리뷰어 2명 병렬 + 검증자 | 증거 + 변경 전체 (읽는 순서를 함께 안내) |
+| low | Skipped | Evidence such as build and test results |
+| mid | Standard: 1 reviewer | Evidence + code parts that contain judgment |
+| high | Deep: 2 reviewers in parallel + verifier | Evidence + the whole change (with a reading order) |
 
-판별 결과는 한 줄로 알린다.
+Report the result in one line.
 
 ```
-Large · feature · 위험 high (Source/Save/SaveGame.cpp — 저장 데이터 형식)
+Large · feature · risk high (Source/Save/SaveGame.cpp: saved data format)
 ```
 
-### D. 이슈 연결
+### D. Issue link
 
-프로필 `tracker` 가 `github` 가 아니면 이 단계를 건너뛴다(`jira` 는 지금 `work-start` 만 읽는다). `github` 면 진행 중인 작업의 기준은 이슈다. **Large 는 필수, Small 은 생략할 수 있다.**
+If profile `tracker` is not `github`, skip this step (`jira` is read only by `work-start` now). If it is `github`, the issue is the reference for work in progress. **An issue is required for Large and optional for Small.**
 
-1. 사용자가 이슈 번호를 주면 `gh issue view <N>` 으로 읽고 그 이슈를 이어 쓴다.
-2. 번호가 없으면 열린 이슈에서 주제가 맞는 것을 찾는다.
+1. If the user gives an issue number, read it with `gh issue view <N>` and continue that issue.
+2. If there is no number, look for an open issue with a matching topic.
    ```bash
-   gh issue list --state open --search "<키워드>" --limit 10
+   gh issue list --state open --search "<keywords>" --limit 10
    ```
-   후보가 있으면 "#N `<제목>` 이어서 할까요?" 라고 확인한다.
-3. 맞는 이슈가 없으면 `next-task` 스킬의 **B. 새 이슈 만들기**로 초안을 만든다. 초안을 보여 주고 확인받은 뒤 게시한다.
-4. 사용자가 "이슈 없이" 라고 하면 이슈 없이 진행한다. 도중에 "이슈로 만들어" 라고 하면 3 으로 간다.
+   If there is a candidate, confirm: "#N `<제목>` 이어서 할까요?"
+3. If no issue matches, make a draft with **B. Make a new issue** of the `next-task` skill. Show the draft and post it after confirmation.
+4. If the user says "이슈 없이", continue without an issue. If the user later says "이슈로 만들어", go to 3.
 
-작업을 시작하면 프로필 `status_labels.in_progress` 라벨을 붙일지 묻는다(라벨이 정해져 있을 때만).
+When the work starts, ask whether to add the profile `status_labels.in_progress` label (only if the label is set).
 
-### E. 인계 메모 보장
+### E. Handoff note
 
-인계 메모는 이슈를 보조하는 **로컬 세션 기록**이다. 이름은 `<threads_dir>/<이슈번호>-<slug>.md`(이슈가 없으면 `<slug>.md`) 다. 프로필이 없으면 인계 메모를 쓰지 않는다.
+The handoff note is a **local session record** that supports the issue. Its name is `<threads_dir>/<issue number>-<slug>.md` (`<slug>.md` if there is no issue). If there is no profile, do not write a handoff note.
 
-- 맞는 파일이 있으면 이어 쓴다. 이슈 번호가 없는 기존 파일이면 이름 변경을 제안한다.
-- 없으면 Full Lane 은 L3 에서 만든다. Fast Lane 은 만들지 않는다.
-- 이슈도 인계 메모도 없이 진행하면 Step Final 의 인계·이슈 제안을 건너뛴다.
+- If a matching file exists, continue it. If an existing file has no issue number, suggest a rename.
+- If there is none, the Full Lane makes it in L3. The Fast Lane does not make one.
+- If the work has neither an issue nor a handoff note, skip the handoff and issue suggestions of Step Final.
 
 ---
 
 # Fast Lane (Small)
 
-3 단계로 빠르게 처리한다. 계획·설계·테스트 가이드 단계를 생략한다. 에이전트 리뷰는 위험 high 일 때만 한다(F2 끝).
+Finish quickly in 3 steps. Skip the planning, design, and test guide steps. Do the agent review only for risk high (at the end of F2).
 
-## Step F1 — 변경 위치 확인
+## Step F1 — Find the change location
 
-> **수행: 오케스트레이터 (직접)**
+> **Done by: the orchestrator (directly)**
 
-- 사용자가 지목한 파일·줄을 읽는다.
-- 변경 의도를 확인한다. 모호하면 1~2개 질문한 뒤 진행한다.
+- Read the files and lines that the user pointed to.
+- Confirm the intent of the change. If it is not clear, ask 1 or 2 questions, then continue.
 
-## Step F2 — 수정
+## Step F2 — Fix
 
-> **수행: 오케스트레이터 (직접)**
+> **Done by: the orchestrator (directly)**
 
-- `git status --short` 로 해당 파일에 미커밋 변경이 있는지 먼저 본다.
-- 코딩 규칙을 지켜 수정한다. 요청 범위 밖은 건드리지 않는다.
-- 위험 high 면 Full Lane L6 절차로 Deep 리뷰를 한다. 빌드와의 순서도 L6 를 따른다. 의도 입력은 요청 한두 줄이다. low·mid 는 리뷰하지 않는다.
+- First check with `git status --short` whether the file has uncommitted changes.
+- Make the fix with the coding rules. Do not touch anything outside the request.
+- For risk high, do a Deep review with the procedure of Full Lane L6. The order with the build also follows L6. The intent input is one or two lines of the request. Do not review low or mid.
 
-## Step F3 — 빌드 확인 요청
+## Step F3 — Ask for a build check
 
-> **수행: 오케스트레이터 (직접)**
+> **Done by: the orchestrator (directly)**
 
-검증이 사용자 담당이면:
+If the user does verification:
 
 > "수정 완료. 빌드 결과 알려주세요."
 
-**직접 빌드하지 않는다.** 사용자가 에러를 보고하면 분석 → 수정 → 다시 빌드 요청. "통과" 나 "에러 없음" → **Step Final**. 프로필 `verification` 이 `agent` 면 `build_commands` 로 직접 확인하고 결과를 그대로 보고한다.
+**Do not build yourself.** If the user reports an error: analyze → fix → ask for a new build. "통과" or "에러 없음" → **Step Final**. If profile `verification` is `agent`, check with `build_commands` yourself and report the result as it is.
 
 ---
 
 # Full Lane (Large)
 
-## 에이전트 전략
+## Agent strategy
 
-서브에이전트는 맥락 없이 시작하므로, 넓게 읽고 결과만 돌려받으면 되는 탐색에만 기본으로 쓴다. 대화에서 확정한 결정과 지침의 세부 규칙이 필요한 계획·구현은 오케스트레이터가 직접 한다. 이 스킬을 쓰는 것 자체가 아래 표의 서브에이전트 사용에 대한 요청이다. 사용자가 원치 않거나 지금 환경에서 서브에이전트를 쓸 수 없으면 L2·L6 도 직접 한다.
+A subagent starts without context. So by default, use subagents only for exploration that reads widely and returns only the result. The orchestrator does the planning and the implementation directly, because they need the decisions confirmed in the conversation and the detailed rules of the instructions. Use of this skill is itself a request to use subagents as the table below shows. If the user does not want subagents, or the environment cannot use them, do L2 and L6 directly too.
 
-| Step | 수행 주체 | 이유 |
+| Step | Done by | Reason |
 |------|-----------|------|
-| L1. 요구 정리 | 오케스트레이터 | 사용자 대화 |
-| L2. 코드베이스 탐색 | 탐색 에이전트 (빠른 모델. Claude 는 Explore). 지목된 파일 몇 개만 보면 되면 직접 | 넓은 탐색 결과만 받아 메인 맥락을 아낀다 |
-| L3. 구현 계획 + 영속화 | 오케스트레이터 | 확정 결정·지침·대화 맥락이 계획 품질을 좌우한다. 요약을 넘겨받는 계획 에이전트는 이 맥락을 잃는다 |
-| L4. 결정 확정과 피드백 | 오케스트레이터 | 사용자 대화 |
-| L5. 구현 | 오케스트레이터, 구현 순서대로. 병렬 구현 에이전트는 아래 조건에서만 | 서로 맞물린 파일(선언과 구현, include, 생성 코드 매크로)을 따로 쓰면 어긋나기 쉽고, 그 비용은 사용자 빌드 시간으로 돌아온다 |
-| L6. 에이전트 리뷰 | 리뷰 에이전트 (맥락 없이 시작하는 범용 서브에이전트) × 깊이별 수. 지적 처리는 오케스트레이터 | 구현한 맥락에 끌리지 않는 눈으로 본다. 고치는 데는 대화 맥락이 필요하다 |
-| L7. 에러 수정 + 테스트 가이드 | 오케스트레이터 | 사용자 대화·실행 환경 |
+| L1. Requirements | Orchestrator | Conversation with the user |
+| L2. Codebase exploration | Exploration agent (fast model; Explore for Claude). Directly, if only a few named files are necessary | Receive only the result of a wide search, and save the main context |
+| L3. Implementation plan + save | Orchestrator | Confirmed decisions, instructions, and conversation context set the quality of the plan. A planning agent that receives only a summary loses this context |
+| L4. Confirm decisions and feedback | Orchestrator | Conversation with the user |
+| L5. Implementation | Orchestrator, in implementation order. Parallel implementation agents only under the condition below | Files that depend on each other (declaration and implementation, includes, generated code macros) easily go out of sync when written separately, and the user pays for that with build time |
+| L6. Agent review | Review agents (general-purpose subagents that start without context) × the number for the depth. The orchestrator handles the findings | A reviewer that is not pulled by the implementation context reads the change. Fixing needs the conversation context |
+| L7. Error fixes + test guide | Orchestrator | Conversation with the user, run environment |
 
-병렬 구현 에이전트를 쓰는 조건: 계획의 "병렬 구현 가능 그룹"에 서로 참조하지 않는 파일이 여럿 있고, 파일마다 구현 지시가 계획 안에서 완결될 때(예: 독립된 데이터 파일, 서로 무관한 도구 스크립트). 이때도 같은 모듈의 선언·구현 쌍은 한 에이전트에 묶는다.
+Condition for parallel implementation agents: the "Parallel implementation groups" of the plan contain several files that do not reference each other, and the plan gives complete implementation instructions for each file (for example, independent data files, or unrelated tool scripts). Even then, give a declaration and implementation pair of the same module to one agent.
 
-## Step L1 — 요구 정리
+## Step L1 — Requirements
 
-> **수행: 오케스트레이터 (직접)**
+> **Done by: the orchestrator (directly)**
 
-### work_type 이 `bug` 인 경우 — 자동 건너뜀 + 안전망
+### When work_type is `bug`: skip automatically, with a safety message
 
 > "bug 타입 — 요구 정리는 건너뛰고 재현 시나리오부터 갑니다. 필요하면 알려주세요."
 
-별말이 없으면 L2 로 간다.
+If the user says nothing else, go to L2.
 
-### 표준 L1
+### Standard L1
 
-공통 규칙의 판단 근거 우선순위를 따른다.
-
-```
-## 요구 요약: [기능명]
-
-### 목적
-### 핵심 동작
-### 데이터 / 파라미터
-### 예외 / 엣지 케이스
-### 미정 / 불명확한 항목
-```
-
-정리한 뒤 확인을 요청하고, 확인되면 L2 로 간다.
-
-## Step L2 — 코드베이스 탐색
-
-> **수행: 탐색 에이전트**
-
-탐색 에이전트에게 넘길 것:
-
-- L1 요구 요약 전문
-- 탐색 대상: 연관 클래스·컴포넌트·서브시스템, 의존 시스템, 재사용할 수 있는 기존 패턴
-- 탐색 범위: 프로필 `source_roots` (없으면 저장소 전체에서 생성·벤더 폴더 제외)
-- 경계 확인: 이 변경이 어느 모듈·영역에 속하는가, 프로젝트 지침의 의존 방향을 어기지 않는가
-- 철저함: 가장 철저하게
-
-결과 형식:
+Follow the priority of evidence in the common rules.
 
 ```
-## 코드베이스 탐색 결과
+## Requirement summary: [feature name]
 
-### 연관 파일
-### 재사용 가능한 기존 구조
-### 주의할 의존 관계 (모듈 경계 포함)
+### Purpose
+### Core behavior
+### Data / parameters
+### Exceptions / edge cases
+### Open or unclear items
 ```
 
-자동으로 L3 로 간다.
+After the summary, ask for confirmation. After confirmation, go to L2.
 
-## Step L3 — 구현 계획 수립 + Thread 영속화
+## Step L2 — Codebase exploration
 
-> **수행: 오케스트레이터 (직접)**
+> **Done by: the exploration agent**
 
-L1 요구 요약, L2 탐색 결과, 코딩 규칙, 프로필 본문의 "설계 점검 항목"을 바탕으로 계획을 쓴다. 탐색 결과가 의심스러우면 해당 파일을 직접 읽어 확인한다.
+Give the exploration agent:
 
-계획은 두 겹이다. **사용자에게는 결정 카드만 보여 준다.** 파일 표와 구현 순서 같은 상세 계획은 인계 메모에 둔다. 사용자가 판단할 것은 결정과 위험이고, 파일 목록은 판단 재료가 아니다.
+- The full L1 requirement summary
+- Search targets: related classes, components, and subsystems, dependent systems, and existing patterns to reuse
+- Search scope: profile `source_roots` (if empty, the whole repository without generated and vendor folders)
+- Boundary check: which module or area this change belongs to, and whether it breaks the dependency direction of the project instructions
+- Thoroughness: the most thorough
 
-### 결정 카드 (대화에 낸다)
+Result format:
 
 ```
-## 구현 계획: [기능명]
-Large · <work_type> · 위험 <등급> (<근거 파일과 이유>)
+## Codebase exploration result
 
-### 의도
-<3줄 이내. 무엇이 어떻게 달라지는가>
+### Related files
+### Existing structures to reuse
+### Dependencies to watch (including module boundaries)
+```
 
-### 결정할 것
-**D1. <사용자가 답할 질문>**
-- 추천: <안> — <결과>
-- 대안: <안> — <결과>
+Go to L3 automatically.
 
-### 깨질 수 있는 것과 확인 방법
-| # | 깨질 수 있는 것 | 확인 방법 |
+## Step L3 — Implementation plan + thread save
+
+> **Done by: the orchestrator (directly)**
+
+Write the plan from the L1 requirement summary, the L2 exploration result, the coding rules, and the "Design checklist" of the profile body. If an exploration result looks wrong, read the file yourself and check.
+
+The plan has two layers. **Show the user only the decision card.** Keep the detailed plan, such as the file tables and the implementation order, in the handoff note. The user must judge decisions and risks. A file list is not material for that judgment.
+
+### Decision card (show it in the conversation)
+
+Write the card in the language of the conversation, and translate the labels.
+
+```
+## Implementation plan: [feature name]
+Large · <work_type> · risk <level> (<files and reason>)
+
+### Intent
+<3 lines or fewer. What changes, and how>
+
+### Decisions
+**D1. <question for the user>**
+- Recommended: <option>: <result>
+- Alternative: <option>: <result>
+
+### What can break, and how to check
+| # | What can break | How to check |
 |---|---|---|
 | R1 | | |
 
-### 테스트 후보
-| # | 대상 | 기준 | 단언할 것 | 추천 |
+### Test candidates
+| # | Target | Criterion | What to assert | Recommendation |
 |---|---|---|---|---|
 | T1 | | | | |
 
-### 조각
-| # | 내용 | 확인 방법 |
+### Slices
+| # | Content | How to check |
 |---|---|---|
 ```
 
-- 한 화면 안에 들어가게 쓴다. 넘치면 결정이 너무 많거나 조각을 덜 나눈 것이다.
-- **결정할 것**: 실제로 대안이 있고 결과가 달라지는 것만 쓴다. 지침이나 기존 코드가 이미 정한 것은 결정이 아니다. 질문은 파일·함수 이름 대신 동작과 결과로, 사용자가 답할 수 있는 말로 쓴다. 결정이 없으면 "결정할 것 없음"이라고 쓴다.
-- **깨질 수 있는 것**: 아래 "계획에서 반드시 확인할 것"을 점검하다 걸린 것과, 이 변경이 기존 동작을 깨뜨릴 수 있는 지점이다. 확인 방법에는 빌드, 테스트 가이드 항목처럼 실제로 잡아낼 수단을 적는다. 잡을 수단이 없으면 "사람이 확인 — <무엇을>" 이라고 쓴다. R 번호는 테스트 가이드와 인계 메모에서 그대로 쓴다.
-- **테스트 후보**: 프로필 `test_candidates` 가 비어 있으면 이 절을 뺀다. 칸이 있으면 이번에 새로 쓰거나 동작을 바꾸는 코드 가운데 그 기준에 드는 것만 올리고, `기준` 칸에 해당 기준을 적는다. 기준에 드는 것이 없으면 "테스트 후보 없음"이라고 쓴다. `단언할 것`은 입력과 기대 결과, 또는 반복 뒤에 남지 않아야 할 자원처럼 테스트가 확인할 내용이다. `추천`은 `이번 작업`·`후속 이슈`·`안 함` 가운데 하나다. 사용자가 고른 대로만 한다. `이번 작업`은 상세 계획의 구현 순서에 넣고, `후속 이슈`는 Step Final 3) 의 후속 이슈 초안으로 넘긴다. 사용자가 답하지 않은 후보는 쓰지 않는다.
-- **조각**: 아래 "조각 나누기"를 따른다. 조각이 하나면 표 대신 "한 번에 구현"이라고 쓴다.
+- Fit the card on one screen. If it does not fit, there are too many decisions, or the slices are too large.
+- **Decisions**: write only items that have real alternatives with different results. Items that the instructions or the existing code already set are not decisions. Write each question with behavior and results, in words that the user can answer, not with file or function names. If there are no decisions, write "No decisions".
+- **What can break**: items found while you check "What the plan must check" below, and places where this change can break existing behavior. In "How to check", write a means that actually finds the problem, such as the build or an item of the test guide. If there is no such means, write "Person checks: <what>". Use the same R numbers in the test guide and in the handoff note.
+- **Test candidates**: if profile `test_candidates` is empty, leave out this section. If it has values, list only code that is new or changes behavior in this work and that matches those criteria. Write the matching criterion in the `Criterion` column. If nothing matches, write "No test candidates". `What to assert` is what the test checks, such as the input and the expected result, or a resource that must not remain after repetition. `Recommendation` is one of `this work`, `follow-up issue`, or `none`. Do only what the user chooses. `this work` goes into the implementation order of the detailed plan. `follow-up issue` goes to the follow-up issue draft of Step Final 3). Do not write a candidate that the user did not answer.
+- **Slices**: follow "Slicing" below. If there is only one slice, write "One implementation" in place of the table.
 
-### 조각 나누기
+### Slicing
 
-결정이 5개를 넘거나, 깨질 수 있는 것이 6개를 넘거나, 결정 카드가 한 화면을 넘으면 작업을 조각으로 나눈다.
+Split the work into slices if there are more than 5 decisions, more than 6 items that can break, or the decision card does not fit on one screen.
 
-- 조각마다 따로 빌드·테스트·커밋할 수 있어야 한다. 조각 하나만 반영돼도 프로젝트가 빌드되고 기존 동작이 유지된다.
-- 앞 조각이 뒤 조각의 기반이 되게 순서를 정한다(예: 데이터 구조 → 동작 → UI).
-- 결정은 작업 전체에 대해 한 번 받는다. 구현은 조각마다 L5 → L6 → L7 → Step Final 의 커밋 제안을 거친 뒤 다음 조각으로 간다.
+- You must be able to build, test, and commit each slice separately. With only one slice applied, the project builds and the existing behavior stays.
+- Order the slices so that each one is the base for the next (for example, data structure → behavior → UI).
+- Get the decisions once for the whole work. Implement each slice through L5 → L6 → L7 → the commit suggestion of Step Final, then go to the next slice.
 
-### 상세 계획 (인계 메모에 둔다)
+### Detailed plan (keep it in the handoff note)
 
-조각이 있으면 파일 표와 구현 순서를 조각별로 나눈다.
+If there are slices, split the file tables and the implementation order by slice.
 
 ```
-## 구현 계획: [기능명]
+## Implementation plan: [feature name]
 
-### 신규 파일
-| 파일 경로 | 모듈·영역 | 역할 |
+### New files
+| File path | Module or area | Role |
 
-### 수정 파일
-| 파일 경로 | 모듈·영역 | 변경 내용 |
+### Changed files
+| File path | Module or area | Change |
 
-### 구현 순서
-### 병렬 구현 가능 그룹
-### 설계 결정 사항
-### 수명·자원 정리 검토
-### 미결 질문
+### Implementation order
+### Parallel implementation groups
+### Design decisions
+### Lifetime and resource cleanup review
+### Open questions
 ```
 
-계획에서 반드시 확인할 것:
+What the plan must check:
 
-- 프로필 "설계 점검 항목"의 각 줄.
-- 공유 설정·에셋과 실행 중 상태를 분리했는가. 공유 객체에 실행 중 시간·대상 기록·핸들을 저장하지 않는가.
-- 조건 판정에 부작용이 없는가.
-- 실행 중 작업이 완료·취소·중단·소유자 파괴 때 획득한 자원과 이벤트 구독을 정리하는가. 참조 수명과 메모리 관리(GC·참조 카운트 등)를 검토했는가.
-- 경로·모듈 이름·직렬화되는 타입 이름을 바꾼다면 저장된 데이터와 이전 이름 연결(redirect)을 확인했는가.
+- Each line of the profile "Design checklist".
+- Shared settings and assets are separate from runtime state. Shared objects do not store runtime time, target records, or handles.
+- Condition checks have no side effects.
+- Running work releases acquired resources and event subscriptions on completion, cancel, interrupt, and owner destruction. Reference lifetime and memory management (GC, reference counts, and similar) are reviewed.
+- If a path, module name, or serialized type name changes, saved data and redirects from the old name are checked.
 
-확인하다 걸린 것은 결정 카드의 "깨질 수 있는 것"에 올린다.
+Put each problem found in these checks in "What can break" of the decision card.
 
-### Thread 파일 영속화
+### Save to the thread file
 
-계획을 쓰면 인계 메모의 `## 구현 계획` 단락에 상세 계획 전문을, `## 위험과 검증` 단락에 "깨질 수 있는 것" 표를 저장한다. 파일이 없으면 `<플러그인 폴더>/shared/thread-template.md` 로 새로 만든다. 인계 메모를 쓰지 않는 경우(프로필 없음)에는 상세 계획을 사용자가 요청할 때 보여 준다.
+When the plan is written, save the full detailed plan in the `## Implementation plan` section of the handoff note, and the "What can break" table in the `## Risks and checks` section (older notes: `## 구현 계획`, `## 위험과 검증`). If the file does not exist, make it with `<plugin folder>/shared/thread-template.md`. If you do not write a handoff note (no profile), show the detailed plan when the user asks for it.
 
 > "구현 계획을 `<threads_dir>/<name>.md` 에 저장했습니다."
 
-이슈가 있으면 결정이 확정된 뒤 계획 **요약**(범위, 확정 결정, 완료 조건)을 이슈 댓글 초안으로 보여 주고 게시할지 묻는다. 설계 상세는 설계 문서가 있으면 링크만 한다. `tracker_public` 이 true 면 로컬 경로와 시행착오를 넣지 않는다.
+If there is an issue, after the decisions are confirmed, show a **summary** of the plan (scope, confirmed decisions, completion conditions) as an issue comment draft, and ask whether to post it. For design details, only link the design document if there is one. If `tracker_public` is true, do not include local paths or trial and error.
 
-### 계획 출력 마무리
+### End of the plan output
 
 > "결정 D1~Dn 에 답해 주세요. 추천안대로면 **'추천대로'** 라고 하셔도 됩니다."
 
-테스트 후보가 있으면:
+If there are test candidates:
 
 > "결정 D1~Dn 과 테스트 후보 T1~Tn 에 답해 주세요. 테스트 후보는 `이번 작업`·`후속 이슈`·`안 함` 가운데 고르시면 됩니다. 모두 추천안대로면 **'추천대로'** 라고 하셔도 됩니다."
 
-결정할 것이 없으면:
+If there are no decisions:
 
 > "결정할 것은 없습니다. 위험과 조각을 보시고 괜찮으면 **'구현 시작'** 이라고 말씀해 주세요."
 
-결정할 것은 없고 테스트 후보만 있으면:
+If there are no decisions but there are test candidates:
 
 > "결정할 것은 없습니다. 테스트 후보 T1~Tn 을 `이번 작업`·`후속 이슈`·`안 함` 가운데 골라 주세요. 추천안대로면 **'추천대로'**, 테스트 없이 구현하려면 **'구현 시작'** 이라고 말씀해 주세요."
 
-## Step L4 — 결정 확정과 피드백
+## Step L4 — Confirm decisions and feedback
 
-> **수행: 오케스트레이터 (직접)**
+> **Done by: the orchestrator (directly)**
 
-- 답을 받으면 결정마다 확정 결과를 적는다(`D1: 추천안 확정`, `D2: 대안 확정 — <이유>`). 테스트 후보도 고른 결과를 적는다(`T1: 이번 작업`, `T2: 안 함`).
-- 답 때문에 계획이 바뀌면 결정 카드 전체를 다시 낸다. 고친 항목에 `*` 표시. 바뀐 것이 없으면 확정 결과만 한 줄로 알린다.
-- 피드백은 결정 카드나 상세 계획의 해당 부분에 반영한다.
-- 인계 메모의 `## 구현 계획`, `## 위험과 검증` 단락도 같이 갱신한다.
-- 답하지 않은 결정이나 테스트 후보가 남았으면 그것만 다시 묻는다.
+- When you get the answers, write the confirmed result of each decision (`D1: recommended option confirmed`, `D2: alternative confirmed: <reason>`). Also write the result for the test candidates (`T1: this work`, `T2: none`).
+- If the answers change the plan, show the whole decision card again. Mark the changed items with `*`. If nothing changed, report only the confirmed results in one line.
+- Put the feedback in the matching part of the decision card or the detailed plan.
+- Also update the `## Implementation plan` and `## Risks and checks` sections of the handoff note (older notes: `## 구현 계획`, `## 위험과 검증`).
+- If decisions or test candidates are still not answered, ask only about those.
 
-모든 결정이 확정되고 **"구현 시작"** 이나 **"추천대로"** → L5. "추천대로"는 결정과 테스트 후보를 모두 추천안으로 확정한다. 답이 남은 채로 "구현 시작" 을 받으면, 남은 결정은 추천안으로 확정하고 남은 테스트 후보는 `안 함`으로 둔다고 한 줄로 알리고 L5 로 간다.
+When all decisions are confirmed and the user says **"구현 시작"** or **"추천대로"** → L5. "추천대로" confirms all decisions and test candidates with the recommended options. If you get "구현 시작" while answers are missing, say in one line that the remaining decisions take the recommended options and the remaining test candidates take `none`, then go to L5.
 
-## Step L5 — 구현
+## Step L5 — Implementation
 
-> **수행: 오케스트레이터 (직접). 조건이 맞는 그룹만 구현 에이전트 × N**
+> **Done by: the orchestrator (directly). Implementation agents × N only for the groups that meet the condition**
 
-- 기본은 계획의 구현 순서대로 직접 구현한다. 선언을 바꾸면 그 선언을 쓰는 구현과 호출부를 같은 흐름에서 맞춘다.
-- "에이전트 전략"의 병렬 조건을 만족하는 그룹만 구현 에이전트에 나눈다. 그룹 안의 파일은 동시에, 그룹 사이는 차례로. 에이전트에게 해당 파일의 구현 지시, 의존 파일 내용, 코딩 규칙을 넘기고, 결과를 받은 뒤 이웃 파일과 맞물리는지 직접 읽어 확인한다.
-- **계획에 없는 변경 금지.** 계획 밖의 사항을 발견하면 결과에 담아 사용자에게 보고한다.
-- 조각으로 나눴으면 지금 조각만 구현한다.
-- 바꿀 파일이 계획보다 늘면 Step 0-C 로 위험 등급을 다시 판별한다. 등급이 오르면 멈추고 알린다.
+- By default, implement directly in the implementation order of the plan. When you change a declaration, update the implementations and the call sites that use it in the same flow.
+- Give only the groups that meet the parallel condition of "Agent strategy" to implementation agents. Files in a group run at the same time. Groups run one after another. Give each agent the implementation instructions for its files, the contents of the dependent files, and the coding rules. When you get the result, read it yourself and check that it fits the neighboring files.
+- **No changes outside the plan.** If you find something outside the plan, put it in the result and report it to the user.
+- If the work has slices, implement only the current slice.
+- If the files to change are more than the plan says, decide the risk level again with Step 0-C. If the level goes up, stop and tell the user.
 
-끝나면 바로 L6 로 간다. 빌드 요청은 L6 순서를 따른다.
+When you finish, go to L6 at once. The build request follows the order of L6.
 
-## Step L6 — 에이전트 리뷰
+## Step L6 — Agent review
 
-> **수행: 리뷰 에이전트 × 깊이별 수. 지적 처리와 리뷰 패킷은 오케스트레이터**
+> **Done by: review agents × the number for the depth. The orchestrator handles the findings and the review packet**
 
-사람이 보기 전에 맥락 없는 리뷰 에이전트가 변경을 본다. 리뷰 절차와 출력 형식은 `<플러그인 폴더>/shared/review-brief.md` 다. 프로필 `agent_review` 가 false 거나 위험 low 면 리뷰를 건너뛰고, 그 사실을 리뷰 패킷 첫 줄에 적는다.
+Before a person reads the change, review agents without context read it. The review procedure and the output format are in `<plugin folder>/shared/review-brief.md`. If profile `agent_review` is false or the risk is low, skip the review, and write that on the first line of the review packet.
 
-### L6-1. 빌드와의 순서
+### L6-1. Order with the build
 
-| `verification` | 순서 | 이유 |
+| `verification` | Order | Reason |
 |---|---|---|
-| `user` (또는 프로필 없음) | 리뷰 → 지적 처리 → 리뷰 패킷과 함께 빌드 요청 | 리뷰에서 고친 것까지 빌드 한 번으로 확인한다. 사용자 빌드 횟수가 늘지 않는다 |
-| `agent` | `build_commands` 로 빌드·테스트 → 통과하면 리뷰 → 지적 처리 → 바뀐 부분만 다시 빌드·테스트 | 결정적이고 싼 검사가 잡을 문제를 비싼 리뷰가 찾지 않게 한다 |
+| `user` (or no profile) | Review → handle findings → ask for a build together with the review packet | One build also checks the fixes from the review. The number of user builds does not go up |
+| `agent` | Build and test with `build_commands` → if they pass, review → handle findings → build and test again only for the changed parts | The expensive review does not look for problems that a cheap and deterministic check finds |
 
-### L6-2. 깊이와 리뷰어
+### L6-2. Depth and reviewers
 
-Step 0-C 의 위험 등급으로 정한다.
+Step 0-C risk level sets the depth.
 
-| 깊이 | 리뷰어 | 지적 확인 |
+| Depth | Reviewers | Check of findings |
 |---|---|---|
-| Standard (mid) | 초점 `전체` 1명 | 오케스트레이터가 지적의 `파일:줄` 을 직접 읽어 확인한 뒤 처리한다 |
-| Deep (high) | 초점 `정확성`·`실패 유형` 2명을 한 메시지에서 병렬로 | 검증 에이전트 1명이 두 결과를 합치고 하나씩 확인한다(review-brief.md 8) |
+| Standard (mid) | 1 reviewer with focus `all` | The orchestrator reads the `file:line` of each finding and checks it before handling it |
+| Deep (high) | 2 reviewers with focus `correctness` and `failure types`, in parallel in one message | 1 verifier agent merges the two results and checks each finding (review-brief.md section 8) |
 
-각 리뷰어에게 review-brief.md 경로와 그 2절의 입력을 넘긴다. 프로필 `review_guide` 가 있으면 그 경로를 넘긴다.
+Give each reviewer the path of review-brief.md and the input of its section 2. If profile `review_guide` has a value, give that path.
 
-서브에이전트를 쓸 수 없으면 오케스트레이터가 review-brief.md 대로 직접 리뷰하고, 리뷰 패킷에 "맥락 없는 리뷰 아님"이라고 적는다.
+If subagents cannot be used, the orchestrator reviews directly with review-brief.md, and writes "not a review without context" in the review packet.
 
-### L6-3. 지적 처리
+### L6-3. Handle findings
 
-모든 지적은 닫는다. 고치거나, 이유를 적는다.
+Close every finding. Fix it, or write the reason.
 
-| 분류 | 처리 |
+| Category | Handling |
 |---|---|
-| `Important` | 고친다. 리뷰어가 틀렸다고 판단하면 고치지 않고 이유를 적는다. 계획 밖의 큰 변경이 필요하면 고치지 않고 사용자에게 묻는다 |
-| `Nit` | 바뀐 줄 안에서 바로 고칠 수 있는 것만 고친다. 나머지는 "Nit — 건너뜀"으로 닫는다. Nit 만 고쳤으면 다음 차수를 돌리지 않는다 |
-| `Pre-existing` | 이번 변경에서 고치지 않는다. 리뷰 패킷에 적고, 이슈 트래커가 있으면 후속 이슈를 제안한다 |
+| `Important` | Fix it. If you decide that the reviewer is wrong, do not fix it and write the reason. If the fix needs a large change outside the plan, do not fix it and ask the user |
+| `Nit` | Fix only what you can fix at once inside the changed lines. Close the rest as "Nit: skipped". If you fixed only Nits, do not run another round |
+| `Pre-existing` | Do not fix it in this change. Write it in the review packet, and if there is an issue tracker, suggest a follow-up issue |
 
-지적이 버그 유형 단위로 왔으면 적힌 위치를 한 번에 고친다.
+If a finding covers a bug type, fix all its locations at once.
 
-### L6-4. 다음 차수
+### L6-4. Next round
 
-`Important` 를 하나라도 고쳤으면 다음 차수를 돌린다. **2차 이후는 변경분만 본다**(review-brief.md 6).
+If you fixed at least one `Important`, run the next round. **From round 2, the review reads only the changes** (review-brief.md section 6).
 
-- **앞 차수의 리뷰어에게 이어서 보낸다**(Claude 는 SendMessage). 리뷰어가 이미 읽은 코드를 다시 읽지 않게 하려는 것이다. Deep 이면 두 리뷰어와 검증 에이전트를 각각 이어 쓴다.
-- 입력은 수정 diff 의 기준과 지적별 처리(고침 / 이유를 적고 고치지 않음)다.
-- 이어 보낼 수 없으면(환경이 지원하지 않거나 앞 리뷰어를 다시 부를 수 없으면) 같은 깊이와 초점으로 새 리뷰어를 띄우고, 앞 차수 결과 전문을 함께 넘긴다.
+- **Send the next round to the reviewer of the previous round** (SendMessage for Claude). This keeps the reviewer from reading the same code again. For Deep, continue each of the two reviewers and the verifier agent.
+- The input is the base of the fix diff and the handling of each finding (fixed / not fixed, with a reason).
+- If you cannot continue the reviewer (the environment does not support it, or the previous reviewer cannot be called again), start a new reviewer with the same depth and focus, and also give it the full result of the previous round.
 
-다음 중 하나면 2차 이후라도 1차 범위로 다시 본다. 이유를 리뷰 패킷에 적는다.
+If one of these is true, read the round 1 scope again even in round 2 or later. Write the reason in the review packet.
 
-- 수정이 설계를 바꿨다(결정 카드의 결정이 바뀌었거나, 새 구조를 들였다).
-- 수정이 1차에 없던 파일을 건드렸다.
-- 수정 diff 가 원래 diff 의 절반 이상이다.
+- The fix changed the design (a decision of the decision card changed, or a new structure came in).
+- The fix touched a file that was not in round 1.
+- The fix diff is half of the original diff or larger.
 
-**3차를 마치고도 `Important` 가 남으면 리뷰를 멈춘다.** 남은 지적과 함께 "접근 방식을 다시 볼 필요가 있다"고 사용자에게 알리고, 계속할지 묻는다.
+**If an `Important` remains after round 3, stop the review.** Tell the user that the approach needs a new look, with the remaining findings, and ask whether to continue.
 
-### L6-5. 기록
+### L6-5. Record
 
-차수마다 인계 메모의 `## 리뷰 기록` 표에 한 줄을 쓴다(차수, 범위, 깊이, 새로 찾은 문제 수, 처리). 인계 메모가 없으면 리뷰 패킷에만 적는다.
+For each round, write one row in the `## Review log` table of the handoff note (older notes: `## 리뷰 기록`): round, scope, depth, number of new problems, handling. If there is no handoff note, write it only in the review packet.
 
-### L6-6. 리뷰 패킷
+### L6-6. Review packet
 
-리뷰를 마치면 사용자에게 낸다. 도식이나 변경 전체 설명 대신, 사람이 판단할 곳만 보여 준다.
+After the review, give the packet to the user. In place of diagrams or a description of the whole change, show only the places where a person must judge. Write the packet in the language of the conversation, and translate the labels.
 
 ```
-## 리뷰 패킷: [기능명]
-위험 <등급> · 리뷰 <깊이 / 생략(이유)> · <N>차 · 차수별 새 문제 <1차 a, 2차 b>
+## Review packet: [feature name]
+risk <level> · review <depth / skipped (reason)> · <N> rounds · new problems per round <round 1 a, round 2 b>
 
-### 의도
-<결정 카드의 의도. 확정 결정 한 줄씩>
+### Intent
+<Intent of the decision card. One line for each confirmed decision>
 
-### 볼 곳
-| # | 파일:줄 | 왜 봐야 하나 | 관련 |
+### Where to look
+| # | file:line | Why to look | Related |
 |---|---|---|---|
 
-### 리뷰가 찾은 것
-| ID | 분류 | 버그 유형 | 위치 | 처리 |
+### What the review found
+| ID | Category | Bug type | Location | Handling |
 |---|---|---|---|---|
 
-### 검사로 못 잡는 것
-- <리뷰도 빌드·테스트도 확인할 수 없어 사람이 판단해야 하는 것>
+### What checks cannot find
+- <What neither the review nor builds and tests can check, so a person must judge>
 ```
 
-- **볼 곳**: mid 는 판단이 들어간 코드 조각 2~5개(결정을 구현한 곳, 위험 R 항목이 걸린 곳). high 는 변경 전체를 읽는 순서로 나열한다. low 는 "없음 — 증거만 확인"이다. "관련" 칸에 D·R 번호를 적는다.
-- **검사로 못 잡는 것**: 비워 두지 않는다. 정말 없으면 그 이유를 한 줄 쓴다.
+- **Where to look**: for mid, 2 to 5 code parts that contain judgment (where a decision is implemented, where a risk R item applies). For high, list the whole change in reading order. For low, write "None: check the evidence only". Write the D and R numbers in the "Related" column.
+- **What checks cannot find**: do not leave it empty. If there really is nothing, write the reason in one line.
 
-마무리 문구:
+Closing message:
 
 > "구현과 리뷰 완료. 빌드 후 에러 있으면 알려주세요."
 
-조각이면 `구현과 리뷰 완료 (조각 N/M)` 로 알린다. `verification: agent` 면 빌드·테스트 결과를 함께 적고 L7-2 로 간다.
+For a slice, say `구현과 리뷰 완료 (조각 N/M)`. If `verification` is `agent`, add the build and test results and go to L7-2.
 
-## Step L7 — 에러 수정 + 테스트 가이드
+## Step L7 — Error fixes + test guide
 
-> **수행: 오케스트레이터 (직접)**
+> **Done by: the orchestrator (directly)**
 
-### L7-1. 에러 수정
+### L7-1. Error fixes
 
-사용자가 빌드 에러를 보고하면 원인 분석 → 수정 방향 설명 → 수정 → 확인 요청. 검증이 사용자 담당이면 **직접 빌드하지 않는다.**
+If the user reports a build error: analyze the cause → explain the fix → fix → ask for a check. If the user does verification, **do not build yourself.**
 
-빌드 에러 수정은 다시 리뷰하지 않는다. 수정이 동작을 바꾸면(컴파일만 맞추는 수정이 아니면) L6-4 의 다음 차수로 그 수정만 리뷰한다. 이 차수도 3차 상한에 센다.
+Do not review build error fixes again. If a fix changes behavior (more than a fix to make it compile), review only that fix as the next round of L6-4. This round also counts toward the limit of 3 rounds.
 
-### L7-2. 테스트 환경 셋업 (MCP 사용 가능 시)
+### L7-2. Test environment setup (when MCP is available)
 
-프로필 `test_setup_mcp` 가 비어 있으면 건너뛴다. 있으면 테스트 가이드를 주기 **전에** 대신 해 줄 수 있는 셋업이 있는지 본다.
+If profile `test_setup_mcp` is empty, skip this step. If it has a value, check **before** you give the test guide whether you can do part of the setup for the user.
 
-1. 그 MCP 서버가 연결돼 있는지, 무엇을 할 수 있는지 조회한다. 연결돼 있지 않거나 관련 기능이 없으면 이 단계를 건너뛴다.
-2. 대신할 수 있는 항목을 골라 **물어본다**.
+1. Check whether that MCP server is connected and what it can do. If it is not connected or has no related function, skip this step.
+2. Choose the items that you can do, and **ask**.
    > "MCP 로 이런 셋업을 대신 할 수 있어요: (예) 테스트 맵 로드 / 오브젝트 생성 / 실행 시작. 해드릴까요?"
-3. 승인하면 실행하고 결과를 보고한다. 거절하면 수동 가이드에 그 단계를 남긴다.
+3. If the user approves, run it and report the result. If the user says no, keep that step in the manual guide.
 
-실제 조작과 눈으로 확인하는 부분은 언제나 수동 가이드로 남긴다.
+Always keep real operation and visual checks in the manual guide.
 
-### L7-3. 테스트 가이드
+### L7-3. Test guide
 
-| work_type | 핵심 검증 항목 |
+| work_type | Core checks |
 |---|---|
-| `feature` | 기능 검증 + 엣지 케이스 + 데이터 흐름 (전부) |
-| `improvement` | 위 + **회귀 확인** (수정 전 동작 유지) |
-| `bug` | **재현 시나리오 → 수정 후 재현 시도 → 정상 동작 확인** 우선 |
+| `feature` | Feature check + edge cases + data flow (all) |
+| `improvement` | The above + **regression check** (the behavior before the change stays) |
+| `bug` | **Reproduction scenario → try to reproduce after the fix → check normal behavior** first |
 
-결정 카드의 "깨질 수 있는 것" 가운데 확인 방법이 테스트인 항목은 빠짐없이 넣고, `R` 칸에 번호를 적는다.
-결정 카드의 테스트 후보 가운데 이번 작업에서 쓴 테스트는 테스트 이름과 실행 방법을 테스트 가이드에 넣고, `R` 칸에 `T` 번호를 적는다.
+Include every item of "What can break" in the decision card whose check is a test, and write its number in the `R` column.
+For each test candidate of the decision card that this work wrote, add the test name and how to run it to the test guide, and write its `T` number in the `R` column.
+
+Write the guide in the language of the conversation, and translate the labels.
 
 ```
-## 테스트 가이드: [기능명]
+## Test guide: [feature name]
 
-### 테스트 환경
-### 정상 동작 확인
-| # | 확인 항목 | 테스트 조건 | 예상 결과 | R |
+### Test environment
+### Normal behavior checks
+| # | Check | Test condition | Expected result | R |
 
-### 엣지 케이스 확인
-| # | 상황 | 테스트 방법 | 예상 결과 | R |
+### Edge case checks
+| # | Situation | How to test | Expected result | R |
 
-### 데이터 흐름 확인
-| # | 확인 지점 | 기대 값/범위 | 로그 추가 필요 | R |
+### Data flow checks
+| # | Check point | Expected value or range | Log needed | R |
 ```
 
-로그 추가가 필요하면 사용자 승인 뒤 임시 로그를 넣고, 확인이 끝나면 제거 여부를 묻는다.
+If a log is necessary, add a temporary log after the user approves. When the check ends, ask whether to remove it.
 
 > "위 항목을 테스트해 주세요. 결과 알려주시면 수정하겠습니다."
 
-**"테스트 완료"** 나 **"통과"** → 인계 메모 `## 위험과 검증` 의 해당 R 상태를 "확인"으로 바꾸고 **Step Final**.
+**"테스트 완료"** or **"통과"** → set the state of the matching R items in `## Risks and checks` of the handoff note (older notes: `## 위험과 검증`) to "checked", and go to **Step Final**.
 
 ---
 
-# Step Final — 체크포인트 (두 경로 공통)
+# Step Final — Checkpoint (both paths)
 
-조각으로 나눈 작업이면 조각마다 이 체크포인트를 거친다. 커밋 뒤 남은 조각이 있으면 다음 조각의 L5 로 간다. 문서화와 인계는 마지막 조각에서 한 번에 해도 된다.
+If the work has slices, go through this checkpoint for each slice. After the commit, if slices remain, go to L5 of the next slice. You can do the documentation and the handoff once, in the last slice.
 
-### 설명 주석 확인 — 구현을 마치거나 확인을 기다릴 때 먼저
+### Description comment check: first, when the implementation ends or before you wait for confirmation
 
-사용자에게 빌드·실행 확인을 요청하기 전에, 이번 변경에서 동작이 바뀐 선언마다 설명 주석이 현재 동작과 맞는지 읽는다. 맞지 않으면 같은 작업에서 고친다. 그래야 주석 수정 때문에 빌드를 다시 하지 않는다. 커밋 직전에는 `commit-doc-review` 가 같은 대조를 한 번 더 한다.
+Before you ask the user for a build or run check, read the description comment of each declaration whose behavior changed in this work, and check that it matches the current behavior. If it does not match, fix it in the same work. Then a comment fix does not need another build. Just before the commit, `commit-doc-review` checks the same comments again.
 
-공개 API·UI·설정·실행 방법이 바뀌었으면 관련 manual 을 같은 작업에서 갱신한다. 이미 요청받은 문서 반영을 후속 질문까지 미루지 않는다.
+If a public API, UI, setting, or run procedure changed, update the related manual in the same work. Do not postpone a document update that the user already asked for until a follow-up question.
 
-작업을 끝낼 때 다음 네 가지를 제안한다. 사용자가 답하면 해당 스킬을 부르거나 건너뛴다.
+At the end of the work, suggest the four items below. When the user answers, call the matching skill or skip it.
 
-### 1) 문서화
+### 1) Documentation
 
 > "이번 변경에 영향을 받는 manual·devlog 를 정리할까요?"
 
-- 전체 상태 요약 문서는 만들지 않는다. 영향을 받는 문서만 갱신한다. 실제 작업은 `feature-doc-sync`.
-- `feature` → devlog + manual 강력 추천
-- `improvement` → manual **갱신** 추천
-- `bug` → 연결 이슈의 재현·수정·확인 상태와 영향을 받는 문서만. 고친 버그가 에이전트 리뷰를 통과했던 코드에 있었으면, `review_guide` 의 "놓친 버그 기록"에 한 줄과 실패 유형 표 반영안을 제안한다
+- Do not make a document that summarizes the whole state. Update only the affected documents. `feature-doc-sync` does the actual work.
+- `feature` → devlog + manual strongly recommended
+- `improvement` → manual **update** recommended
+- `bug` → only the reproduction, fix, and confirmation state of the linked issue, and the affected documents. If the fixed bug was in code that passed the agent review, suggest a line for the "Missed bug log" of `review_guide` and a change to its "Failure types by area" table (older guides: "놓친 버그 기록", "영역별 실패 유형")
 
-### 2) 커밋 준비
+### 2) Commit preparation
 
 > "커밋할까요? 원하시면 변경 이유와 검증 상태를 담은 커밋 메시지를 먼저 보여드립니다."
 
-- **먼저 묻는다. 자동으로 커밋하지 않는다.**
-- 커밋 직전에 `commit-doc-review` 로 관련 문서 반영 여부를 검토하고, 메시지에 프로필 `commit_trailer` 트레일러를 넣는다. `commit_gate` 가 true 면 트레일러 없는 커밋은 훅이 막는다.
-- 메시지에는 변경 이유와 **실제** 검증 결과를 적는다. 확인하지 않은 것을 통과로 적지 않는다.
-- 트레일러 묶음(`Co-Authored-By` 위)에 증거 줄을 넣는다. `Risk:` 와 `Tested:` 는 항상, `Revert:` 는 `git revert` 만으로 되돌릴 수 없을 때만 넣는다.
+- **Ask first. Do not commit automatically.**
+- Just before the commit, check with `commit-doc-review` that the related documents are updated, and add the profile `commit_trailer` trailer to the message. If `commit_gate` is true, the hook blocks a commit without the trailer.
+- Write the reason for the change and the **actual** verification result in the message. Do not write an unchecked item as passed.
+- Add the evidence lines to the trailer block (above `Co-Authored-By`). Always add `Risk:` and `Tested:`. Add `Revert:` only when `git revert` alone cannot undo the change.
 
   ```
-  Risk: high — 저장 데이터 형식 변경 (SaveGame 버전 3 → 4)
-  Tested: 빌드 통과(사용자), 테스트 가이드 R1·R2·R4 확인(사용자), 에이전트 리뷰 Deep 2차 / 미확인: R3 이전 세이브 불러오기
-  Revert: 버전 4로 저장된 세이브는 되돌린 빌드에서 읽지 못한다. 되돌리기 전 버전 3 변환 도구를 먼저 반영
+  Risk: high: saved data format change (SaveGame version 3 → 4)
+  Tested: build passed (user), test guide R1, R2, R4 checked (user), agent review Deep round 2 / not checked: R3 loading an old save
+  Revert: a build after the revert cannot read saves written with version 4. Apply the version 3 conversion tool before the revert
   ```
 
-  - `Risk:` 는 Step 0-C 의 등급과 근거 한 줄이다.
-  - `Tested:` 는 무엇을 누가 확인했는지와, 확인하지 않은 것(`미확인:`)을 함께 적는다. 리뷰를 생략했으면 "에이전트 리뷰 생략(low)"처럼 적는다.
-  - `tracker_public` 이 true 면 로컬 경로를 넣지 않는다.
-- 이슈가 있으면 메시지에 `#N` 을 적는다. 이슈를 자동으로 닫는 키워드(`Closes #N`)는 사용자가 완료를 확인한 경우에만 쓴다.
-- `git status --short` 로 의도하지 않은 파일이 섞이지 않았는지 확인한다.
+  - `Risk:` is the level from Step 0-C and one line of reason.
+  - `Tested:` says what was checked and by whom, and also what was not checked (`not checked:`). If the review was skipped, write it, for example "agent review skipped (low)".
+  - If `tracker_public` is true, do not include local paths.
+- If there is an issue, write `#N` in the message. Use a keyword that closes the issue automatically (`Closes #N`) only after the user confirms completion.
+- Check with `git status --short` that no unintended file is included.
 
-### 3) 이슈 상태
+### 3) Issue state
 
-이슈가 있을 때만 제안한다. 모두 초안을 보여 주고 확인받은 뒤 게시한다.
+Suggest this only if there is an issue. For each item, show a draft and post it after confirmation.
 
-| 상황 | 제안 |
+| Situation | Suggestion |
 |---|---|
-| 구현 완료, 사용자 확인 전 | 결과 요약 댓글 + `status_labels.needs_verification` 라벨 |
-| 사용자가 빌드·실행 확인 완료 | 결과 요약 댓글 (문서 링크, 커밋) + 이슈 닫기 |
-| 남은 작업이 있음 | 남은 항목 댓글. 별도 작업이면 후속 이슈 초안 |
+| Implementation done, before user confirmation | Result summary comment + `status_labels.needs_verification` label |
+| The user confirmed the build and run | Result summary comment (document links, commits) + close the issue |
+| Work remains | Comment with the remaining items. For separate work, a follow-up issue draft |
 
-### 4) 세션 마무리
+### 4) End of session
 
 > "여기서 마무리하시면 `context-handoff` 로 인계 메모를 갱신할까요?"
 
-- 작업이 이어질 거면 건너뛴다. 다른 작업으로 넘어가거나 세션을 끝낼 거면 추천한다.
-- 이슈도 인계 메모도 없이 진행했으면 건너뛴다.
+- If the work continues, skip it. If the user moves to other work or ends the session, recommend it.
+- If the work had neither an issue nor a handoff note, skip it.
 
 ---
 
-## 주의
+## Cautions
 
-- 규모 판별이 어려우면 사용자에게 묻는다. 추정하지 않는다.
-- 인계 메모 영속화는 **계획이 확정된 순간** 저장하고 피드백마다 갱신한다.
-- Full Lane 도중 작업이 줄어들면 Fast Lane Step F2 로 넘어갈 수 있다.
-- 이 스킬의 어떤 단계도 프로젝트 지침의 검증 담당 규칙을 우회하지 않는다.
+- If the size is hard to decide, ask the user. Do not guess.
+- Save the handoff note **at the moment the plan is confirmed**, and update it with each feedback.
+- If the work becomes smaller during the Full Lane, you can move to Fast Lane Step F2.
+- No step of this skill goes around the verification owner rules of the project instructions.

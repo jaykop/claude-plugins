@@ -1,54 +1,54 @@
 # <Thread Name>
 
 > Last updated: YYYY-MM-DD HH:MM
-> Branch: <브랜치 이름>
-> Issue: #<번호> <제목> (없으면 "없음")
+> Branch: <branch name>
+> Issue: #<number> <title> ("none" if there is no issue)
 
-## 현재 작업 목표
-<!-- 무엇을 하려고 하는지 (thread 전체 목표, 매번 크게 바뀌지 않음) -->
+## Goal
+<!-- What this work tries to do (the goal of the whole thread; it does not change much) -->
 
-## 완료된 것
-<!-- 누적 — 마친 항목 -->
+## Done
+<!-- Cumulative list of finished items -->
 
-## 진행 중인 것
-<!-- 아직 끝나지 않은 작업과 현재 상태 -->
+## In progress
+<!-- Work that is not finished, and its current state -->
 
-## 다음에 할 일
-<!-- 다음 세션에서 바로 이어야 할 순서 -->
+## Next steps
+<!-- The order of work that the next session must continue at once -->
 
-## 구현 계획
-<!-- feature-impl Full Lane 이 확정한 계획 전문. 없으면 지운다 -->
+## Implementation plan
+<!-- Full text of the plan that the feature-impl Full Lane confirmed. Delete this section if there is none -->
 
-## 위험과 검증
-<!-- feature-impl 결정 카드의 "깨질 수 있는 것". 상태에는 실제로 확인한 것만 적는다. 없으면 지운다 -->
+## Risks and checks
+<!-- "What can break" from the feature-impl decision card. In the state column, write only what was actually checked. Delete this section if there is none -->
 
-| # | 깨질 수 있는 것 | 확인 방법 | 상태 |
+| # | What can break | How to check | State |
 |---|---|---|---|
-| R1 | | | 미확인 |
+| R1 | | | not checked |
 
-## 리뷰 기록
-<!-- feature-impl 에이전트 리뷰의 차수별 기록. 없으면 지운다 -->
+## Review log
+<!-- Record of each round of the feature-impl agent review. Delete this section if there is none -->
 
-| 차수 | 범위 (전체 / 변경분) | 깊이 | 새로 찾은 문제 | 처리 |
+| Round | Scope (all / changes) | Depth | New problems found | Handling |
 |---|---|---|---|---|
 
-## 주요 파일 및 경로
-<!-- 관련 파일 목록 -->
+## Key files
+<!-- List of related files -->
 
-## 버전 관리 상태
-<!-- git status --short, git log --oneline -5 로 확인 -->
+## Version control state
+<!-- Check with git status --short and git log --oneline -5 -->
 
-| 파일 | 상태 |
+| File | State |
 |------|------|
-| src/... | 수정 |
+| src/... | modified |
 
-- 마지막 커밋: `<sha> <제목>`
-- 미커밋 변경: N개
+- Last commit: `<sha> <title>`
+- Uncommitted changes: N
 
-## 빌드·검증 상태
-<!-- 실제로 확인한 것만 적는다. 실행하지 않은 검사를 통과로 적지 않는다 -->
-- 빌드: 미확인 / 통과 / 실패(내용)
-- 실행 확인: 미확인 / 확인(내용)
+## Build and check state
+<!-- Write only what was actually checked. Do not write a check that did not run as passed -->
+- Build: not checked / passed / failed (details)
+- Run check: not checked / checked (details)
 
-## 참고 사항
-<!-- 주의할 점, 결정 사항, 맥락, 시행착오 -->
+## Notes
+<!-- Points of attention, decisions, context, and trial and error -->

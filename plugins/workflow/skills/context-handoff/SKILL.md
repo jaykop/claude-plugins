@@ -1,87 +1,91 @@
 ---
 name: context-handoff
-description: "세션 맥락이 한계에 가까워지거나 세션을 끝낼 때 쓴다. 진행 중인 작업 상태를 작업(thread)별 인계 메모 파일로 저장·갱신해 다음 세션이 이어 갈 수 있게 한다. 맥락 한계, 세션 종료, 이어서 작업, 중간 저장이 언급되면 쓴다. 해당하지 않는 경우 — 공개 문서(사용법·변경 기록) 작성, 이슈 게시만 하는 일."
-when_to_use: "긴 세션에서 handoff 훅이 권했을 때, 다른 작업으로 넘어가기 전, 사용자가 '저장해 둬', '다음에 이어서' 라고 할 때, feature-impl 의 Step Final 에서."
-argument-hint: "[thread 이름]"
+description: "Use when the session context is near its limit or when the session ends. Save or update the state of the work in progress as a handoff note file for each thread, so that the next session can continue. Use it when the context limit, the end of a session, continuing later, or an intermediate save is mentioned. Not for: writing public documents (usage, change records), or only posting to an issue."
+when_to_use: "When the handoff hook suggests it in a long session, before you move to other work, when the user says '저장해 둬' or '다음에 이어서', and in Step Final of feature-impl."
+argument-hint: "[thread name]"
 ---
 
 # Context Handoff
 
-세션이 끊기기 전에 작업 맥락을 남긴다. **thread 단위**로 저장한다 — 작업 하나 = 파일 하나. 같은 thread 는 계속 같은 파일을 갱신한다.
+Save the context of the work before the session ends. Save it **per thread**: one piece of work is one file. Always update the same file for the same thread.
 
-## 프로필과 저장 위치
+## Profile and save location
 
-프로필은 `<프로젝트 루트>/.claude/workflow/profile.md` 다. 플러그인 폴더는 `${CLAUDE_PLUGIN_ROOT}`, 값이 변수 이름 그대로 보이면 이 SKILL.md 의 두 단계 위 폴더다.
+The profile is `<project root>/.claude/workflow/profile.md`. The plugin folder is `${CLAUDE_PLUGIN_ROOT}`. If the value shows as the variable name, the plugin folder is two levels above this SKILL.md.
 
-- 진행 중인 메모: 프로필 `threads_dir` (기본 `.claude/workflow/threads`)
-- 완료한 메모: 프로필 `archive_dir` 아래 `<YYYY-QN>/`
-- 프로필이 없으면 저장 위치를 묻는다. 공개 저장소라면 버전 관리에서 빠지는 폴더여야 한다.
+- Notes in progress: profile `threads_dir` (default `.claude/workflow/threads`)
+- Notes of finished work: `<YYYY-QN>/` under profile `archive_dir`
+- If there is no profile, ask for the save location. For a public repository, it must be a folder that is not in version control.
 
-**역할 분담.** 프로필 `tracker` 가 있으면 진행 중인 작업의 기준은 이슈다. 인계 메모는 이슈를 보조하는 **로컬 세션 기록**으로, 공개 이슈에 올리지 않을 시행착오·로컬 경로·다음 세션 절차를 담는다. 공유할 진행·완료·확인 대기 상태는 이슈에, 현재 사용법은 manual 에, 중요한 결정 이유는 devlog 에 적는다. 메모의 공유·백업 방식(다른 버전 관리 등)은 프로젝트 지침을 따른다.
+**Division of roles.** If the profile has `tracker`, the issue is the reference for work in progress. The handoff note is a **local session record** that supports the issue. It holds trial and error, local paths, and steps for the next session that do not go into a public issue. Write the shared progress, completion, and waiting-for-confirmation state in the issue, the current usage in the manual, and the reasons for important decisions in the devlog. For how notes are shared or backed up (for example, in another version control system), follow the project instructions.
 
-## 워크플로우
+Write the note in the language that the project instructions set for handoff notes. If they set none, use the language of the existing note.
 
-새 작업을 시작할 때 그 작업의 메모를 만들거나 기존 파일을 읽고 갱신한다. 목표, 현재 상황, 연결 이슈, 다음 행동을 먼저 적고, 작업 중 중요한 결정과 끝나는 시점을 반영한다.
+## Workflow
 
-### Step 1 — Thread 이름 결정
+When new work starts, make its note, or read and update the existing file. First write the goal, the current situation, the linked issue, and the next action. During the work, add important decisions, and update the note when the work ends.
 
-1. **연결된 이슈가 있으면**: `<이슈번호>-<slug>` (예: `12-preview-gizmo-fix`). Jira 면 이슈 키를 쓴다(예: `ABC-12-preview-gizmo-fix`). 이슈 번호가 없는 기존 메모면 이름 변경을 제안한다.
-2. **작업 브랜치가 기본 브랜치가 아니면**: 브랜치 이름을 kebab-case 로 정리해 쓴다.
-3. **기본 브랜치에서 작업 중이면**: 대화 맥락에서 주제를 뽑는다. 영어 소문자 kebab-case.
-4. **모호하면 사용자에게 확인한다**: "이 thread 이름을 뭐로 할까요? (예: `timeline-editor-polish`)"
+### Step 1 — Thread name
 
-### Step 2 — 파일 경로 확정
+1. **If an issue is linked**: `<issue number>-<slug>` (example: `12-preview-gizmo-fix`). For Jira, use the issue key (example: `ABC-12-preview-gizmo-fix`). If an existing note has no issue number, suggest a rename.
+2. **If the work branch is not the default branch**: use the branch name in kebab-case.
+3. **If you work on the default branch**: take the topic from the conversation. Use lowercase English kebab-case.
+4. **If it is not clear, ask the user**: "What name do you want for this thread? (example: `timeline-editor-polish`)"
+
+### Step 2 — File path
 
 `<threads_dir>/<thread-name>.md`
 
-### Step 3 — 문서 작성 (병합 방식)
+### Step 3 — Write the note (merge)
 
-**기존 파일이 있으면** 읽은 뒤 이렇게 갱신한다.
+**If the file exists**, read it, then update it as follows.
 
-- **완료된 것**: 누적 (새 항목 추가)
-- **진행 중인 것**: 현재 상태로 갱신 (끝난 항목은 "완료된 것"으로 이동)
-- **다음에 할 일**: 다시 정렬 (끝난 항목 제거, 새 항목 추가)
-- **참고 사항**: 누적 (새 결정·맥락 추가)
-- **주요 파일**: 현재 상태로 갱신
-- **위험과 검증**: 항목은 그대로 두고 상태만 갱신 (실제로 확인한 것만 "확인"으로)
-- **리뷰 기록**: 누적 (feature-impl 이 차수마다 쓴 줄을 지우지 않는다)
-- **버전 관리 상태**: 현재 상태로 완전히 갱신
-- **Last updated**: 현재 시각
+- **Done**: cumulative (add new items)
+- **In progress**: update to the current state (move finished items to "Done")
+- **Next steps**: sort again (remove finished items, add new items)
+- **Notes**: cumulative (add new decisions and context)
+- **Key files**: update to the current state
+- **Risks and checks**: keep the items and update only the state (mark "checked" only for what was actually checked)
+- **Review log**: cumulative (do not delete the rows that feature-impl wrote for each round)
+- **Version control state**: replace with the current state
+- **Last updated**: the current time
 
-**새 파일이면** `<플러그인 폴더>/shared/thread-template.md` 로 쓴다.
+Older notes use Korean section headings: 현재 작업 목표 (Goal), 완료된 것 (Done), 진행 중인 것 (In progress), 다음에 할 일 (Next steps), 구현 계획 (Implementation plan), 위험과 검증 (Risks and checks), 리뷰 기록 (Review log), 주요 파일 및 경로 (Key files), 버전 관리 상태 (Version control state), 빌드·검증 상태 (Build and check state), 참고 사항 (Notes). Read them as the same sections. When you update an older note, keep its headings.
 
-### Step 3.5 (선택) — 이슈 상태 댓글
+**If the file is new**, use `<plugin folder>/shared/thread-template.md`.
 
-연결된 이슈가 있고 이번 세션에 공유할 진행(확정 결정, 완료 항목, 막힌 점)이 있으면 **공개용 요약** 댓글 초안을 보여 주고 게시할지 묻는다. 확인 없이 게시하지 않는다.
+### Step 3.5 (optional) — Issue status comment
 
-- 넣는 것: 완료 항목, 확정 결정, 남은 일, 관련 커밋·문서 링크
-- 넣지 않는 것(`tracker_public` 이 true 면 특히): 로컬 경로, 시행착오 상세, 정하지 않은 추측, 확인하지 않은 빌드·검증 결과
+If an issue is linked and this session has progress to share (confirmed decisions, finished items, blockers), show a draft of a **public summary** comment and ask whether to post it. Do not post without confirmation.
+
+- Include: finished items, confirmed decisions, remaining work, links to related commits and documents
+- Do not include (especially if `tracker_public` is true): local paths, details of trial and error, guesses that are not decided, build or check results that were not checked
 
 ```bash
-gh issue comment <N> --body-file <임시 초안 파일>
+gh issue comment <N> --body-file <temporary draft file>
 ```
 
-### Step 4 (선택) — Thread 완료 처리
+### Step 4 (optional) — Finish a thread
 
-사용자가 "thread 마무리", "보관으로 옮겨" 처럼 명시적으로 요청할 때만 한다. 자동으로 옮기지 않는다.
+Do this only when the user asks for it, for example "thread 마무리" or "보관으로 옮겨". Do not move the note automatically.
 
 - `<threads_dir>/<name>.md` → `<archive_dir>/<YYYY-QN>/<name>.md`
-- 분기: 1-3월 Q1, 4-6월 Q2, 7-9월 Q3, 10-12월 Q4
+- Quarters: January to March Q1, April to June Q2, July to September Q3, October to December Q4
 
-**옮기기 전에** "참고 사항"의 시행착오 중 남길 가치가 있는 것은 관련 devlog 나 연결 이슈로 옮긴다. 메모는 사라져도 되는 기록이다.
+**Before you move the note**, move the trial and error in "Notes" that is worth keeping to the related devlog or the linked issue. The note is a record that can disappear.
 
-## 작성 원칙
+## Writing rules
 
-- 다음 세션의 에이전트가 이 문서만 보고 바로 이어 갈 수 있도록 **구체적으로** 쓴다.
-- "어디까지 했는지"보다 **"다음에 뭘 해야 하는지"**에 집중한다.
-- 불완전한 코드·명령·오류 메시지는 그대로 넣는다.
-- 같은 메모를 갱신할 때 핵심 맥락(결정·시행착오)을 잘라내지 않는다.
-- 확인하지 않은 빌드·검증 결과를 추측해서 적지 않는다.
-- 인증 정보와 비밀 값은 적지 않는다.
+- Write **specifically**, so that the agent of the next session can continue from this note alone.
+- Focus on **what to do next** more than on how far the work went.
+- Copy incomplete code, commands, and error messages as they are.
+- When you update a note, do not cut the core context (decisions, trial and error).
+- Do not guess build or check results that were not checked.
+- Do not write credentials or secret values.
 
-## 주의
+## Cautions
 
-- 파일 이름에 날짜를 넣지 않는다.
-- 같은 thread 를 여러 번 인계하면 언제나 같은 파일을 갱신한다.
-- 다른 작업이면 **새 파일**을 만든다. 한 파일에 여러 작업을 섞지 않는다.
-- 메모는 반드시 `threads_dir` 에 두고 공유 문서 폴더와 섞지 않는다.
+- Do not put a date in the file name.
+- If you hand off the same thread more than once, always update the same file.
+- For different work, make a **new file**. Do not mix several pieces of work in one file.
+- Always keep notes in `threads_dir`. Do not mix them with the shared document folders.

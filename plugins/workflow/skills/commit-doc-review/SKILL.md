@@ -1,23 +1,23 @@
 ---
 name: commit-doc-review
-description: "git commit 직전에 쓴다. 커밋할 변경과 관련된 문서(사용법, 변경 기록, 설계 문서, README, 프로젝트 지침, 이슈)가 갱신됐는지, 동작이 바뀐 코드의 설명 주석이 현재 동작과 맞는지 검토하고, 결과를 커밋 메시지의 트레일러(기본 `Docs-Reviewed:`)로 남긴다. 에이전트가 커밋을 권했든 사용자가 '커밋해'라고 했든 거친다. 해당하지 않는 경우 — 문서를 새로 쓰는 일(feature-doc-sync), 코드 리뷰."
-when_to_use: "커밋하기 직전, 또는 commit_gate 훅이 트레일러 없는 커밋을 막았을 때."
-argument-hint: "[커밋 범위]"
+description: "Use just before git commit. Check that the documents related to the change (usage, change records, design documents, README, project instructions, issues) are updated, and that the description comments of code whose behavior changed match the current behavior. Record the result as a commit message trailer (default `Docs-Reviewed:`). Use it whether the agent suggested the commit or the user said '커밋해'. Not for: writing new documents (feature-doc-sync), code review."
+when_to_use: "Just before a commit, or when the commit_gate hook blocked a commit without the trailer."
+argument-hint: "[commit scope]"
 ---
 
 # Commit Doc Review
 
-커밋 직전에 "이 변경으로 틀려진 문서가 없는가"를 검토하는 스킬이다. `feature-doc-sync` 가 문서를 **쓰는** 스킬이라면, 이 스킬은 커밋 범위를 기준으로 **빠진 문서가 없는지 확인**한다.
+This skill checks just before a commit that no document became wrong because of the change. `feature-doc-sync` **writes** documents. This skill **checks that no document is missing**, based on the commit scope.
 
-이 스킬은 프로젝트 지침을 대체하지 않는다. 충돌하면 지침이 이긴다. 문서 검토는 빌드·테스트·코드 검사를 실행할 권한을 주지 않는다.
+This skill does not replace the project instructions. If they conflict, the instructions win. The document check gives no permission to run builds, tests, or code checks.
 
-## 프로필과 훅
+## Profile and hook
 
-프로필은 `<프로젝트 루트>/.claude/workflow/profile.md` 다(양식: `<플러그인 폴더>/shared/profile-template.md`). 플러그인 폴더는 `${CLAUDE_PLUGIN_ROOT}`, 값이 변수 이름 그대로 보이면 이 SKILL.md 의 두 단계 위 폴더다. 쓰는 칸: `commit_trailer`(기본 `Docs-Reviewed:`), `commit_policy`, `tracker_public`, `docs`, 본문의 "변경 → 문서 대응표". 프로필이 없으면 기본 트레일러와 아래 기본 대응표를 쓴다.
+The profile is `<project root>/.claude/workflow/profile.md` (template: `<plugin folder>/shared/profile-template.md`). The plugin folder is `${CLAUDE_PLUGIN_ROOT}`. If the value shows as the variable name, it is the folder two levels above this SKILL.md. Keys used: `commit_trailer` (default `Docs-Reviewed:`), `commit_policy`, `tracker_public`, `docs`, and the "Change → document map" section of the body (older profiles: "변경 → 문서 대응표"). If there is no profile, use the default trailer and the default map below.
 
-프로필 `commit_gate` 가 true 면 PreToolUse 훅이 트레일러 없는 `git commit` 을 막는다. 훅은 트레일러가 있는지만 본다. **검토 없이 트레일러만 붙이지 않는다.**
+If profile `commit_gate` is true, a PreToolUse hook blocks `git commit` without the trailer. The hook checks only that the trailer exists. **Do not add the trailer without the review.**
 
-## Step 1 — 커밋 범위 확정
+## Step 1 — Set the commit scope
 
 ```bash
 git status --short
@@ -25,73 +25,73 @@ git diff --stat
 git diff --cached --stat
 ```
 
-- 이번 커밋에 넣을 파일 목록을 정한다. 다른 작업자의 미커밋 변경은 넣지 않는다. 커밋 대상 저장소와 범위 규칙은 `commit_policy` 를 따른다.
-- 연결 이슈를 확인한다. 대화, 인계 메모의 `Issue:` 줄, 브랜치 이름에서 찾는다.
+- Set the list of files for this commit. Do not include uncommitted changes of other people. For the target repositories and the scope rules, follow `commit_policy`.
+- Find the linked issue in the conversation, the `Issue:` line of the handoff note, or the branch name.
 
-## Step 2 — 변경 → 문서 대응표
+## Step 2 — Change → document map
 
-커밋 파일마다 프로필 본문의 "변경 → 문서 대응표"로 검토할 문서를 뽑는다. 해당하는 것만 본다. 대응표가 없으면 이 기본 표를 쓴다.
+For each committed file, select the documents to review with the "Change → document map" of the profile body. Read only the rows that apply. If there is no map, use this default table.
 
-| 변경 경로 | 검토할 문서 |
+| Changed path | Documents to review |
 |---|---|
-| 코드 전체 | 연결 이슈의 구현·확인 상태와 변경에 영향을 받는 사용법·변경 기록 |
-| 빌드·모듈 구성 파일, 새 모듈·패키지 | 프로젝트 지침의 범위·구조 단락 |
-| 저장 데이터 형식, 이름 변경 연결(redirect) | 사용법 문서의 기존 데이터 처리 안내와 관련 변경 기록 |
-| 문서 추가·삭제·이름 변경 | 문서 목록(`docs.index`), 그 문서를 가리키는 링크 |
-| 연결 이슈가 있는 모든 변경 | 이슈에서 링크한 설계 문서의 확정·미확정 사항, 이슈 체크리스트 |
-| 공개 API·UI·설정·실행 방법 변경 | 관련 사용법 문서 |
-| 설계 결정, 반복될 수 있는 문제의 해결 | 주제별 변경 기록 필요 여부 |
+| All code | Implementation and confirmation state of the linked issue, and the usage and change records that the change affects |
+| Build and module configuration files, new modules or packages | Scope and structure sections of the project instructions |
+| Saved data format, rename redirects | Guidance on existing data in the usage documents, and the related change records |
+| Added, removed, or renamed documents | Document index (`docs.index`), and the links that point to the document |
+| Every change with a linked issue | Confirmed and open items of the design documents that the issue links, and the issue checklist |
+| Change to a public API, UI, setting, or run procedure | Related usage documents |
+| Design decision, or fix for a problem that can happen again | Whether a topic change record is necessary |
 
-버전 관리에서 빠진 폴더(로컬 메모, 에이전트 설정 등)는 커밋 대상이 아니므로 검토하지 않는다.
+Folders outside version control (local notes, agent settings, and similar) are not in the commit, so do not review them.
 
-## Step 3 — 문서별 판정
+## Step 3 — Verdict for each document
 
-뽑은 문서의 **관련 단락만** 읽고 변경과 대조한다. 문서 전체를 다시 읽거나 넓게 점검하지 않는다.
+Read **only the related sections** of the selected documents, and compare them with the change. Do not read whole documents again or check widely.
 
-| 판정 | 기준 |
+| Verdict | Criterion |
 |---|---|
-| 반영됨 | 이번 커밋에 이미 맞게 고친 내용이 들어 있다 |
-| 갱신 필요 | 이번 변경으로 틀려졌거나 빠진 서술이 있다 |
-| 영향 없음 | 대응표에 걸렸지만 서술에 영향이 없다 (이유 한 줄) |
+| Updated | The commit already contains the correct change |
+| Needs update | A statement became wrong or is missing because of this change |
+| No effect | The map selected it, but the change does not affect the statements (one-line reason) |
 
-- 확인하지 않은 빌드·실행 결과를 문서에 적지 않았는지도 본다. 구현 완료와 사용자 확인을 구분한다.
-- 커밋에 Markdown 문서가 있으면 바꾼 문서의 상대 링크와 문서 안 앵커를 직접 확인한다.
+- Also check that no document claims a build or run result that was not checked. Keep implementation done and user confirmation separate.
+- If the commit has Markdown documents, check the relative links and the in-document anchors of the changed documents yourself.
 
-## Step 3b — 설명 주석 대조
+## Step 3b — Description comment check
 
-대응표와 별개로, 커밋에 코드 변경이 있으면 항상 한다.
+Always do this step when the commit has code changes, separately from the map.
 
-1. `git diff` 의 구간마다 동작이 바뀐 함수·프로퍼티·타입·태그를 찾는다. 이름 변경, 기본값 변경, 조건·반환값·실패 처리 변경을 포함한다.
-2. 그 선언의 설명 주석을 읽는다. 구현 파일만 바뀌었으면 헤더나 선언이 있는 파일의 주석을 본다. 에디터 툴팁으로 보이는 주석과 태그 설명(`DevComment` 등)도 포함한다.
-3. 주석이 현재 동작과 맞는지 판정한다. 판정은 Step 3 과 같은 표(반영됨·갱신 필요·영향 없음)에 "설명 주석: <파일>" 행으로 넣는다. 동작이 바뀐 선언이 없으면 한 행에 "영향 없음"과 이유를 적는다.
+1. In each `git diff` hunk, find the functions, properties, types, and tags whose behavior changed. Include renames, default value changes, and changes to conditions, return values, and failure handling.
+2. Read the description comment of each such declaration. If only an implementation file changed, read the comment in the header or the file that has the declaration. Include comments that show as editor tooltips, and tag descriptions (such as `DevComment`).
+3. Decide whether each comment matches the current behavior. Put the verdict in the same table as Step 3 (Updated, Needs update, No effect), as a row "Description comment: <file>". If no declaration changed its behavior, write one row with "No effect" and the reason.
 
-diff 에 걸린 선언의 주석만 본다. 다른 파일의 주석이나 문서가 같은 동작을 설명하면 Step 2 의 문서 대응표가 맡는다. 동작을 알 수 없으면 주석을 추정해 고치지 않고 갱신 필요로 보고한다.
+Read only the comments of the declarations in the diff. If a comment in another file or a document describes the same behavior, the map of Step 2 covers it. If you do not know the behavior, do not guess and change the comment. Report it as "Needs update".
 
-## Step 4 — 보고와 반영
+## Step 4 — Report and apply
 
-사용자에게 표로 보고한다.
+Report to the user with a table. Write the report in the language of the conversation.
 
 ```
-## 커밋 전 문서 검토
+## Pre-commit document review
 
-| 문서 | 판정 | 내용 |
+| Document | Verdict | Details |
 |---|---|---|
 ```
 
-- **갱신 필요가 있으면** 수정안을 보여 주고 반영할지 묻는다. 반영하면 같은 커밋에 넣는다. 사용자가 "문서는 나중에" 라고 하면 그대로 커밋하되, 트레일러에 미반영 문서를 적고 연결 이슈가 있으면 남은 문서 작업을 이슈 댓글 초안으로 제안한다.
-- 모두 반영됨·영향 없음이면 한 줄로 알리고 바로 커밋한다. 사용자가 이미 커밋을 요청했다면 다시 묻지 않는다.
+- **If an item needs an update**, show the fix and ask whether to apply it. If the user agrees, put it in the same commit. If the user says "documents later", commit as is. Write the documents that are not updated in the trailer, and if there is a linked issue, suggest an issue comment draft for the remaining document work.
+- If all items are Updated or No effect, say so in one line and commit at once. If the user already asked for the commit, do not ask again.
 
-## Step 5 — 커밋 메시지 트레일러
+## Step 5 — Commit message trailer
 
-커밋 메시지 마지막 트레일러 묶음(`Co-Authored-By` 위)에 한 줄을 넣는다.
+Add one line to the last trailer block of the commit message (above `Co-Authored-By`). Write it in the language of the commit message.
 
 ```
-Docs-Reviewed: 사용법·관련 변경 기록 갱신, 편집기 안내 영향 없음
-Docs-Reviewed: 설명 주석 2곳 갱신, 사용법 영향 없음
-Docs-Reviewed: 문서만 변경, README 링크 확인
-Docs-Reviewed: 편집기 안내 미반영 (#12에서 처리)
+Docs-Reviewed: usage and related change records updated, editor guide not affected
+Docs-Reviewed: 2 description comments updated, usage not affected
+Docs-Reviewed: documents only, README links checked
+Docs-Reviewed: editor guide not updated (handled in #12)
 ```
 
-- `tracker_public` 이 true 면 로컬 경로나 세션 메모를 넣지 않는다.
-- 이번 대화에서 `feature-impl` 로 구현한 변경이면 같은 묶음에 그 스킬의 증거 줄(`Risk:`, `Tested:`, 필요하면 `Revert:`)도 넣는다. 형식은 feature-impl Step Final "2) 커밋 준비"를 따른다. 그 밖의 커밋에는 넣지 않는다. 훅은 이 줄들을 검사하지 않는다.
-- 연결 이슈가 있으면 제목이나 본문에 `#N` 을 적는다. 이슈를 자동으로 닫는 키워드는 사용자가 완료를 확인한 경우에만 쓴다.
+- If `tracker_public` is true, do not include local paths or session notes.
+- If `feature-impl` implemented the change in this conversation, also put its evidence lines (`Risk:`, `Tested:`, and `Revert:` when necessary) in the same block. The format follows feature-impl Step Final "2) Commit preparation". Do not add them to other commits. The hook does not check these lines.
+- If there is a linked issue, write `#N` in the title or the body. Use a keyword that closes the issue automatically only after the user confirms completion.

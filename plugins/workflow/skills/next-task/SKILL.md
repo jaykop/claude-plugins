@@ -1,64 +1,65 @@
 ---
 name: next-task
-description: "'다음 뭐 해', '오늘 뭐 하지', '다음 작업', '새 이슈', '이슈 만들어', '이거 이슈로 남겨', '우선순위 다시 매겨' 같은 요청에 쓴다. GitHub 마일스톤과 중요도×규모 등급으로 오늘 쓸 수 있는 시간에 맞는 다음 작업을 고르거나, 새 이슈 초안에 중요도·규모·선행·마일스톤을 붙여 게시하거나, 이슈를 다시 채점한다. 구현은 하지 않고 feature-impl 로 넘긴다. 해당하지 않는 경우 — 하던 작업을 알려 주고 이어 가는 일(work-start), 코드 수정, 이슈 트래커가 GitHub 가 아닌 프로젝트."
-when_to_use: "작업을 시작하기 전 무엇을 할지 고를 때, 새 작업을 이슈로 남길 때, 마일스톤을 시작·이동하거나 범위가 바뀌어 이슈를 다시 채점할 때."
-argument-hint: "[다음 작업|새 이슈|다시 채점] [오늘 가능한 시간]"
+description: "Use for requests such as '다음 뭐 해', '오늘 뭐 하지', '다음 작업', '새 이슈', '이슈 만들어', '이거 이슈로 남겨', '우선순위 다시 매겨'. Using GitHub milestones and the importance x size grade, choose the next work that fits the time available today, post a new issue draft with importance, size, blocking issues, and milestone, or score issues again. It does not implement. It hands over to feature-impl. Not for: reporting and continuing the work in progress (work-start), changing code, or projects whose issue tracker is not GitHub."
+when_to_use: "When you choose what to do before you start work, when you record new work as an issue, and when you start or move a milestone or the scope changes and issues need a new score."
+argument-hint: "[next work|new issue|score again] [time available today]"
 allowed-tools: Read, Glob, Grep, Bash(python *issue_priority.py), Bash(python3 *issue_priority.py), Bash(python *issue_priority.py --milestone *), Bash(python3 *issue_priority.py --milestone *), Bash(gh issue view *), Bash(gh issue list *), Bash(gh api repos/*/milestones*)
 ---
 
 # Next Task
 
-작업을 고르고 이슈를 만드는 진입점이다. 세 가지 모드가 있다.
+This is the entry point that chooses work and makes issues. It has three modes.
 
-| 모드 | 요청 예 |
+| Mode | Example requests |
 |---|---|
-| A. 다음 작업 고르기 | "다음 뭐 해", "오늘 1시간 있어", "휴일인데 뭐 하지" |
-| B. 새 이슈 만들기 | "이거 이슈로 만들어", "이런 기능 필요해", feature-impl 이 이슈가 없다고 넘겼을 때 |
-| C. 다시 채점 | 마일스톤 시작, 이슈를 다른 마일스톤으로 옮길 때, 범위 변경, 큰 방향 결정 뒤 |
+| A. Choose the next work | "다음 뭐 해", "오늘 1시간 있어", "휴일인데 뭐 하지" |
+| B. Make a new issue | "이거 이슈로 만들어", "이런 기능 필요해", or feature-impl reports that there is no issue |
+| C. Score again | Start of a milestone, an issue moves to another milestone, a scope change, or a large direction decision |
 
-## 경로와 프로필
+## Paths and profile
 
-- 플러그인 폴더: `${CLAUDE_PLUGIN_ROOT}`. 값이 변수 이름 그대로 보이면 이 SKILL.md 의 두 단계 위 폴더다.
-- 프로필: `<프로젝트 루트>/.claude/workflow/profile.md`, 개인 값은 `profile.local.md`. 쓰는 칸: `tracker`·`tracker_repo`·`tracker_public`, `issue_template`, `status_labels`, `priority_scheme`, `backlog_goal`, `milestone_view_url`, `threads_dir`, `time_budget_weekday`·`time_budget_holiday`(개인).
-- 프로필이 없거나 `tracker` 가 `github` 가 아니면 이 스킬은 쓸 수 없다고 알리고 멈춘다. 로그인된 `gh` CLI 가 필요하다.
+- Plugin folder: `${CLAUDE_PLUGIN_ROOT}`. If the value shows as the variable name, it is the folder two levels above this SKILL.md.
+- Profile: `<project root>/.claude/workflow/profile.md`. Personal values are in `profile.local.md`. Keys used: `tracker`, `tracker_repo`, `tracker_public`, `issue_template`, `status_labels`, `priority_scheme`, `backlog_goal`, `milestone_view_url`, `threads_dir`, `time_budget_weekday` and `time_budget_holiday` (personal).
+- If there is no profile, or `tracker` is not `github`, say that this skill cannot be used and stop. You need a logged-in `gh` CLI.
 
-## 공통 규칙
+## Common rules
 
-- 규칙의 원문은 프로젝트 지침이다. 이 스킬과 충돌하면 지침이 이긴다. `priority_scheme` 이 `grade` 면 등급 규칙은 `<플러그인 폴더>/shared/priority-scheme.md` 를 따른다.
-- 이슈 생성·댓글·라벨 변경·닫기와 `--apply` 는 저장소에 게시하는 작업이다. **초안을 보여 주고 확인받은 뒤에만** 실행한다.
-- 이 스킬은 구현하지 않는다. 작업을 고른 뒤 코드 변경은 `feature-impl`, 문서 작업은 해당 문서 스킬로 넘긴다.
-- 순서 계산은 읽기 전용으로 실행한다. Windows 콘솔에서 글자가 깨지면 앞에 `PYTHONIOENCODING=utf-8` 을 붙인다.
+- The source of the rules is the project instructions. If they conflict with this skill, the instructions win. If `priority_scheme` is `grade`, the grade rules follow `<plugin folder>/shared/priority-scheme.md`.
+- Creating an issue, comments, label changes, closing, and `--apply` are publishing actions on the repository. Run them **only after you show a draft and get confirmation**.
+- Write issue titles, bodies, and comments in the language that the project instructions set for issues. Write the output to the user in the language of the conversation. The output examples below are in Korean.
+- This skill does not implement. After work is chosen, code changes go to `feature-impl`, and document work goes to the matching document skill.
+- Run the order calculation as read-only. If characters break in the Windows console, add `PYTHONIOENCODING=utf-8` at the start.
   ```bash
-  python "<플러그인 폴더>/scripts/issue_priority.py"
+  python "<plugin folder>/scripts/issue_priority.py"
   ```
-  `python` 이 없으면 `python3` 을 쓴다. 스크립트가 오류로 끝나면 출력과 함께 보고한다. 스크립트 없이 순서를 지어내지 않는다.
+  If `python` is not available, use `python3`. If the script ends with an error, report it with the output. Do not make up an order without the script.
 
 ---
 
-## A. 다음 작업 고르기
+## A. Choose the next work
 
-### A1. 오늘 시간
+### A1. Time today
 
-사용자가 시간을 말했으면 그대로 쓴다. 말하지 않았으면 오늘 날짜가 평일인지 주말·공휴일인지 보고 개인 프로필의 `time_budget_weekday`·`time_budget_holiday` 를 쓴다. 값이 없으면 묻는다. 어떤 값을 썼는지 한 줄로 밝히고, 사용자가 고치면 그 값으로 다시 고른다.
+If the user gave a time, use it. If not, check whether today is a weekday or a weekend day or holiday, and use `time_budget_weekday` or `time_budget_holiday` of the personal profile. If there is no value, ask. Say in one line which value you used. If the user corrects it, choose again with the new value.
 
-### A2. 순서 읽기
+### A2. Read the order
 
-스크립트를 실행하고 마감이 가장 이른 마일스톤의 순서표, 대기 목록, 경고를 읽는다. `status_labels.in_progress` 라벨이 붙은 이슈가 있으면 함께 확인한다.
+Run the script. Read the order table, the waiting list, and the warnings of the milestone with the earliest due date. If issues have the `status_labels.in_progress` label, check them too.
 
-### A3. 고르기
+### A3. Choose
 
-1. 작업할 수 있는 이슈를 순서대로 보며 오늘 시간에 맞는 첫 이슈를 찾는다. S 는 1시간, M 은 3시간에 맞는다. L 은 한 번에 끝나지 않으므로 오늘 끝낼 조각을 정한다.
-2. 1순위 이슈가 오늘 시간보다 크면 둘 중 하나를 추천한다.
-   - 1순위의 유효 등급이 시간에 맞는 다음 이슈보다 높고, 오늘 끝낼 수 있는 조각(결정 하나, 확인 하나, 에셋 한 묶음)이 있으면 그 조각.
-   - 그렇지 않으면 시간에 맞는 다음 이슈.
-   추천하지 않은 쪽도 한 줄로 적는다.
-3. 진행 중인 이슈가 순서상 뒤에 있어도 예외로 앞세우지 않는다. 다만 이어서 하는 편이 낫다는 근거(반쯤 만든 결과물, 미뤄 둔 결정)가 인계 메모에 있으면 근거와 함께 대안으로 적는다.
+1. Go through the workable issues in order, and find the first issue that fits the time today. S fits 1 hour, and M fits 3 hours. L does not finish in one session, so set the slice to finish today.
+2. If the first issue is larger than the time today, recommend one of these two.
+   - The first issue, if its effective grade is higher than the next issue that fits the time, and it has a slice that can finish today (one decision, one check, one set of assets).
+   - If not, the next issue that fits the time.
+   Write the option you did not recommend in one line.
+3. Do not move an in-progress issue to the front if it is later in the order. But if the handoff note gives a reason to continue it (a half-made result, a postponed decision), write it as an alternative with the reason.
 
-### A4. 범위 정하기
+### A4. Set the scope
 
-고른 이슈의 본문(`gh issue view <N>`)과 인계 메모(`<threads_dir>/<N>-*.md`)를 읽는다. 본문이 링크한 설계 문서는 관련 항목만 읽는다.
+Read the body of the chosen issue (`gh issue view <N>`) and its handoff note (`<threads_dir>/<N>-*.md`). Of the design documents that the body links, read only the related items.
 
-### A5. 출력
+### A5. Output
 
 ```
 ## 오늘 할 일: #N <제목>
@@ -75,45 +76,45 @@ allowed-tools: Read, Glob, Grep, Bash(python *issue_priority.py), Bash(python3 *
 - 경고: <스크립트 경고. 없으면 생략>
 ```
 
-마지막에 "시작할까요?" 라고 묻는다. 시작하면 코드 변경은 `feature-impl`, 설계 결정은 설계 문서 논의, 에디터 작업은 단계 안내로 넘긴다.
+At the end, ask whether to start ("시작할까요?"). If the user starts, code changes go to `feature-impl`, design decisions go to a discussion of the design document, and editor work goes to step-by-step guidance.
 
 ---
 
-## B. 새 이슈 만들기
+## B. Make a new issue
 
-### B1. 중복 확인
+### B1. Duplicate check
 
 ```bash
-gh issue list --state all --search "<키워드>" --limit 10
+gh issue list --state all --search "<keywords>" --limit 10
 ```
 
-겹치는 이슈가 있으면 새로 만들지 말고 그 이슈를 이어 쓰거나 범위를 넓힐지 먼저 묻는다.
+If an issue overlaps, do not make a new one. First ask whether to continue that issue or to make its scope larger.
 
-### B2. 분류
+### B2. Classify
 
-- 종류·대상 영역 라벨은 프로젝트 지침의 라벨 규칙을 따른다.
-- 마일스톤: 설명을 읽는다.
+- Kind and area labels follow the label rules of the project instructions.
+- Milestone: read the descriptions.
   ```bash
   gh api repos/<owner/repo>/milestones --jq '.[] | "\(.title)\t\(.due_on)\n\(.description)\n"'
   ```
-  진행 중인 마일스톤이 이 작업을 요구할 때만 마일스톤에 넣고, 아니면 백로그로 둔다. "요구한다"는 마일스톤 설명의 완료 기준 가운데 어느 것에 필요한지 한 줄로 댈 수 있다는 뜻이다. 댈 수 없으면 백로그가 기본이고, 사용자가 그래도 넣겠다고 하면 그 이유를 근거로 적는다.
-- a: 넣을 마일스톤의 완료 기준에 비춰 매긴다. 백로그면 프로필 `backlog_goal` 에 비춰 매긴다.
-- b: 사용자가 직접 손대는 시간으로 매긴다. 처음 해 보는 기술이거나 결과를 예측하기 어려우면 한 단계 크게 잡는다.
-- 선행·막음: 이 작업이 기다려야 하는 이슈와 이 작업이 막게 될 이슈를 찾는다.
-- XL 이면 하위 이슈로 나눈 안을 함께 만든다. 하위 이슈마다 a·b 를 매기고, 상위 이슈에는 `size: XL` 만 붙인다.
+  Put the issue in a milestone only if a milestone in progress requires this work. "Requires" means that you can name, in one line, which completion criterion of the milestone description needs it. If you cannot, the backlog is the default. If the user still wants it in the milestone, write the user's reason as the basis.
+- a: set it against the completion criteria of the target milestone. For the backlog, set it against profile `backlog_goal`.
+- b: set it by the time that the user spends hands-on. If the technology is new or the result is hard to predict, use the next larger size.
+- Blocking: find the issues that this work must wait for, and the issues that this work will block.
+- For XL, also make a plan that splits the issue into sub-issues. Give each sub-issue an a and a b, and give the parent issue only `size: XL`.
 
-### B3. 규칙 점검
+### B3. Rule check
 
-- 마일스톤에 넣는데 C 등급이면 쪼개서 B 이상으로 만들거나 백로그로 보내는 안을 낸다.
-- 필수 이슈를 마일스톤에 넣으면 스크립트 출력의 `must` 비율에 이 이슈의 규모(S 1, M 2, L 5.5시간)를 더해 60% 를 넘는지 본다.
-- 필수가 아닌 이슈를 마일스톤에 넣으면 그 마일스톤의 열린 규모 합에 이 이슈의 규모를 더한 값과 마일스톤 설명의 용량을 나란히 보여 준다. 합이 용량을 넘으면 백로그로 두는 안을 함께 낸다.
-- 선행 작업이 더 늦은 마일스톤이나 백로그에 있으면 함께 옮기는 안을 낸다.
+- If the issue goes into a milestone and its grade is C, suggest a split to B or higher, or the backlog.
+- If a must issue goes into a milestone, add the size of this issue (S 1, M 2, L 5.5 hours) to the `must` share of the script output, and check whether it goes over 60%.
+- If an issue that is not must goes into a milestone, show the open size total of that milestone plus the size of this issue, next to the capacity in the milestone description. If the total is over the capacity, also suggest the backlog.
+- If a blocking issue is in a later milestone or in the backlog, suggest moving it too.
 
-### B4. 초안
+### B4. Draft
 
-본문은 프로필 `issue_template` 형식을 따른다. 없으면 목표·범위·완료 조건·관련 문서·확정된 결정으로 쓴다. `tracker_public` 이 true 면 로컬 경로, 개인 설정, 세션 메모, 시행착오를 넣지 않고 설계 상세는 설계 문서 링크로 대신한다.
+The body follows the profile `issue_template` format. If there is none, write the goal, scope, completion conditions, related documents, and confirmed decisions. If `tracker_public` is true, do not include local paths, personal settings, session notes, or trial and error, and use a design document link in place of design details.
 
-본문과 별도로 다음 메타 정보를 함께 보여 준다.
+Show the following metadata together with the body.
 
 ```
 제목: <제목>
@@ -125,51 +126,51 @@ a 근거: <한 줄>
 b 근거: <한 줄>
 ```
 
-### B5. 게시 (확인 뒤)
+### B5. Post (after confirmation)
 
 ```bash
-gh issue create --repo <owner/repo> --title "<제목>" --body-file <임시 초안 파일> \
-  --label "type: …" --label "priority: …" --label "size: …" --label "grade: …" --milestone "<마일스톤 제목>"
+gh issue create --repo <owner/repo> --title "<title>" --body-file <temporary draft file> \
+  --label "type: …" --label "priority: …" --label "size: …" --label "grade: …" --milestone "<milestone title>"
 ```
 
-선행 관계와 하위 이슈는 REST API 로 연결한다. `issue_id`·`sub_issue_id` 는 이슈 번호가 아니라 데이터베이스 id 다.
+Link blocking relations and sub-issues with the REST API. `issue_id` and `sub_issue_id` are database ids, not issue numbers.
 
 ```bash
 gh api repos/<owner/repo>/issues/<N> --jq .id
-gh api -X POST repos/<owner/repo>/issues/<막히는 이슈>/dependencies/blocked_by -F issue_id=<선행 이슈의 id>
-gh api -X POST repos/<owner/repo>/issues/<상위 이슈>/sub_issues -F sub_issue_id=<하위 이슈의 id>
+gh api -X POST repos/<owner/repo>/issues/<blocked issue>/dependencies/blocked_by -F issue_id=<id of the blocking issue>
+gh api -X POST repos/<owner/repo>/issues/<parent issue>/sub_issues -F sub_issue_id=<id of the sub-issue>
 ```
 
-게시한 뒤 스크립트를 다시 실행해 새 이슈가 몇 번째에 들어갔는지, 경고가 생겼는지 보고한다.
+After posting, run the script again. Report the position of the new issue in the order, and any new warning.
 
 ---
 
-## C. 다시 채점
+## C. Score again
 
-### C1. 대상
+### C1. Target
 
-- 마일스톤 시작: 그 마일스톤의 이슈 전체
-- 마일스톤 이동: 옮긴 이슈(a 는 새 마일스톤 목표 기준으로 다시 매긴다)
-- 범위 변경: 범위가 바뀐 이슈와 그 이슈가 막는 이슈
-- 큰 방향 결정: 백로그 전체를 훑어 마일스톤으로 끌어올 후보
+- Start of a milestone: all issues of that milestone
+- Move to another milestone: the moved issues (set a again against the goal of the new milestone)
+- Scope change: the changed issues and the issues that they block
+- Large direction decision: scan the whole backlog for candidates to move into a milestone
 
-### C2. 제안
+### C2. Suggestion
 
-스크립트 출력과 이슈 본문을 읽고, 바꿀 이슈만 표로 보여 준다.
+Read the script output and the issue bodies. Show only the issues to change, in a table.
 
 ```
 | 이슈 | 현재 a·b·등급 | 제안 a·b·등급 | 이유 |
 ```
 
-### C3. 반영 (확인 뒤)
+### C3. Apply (after confirmation)
 
 ```bash
 gh issue edit <N> --repo <owner/repo> --add-label "priority: …" --remove-label "priority: …"
-python "<플러그인 폴더>/scripts/issue_priority.py" --apply
+python "<plugin folder>/scripts/issue_priority.py" --apply
 ```
 
-`--apply` 는 grade 라벨을 자체 등급에 맞춘다. 라벨 변경 승인에 함께 포함해 묻는다.
+`--apply` sets the grade labels to the own grade. Include it in the approval request for the label changes.
 
-마일스톤을 시작할 때 프로필 `milestone_view_url` 이 있으면 그 이슈 뷰의 검색어(`milestone:"…"`)를 새 마일스톤 이름으로 바꾸라고 안내한다. GitHub 검색에는 "현재 마일스톤" 필터가 없다.
+When a milestone starts and profile `milestone_view_url` has a value, tell the user to change the search term (`milestone:"…"`) of that issue view to the new milestone name. GitHub search has no "current milestone" filter.
 
-마일스톤이 끝날 때는 닫힌 이슈의 실제 걸린 시간과 규모를 비교해 보자고 제안한다. 작업이 한 칸에 몰리면 단계를 늘리기보다 시간 경계를 옮기는 쪽으로 정리한다.
+When a milestone ends, suggest comparing the actual time of the closed issues with their sizes. If work collects in one size, move the time limits between sizes instead of adding more sizes.
