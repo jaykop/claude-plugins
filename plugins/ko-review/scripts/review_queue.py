@@ -246,8 +246,8 @@ def edit_queue(task, create=False):
             temp.unlink()
 
 
-def block(selector):
-    lines = project_path(selector["path"]).read_text(encoding="utf-8-sig").splitlines()
+def block(selector, with_text=False):
+    lines =project_path(selector["path"]).read_text(encoding="utf-8-sig").splitlines()
     matches = [i for i, line in enumerate(lines) if selector["anchor"] in line]
     if len(matches) != 1:
         raise ValueError(f"Anchor must match one line: {selector['path']} / {selector['anchor']}")
@@ -276,7 +276,10 @@ def block(selector):
     if start < 0 or end > len(lines) or start >= end:
         raise ValueError("Selected block is outside the file")
     text = "\n".join(lines[start:end]) + "\n"
-    return {"sha256": digest(text.encode("utf-8")), "lineHint": start + 1, "endLineHint": end}
+    selected = {"sha256": digest(text.encode("utf-8")), "lineHint": start + 1, "endLineHint": end}
+    if with_text:
+        selected["text"] = text
+    return selected
 
 
 def normalize_selector(selector):
@@ -293,6 +296,18 @@ def normalize_selector(selector):
 def snapshot(entry):
     return {"description": block(entry["selector"]),
             "evidence": [block(item) for item in entry["evidence"]]}
+
+
+def pending_view(entry):
+    # 해시 스냅샷은 목록 파일에만 둔다. 출력이 항목마다 커지면 검토하는 AI 의 맥락을 차지한다.
+    view = {key: value for key, value in entry.items() if key not in ("snapshot", "review", "ticket")}
+    description = entry.get("snapshot", {}).get("description")
+    if description and not entry.get("locationError"):
+        view["lines"] = [description["lineHint"], description["endLineHint"]]
+    for key in ("review", "ticket"):
+        if key in entry:
+            view[key] = {k: v for k, v in entry[key].items() if k != "snapshot"}
+    return view
 
 
 def fingerprints(value):
@@ -504,8 +519,9 @@ def main():
             print(json.dumps({"taskId": data["taskId"], "changes": data["changes"],
                               "unassignedChanges": [c for c in data["changes"] if c["path"] not in covered],
                               "noImpact": data["noImpact"],
-                              "entries": [e for e in waiting if in_queue_scope(e["selector"]["path"])],
-                              "outOfScopeEntries": [e for e in waiting
+                              "entries": [pending_view(e) for e in waiting
+                                          if in_queue_scope(e["selector"]["path"])],
+                              "outOfScopeEntries": [pending_view(e) for e in waiting
                                                     if not in_queue_scope(e["selector"]["path"])]},
                              ensure_ascii=False, indent=2))
         elif args.command == "no-impact":
@@ -519,7 +535,10 @@ def main():
                                      "recordedAt": now()})
         elif args.command == "snapshot":
             entry = get_entry(data, args.id)
-            print(json.dumps(snapshot(entry), ensure_ascii=False, indent=2))
+            # 검토 쪽이 고친 설명을 파일을 다시 열지 않고 읽게 본문을 함께 낸다. 본문은 목록에 저장하지 않는다.
+            current = snapshot(entry)
+            current["descriptionText"] = block(entry["selector"], with_text=True)["text"]
+            print(json.dumps(current, ensure_ascii=False, indent=2))
         elif args.command == "begin":
             refresh(data)
             entry = get_entry(data, args.id)
