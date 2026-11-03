@@ -20,7 +20,7 @@ argument-hint: "[#이슈번호] <요청 내용>"
 
 프로필은 `<프로젝트 루트>/.claude/workflow/profile.md`, 개인 값은 같은 폴더의 `profile.local.md` 다. 양식은 `<플러그인 폴더>/shared/profile-template.md` 와 `profile-local-template.md` 다.
 
-- **있으면** 읽는다. 이 스킬에서 쓰는 칸: `instructions`, `scope_sections`, `coding_rules`, `source_roots`, `risk_paths`, `tracker`·`tracker_repo`·`tracker_public`, `status_labels`, `threads_dir`, `verification`, `build_commands`, `test_setup_mcp`, `test_candidates`, `agent_review`, `review_guide`, `description_review`, 본문의 "설계 점검 항목".
+- **있으면** 읽는다. 이 스킬에서 쓰는 칸: `instructions`, `scope_sections`, `coding_rules`, `source_roots`, `risk_paths`, `tracker`·`tracker_repo`·`tracker_public`, `status_labels`, `threads_dir`, `verification`, `build_commands`, `test_setup_mcp`, `test_candidates`, `agent_review`, `review_guide`, 본문의 "설계 점검 항목".
 - **없으면** "이 프로젝트에 workflow 프로필이 없어요. 만들까요?" 라고 묻는다. 동의하면 프로젝트 지침(`AGENTS.md`, `CLAUDE.md`, `README.md`)과 폴더 구성에서 알 수 있는 값을 `[파일]` 로 채우고, 모르는 값만 한 번에 묻는다. 거절하면 아래의 기본값으로 진행한다: 이슈 트래커 없음, 인계 메모 없음, 검증은 사용자 담당.
 
 ---
@@ -40,13 +40,13 @@ argument-hint: "[#이슈번호] <요청 내용>"
 
 - 프로필 `coding_rules` 가 가리키는 규칙을 따른다. 규칙을 이 스킬에 복사하지 않는다.
 - 규칙이 없으면 주변 코드의 명명, 주석 밀도와 언어, 들여쓰기, 인코딩(BOM 유무), 줄바꿈을 그대로 따른다.
+- 함수·프로퍼티·타입·태그의 동작을 바꾸면 같은 편집에서 그 선언의 설명 주석을 현재 동작에 맞게 고친다. 에디터 툴팁으로 보이는 주석과 태그 설명(`DevComment` 등)도 포함한다. 이름을 바꾸면 그 이름을 언급하는 주석도 고친다.
 
 ### 버전 관리 규칙
 
 - **작업 시작 전 `git status --short` 로 현재 상태를 확인한다.** 다른 작업자의 미커밋 변경을 덮어쓰거나 되돌리지 않는다.
 - 요청 범위에 필요한 변경만 한다. 같은 파일을 건드리는 진행 중 작업이 보이면 현재 상태를 확인한 뒤 이어서 작업한다.
 - **커밋·푸시는 사용자가 요청할 때만 한다.** 구현이 끝났다는 이유로 자동으로 커밋하지 않는다. 커밋 범위와 대상은 프로필 `commit_policy` 를 따른다.
-- 프로필 `description_review` 가 true 면 ko-review 플러그인의 `record` 스킬로 설명 변경 목록을 쓴다. 주석·문서·설정 설명을 바꾸거나 로직 변경이 기존 설명에 영향을 주는 작업은 **수정 전에** 목록을 시작하고(`start`·`scope`), 수정을 마치거나 사용자 확인을 기다리는 시점에 Step Final 의 기록을 먼저 한다. ko-review 가 설치돼 있지 않으면 그 사실을 알리고 건너뛴다.
 
 ### 검증 담당
 
@@ -533,9 +533,9 @@ Step 0-C 의 위험 등급으로 정한다.
 
 조각으로 나눈 작업이면 조각마다 이 체크포인트를 거친다. 커밋 뒤 남은 조각이 있으면 다음 조각의 L5 로 간다. 문서화와 인계는 마지막 조각에서 한 번에 해도 된다.
 
-### 설명 변경 기록 — 구현을 마치거나 확인을 기다릴 때 먼저
+### 설명 주석 확인 — 구현을 마치거나 확인을 기다릴 때 먼저
 
-프로필 `description_review` 가 true 면, 사용자의 빌드·실행 확인을 기다리기 전에도 ko-review `record` 스킬의 "끝날 때" 절차(`capture` → `register` / `no-impact` → `pending` 대조)를 한다. 검토를 넘길 때는 이어서 ko-review `record` 스킬의 "검토 넘기기" 절차를 따른다. 이 기록은 인계 절차이며 별도 코드 리뷰·테스트 실행이 아니다. 검토하는 AI 를 자동으로 부르거나 사용자 빌드·커밋을 막지 않는다.
+사용자에게 빌드·실행 확인을 요청하기 전에, 이번 변경에서 동작이 바뀐 선언마다 설명 주석이 현재 동작과 맞는지 읽는다. 맞지 않으면 같은 작업에서 고친다. 그래야 주석 수정 때문에 빌드를 다시 하지 않는다. 커밋 직전에는 `commit-doc-review` 가 같은 대조를 한 번 더 한다.
 
 공개 API·UI·설정·실행 방법이 바뀌었으면 관련 manual 을 같은 작업에서 갱신한다. 이미 요청받은 문서 반영을 후속 질문까지 미루지 않는다.
 

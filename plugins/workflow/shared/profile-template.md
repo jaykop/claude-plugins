@@ -57,8 +57,6 @@ agent_review: true            # false 면 feature-impl 의 에이전트 리뷰(�
 review_guide:                 # 에이전트 리뷰가 읽는 리뷰 지침(프로젝트의 실패 유형). 예: REVIEW.md. 양식 shared/review-guide-template.md
 
 # ── 연동 ────────────────────────────────────────────
-description_review: false     # true 면 ko-review 플러그인의 설명 변경 기록(record)을 작업 흐름에 넣는다
-doc_writer: claude            # claude / codex. codex 면 feature-doc-sync 가 manual·devlog·plan 대신 문서 지시서를 쓰고, 다른 AI 가 doc-draft 로 쓴 결과를 대조한다
 handoff_reminder_turns: 25    # 이 턴 수마다 context-handoff 를 권한다. 0 이면 끈다
 ---
 
