@@ -1,132 +1,134 @@
-# 기술 동향 고문 출처 규칙
+# Technology trend advisor source rules
 
-이 파일에는 출처의 종류와 신뢰도 규칙만 둔다. 특정 버전의 기능 상태, 행사 날짜, 가격처럼 날짜가 붙은 바깥 사실은 여기에 적지 않는다. 그런 사실은 실행할 때마다 확인해 `<report_dir>/_state/source-checks.md` 에 확인일과 함께 남긴다.
+This file holds only the rules for source kinds and reliability. Do not write here dated outside facts, such as the feature state of a specific version, event dates, or prices. Check such facts in every run and record them in `<report_dir>/_state/source-checks.md` with the check date.
 
-## 1. 출처 종류
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-| 종류 | 무엇 | 쓰는 곳 |
+## 1. Source kinds
+
+| Kind (종류) | What | Where it is used |
 |---|---|---|
-| 1차 | 기술을 만든 쪽이 직접 낸 자료. 공식 릴리스 노트(버전별 변경 내역), 공식 문서, 공식 블로그와 뉴스, 행사 발표의 원본 영상·슬라이드, 공개 소스 저장소, 논문 | 발표 단계, 출시 여부, 설정·클래스 이름, 지원 플랫폼의 근거 |
-| 1차(우리 트리) | 로컬 엔진 트리의 플러그인 파일 표시와 폴더 위치. 플러그인이 아닌 기능(설정으로 켜는 엔진 기능)은 로컬 소스의 콘솔 변수 설명이나 헤더 주석에 적힌 성숙도 글(경로:줄) | 소스 빌드에서 "우리 엔진에 실제로 있는가"의 근거. 릴리스 노트보다 우선한다. 성숙도 글은 기록하되 발표 단계 판정은 1차 출처 원문으로 한다 |
-| 2차 | 다른 개발자의 기술 글, 행사 정리 글, 기술 매체 보도, 출시 게임을 독립적으로 측정한 매체 | 출시 사례와 실제 측정 조건을 찾는 용도. 사실 요약은 1차와 대조한다 |
-| 3차 | 포럼, 커뮤니티 게시판(§10 의 커뮤니티 채널 포함), SNS, 영상 튜토리얼, AI 가 만든 요약 사이트, 검색 노출용 사이트 | 판정 근거로 쓰지 않는다. 무엇이 화제인지, 알려진 버그나 문제가 무엇인지 찾는 실마리로만 쓰고, 찾은 것은 1차·2차에서 다시 확인한다 |
+| primary (1차) | Material that the maker of the technology published directly. Official release notes (change history by version), official documentation, official blogs and news, original videos and slides of event presentations, public source repositories, papers | Evidence for the announcement stage, whether it is released, setting and class names, and supported platforms |
+| primary (our tree) (1차(우리 트리)) | The plugin file marks and folder locations in the local engine tree. For a feature that is not a plugin (an engine feature turned on by a setting), the maturity text written in the console variable description or the header comment of the local source (path:line) | Evidence for "does it actually exist in our engine" in a source build. It takes priority over the release notes. Record the maturity text, but decide the announcement stage from the original wording of a primary source |
+| secondary (2차) | Technical posts by other developers, event summary posts, reports in technical media, media that independently measured shipped games | Used to find shipped cases and actual measurement conditions. Compare summaries of facts against primary sources |
+| tertiary (3차) | Forums, community boards (including the community channels in §10), social media, video tutorials, AI-generated summary sites, sites made for search exposure | Do not use them as evidence for verdicts. Use them only as leads to find what is a hot topic and what the known bugs or problems are, and confirm what you find again in primary and secondary sources |
 
-세부 규칙:
-- 논문은 학회 심사를 거친 것과 프리프린트를 구분해 적는다. 코드 공개 여부와 라이선스(연구용으로만 쓸 수 있는지)도 적는다. 논문만 근거면 발표 단계는 ①이다.
-- 하드웨어·SDK 공급사가 자기 제품에 대해 낸 자료는 출시 사실에 한해 1차로 본다. 성능 수치는 "공급사 측정"으로 표시한다.
-- AI 모델 회사의 공식 문서(출시 여부, 가격, 사용 한도, 은퇴 일정)는 1차로 본다. 벤치마크는 "회사 자체 측정"으로 표시한다.
-- 엔진 개발사 직원임이 표시된 공식 포럼 답변은 1차로 보되, 출시가 아니라 계획을 말한 것이면 발표 단계 ②를 넘기지 않는다.
-- 로드맵 페이지는 계획이다. 출시 근거로 쓰지 않는다.
+Detailed rules:
+- For papers, write separately whether it passed conference review or is a preprint. Also write whether the code is public and the license (whether it can be used only for research). If papers are the only evidence, the announcement stage is ①.
+- Material that a hardware or SDK vendor published about its own product counts as primary only for release facts. Mark performance numbers as "vendor measurement" (공급사 측정).
+- Official documentation of an AI model company (whether released, price, usage limits, retirement schedule) counts as primary. Mark benchmarks as "company's own measurement" (회사 자체 측정).
+- An official forum answer marked as from staff of the engine developer counts as primary, but if it talks about a plan and not a release, the announcement stage does not go above ②.
+- A roadmap page is a plan. Do not use it as evidence of release.
 
-## 2. 출시 사례의 신뢰도
+## 2. Reliability of shipped cases
 
-2차 출처의 출시 사례는 세 가지를 따로 적는다.
-1. 발표자가 그 기술로 게임을 실제로 출시했는가
-2. 측정 조건(하드웨어, 해상도, 장면)을 밝혔는가
-3. 팀 규모와 엔진 버전을 밝혔는가
+For a shipped case from a secondary source, write three things separately.
+1. Whether the presenter actually shipped a game with that technology
+2. Whether the measurement conditions (hardware, resolution, scene) were disclosed
+3. Whether the team size and the engine version were disclosed
 
-팀 규모를 밝히지 않았으면 "규모 미상"으로 적는다. 규모 미상 사례로는 추천도를 "시험"까지만 준다(판정 규칙 L5).
+If the team size was not disclosed, write "scale unknown" (규모 미상). A scale-unknown case gives at most "trial" as the recommendation level (verdict rule L5).
 
-## 3. 날짜
+## 3. Dates
 
-| 날짜 | 뜻 | 주의 |
+| Date (날짜) | Meaning | Caution |
 |---|---|---|
-| 발표일 | 처음 공개된 날. 기조연설이나 세션이 열린 날 | 영상 업로드일, 기사 작성일, 문서 수정일과 섞지 않는다. 모르면 "발표일 미상" |
-| 출시 | 출시된 버전과 날짜 | 릴리스 노트에서 읽는다. 미출시면 "미출시" |
-| 확인일 | 이번 실행에서 그 출처를 연 날 | 시스템 날짜(`date +%F`) |
+| Announcement date (발표일) | The day it was first made public. The day the keynote or session was held | Do not mix it with the video upload date, the article date, or the document revision date. If unknown, "announcement date unknown" (발표일 미상) |
+| Release (출시) | The released version and date | Read it from the release notes. If not released, "not released" (미출시) |
+| Check date (확인일) | The day that source was opened in this run | System date (`date +%F`) |
 
-- 날짜는 YYYY-MM-DD 로 쓴다. "최근", "얼마 전", "올해"를 쓰지 않는다.
-- 행사 일정은 해마다 바뀐다. 행사 날짜가 필요하면 그 해 공식 페이지에서 확인해 source-checks.md 에 넣는다.
+- Write dates as YYYY-MM-DD. Do not write "recently", "a while ago", or "this year".
+- Event schedules change every year. If you need an event date, check it on that year's official page and put it in source-checks.md.
 
-## 4. source-checks.md 쓰는 법
+## 4. How to write source-checks.md
 
-형식은 `<플러그인 폴더>/shared/state-formats.md` 의 source-checks.md 부분을 따른다.
+Follow the source-checks.md part of `<플러그인 폴더>/shared/state-formats.md` for the format.
 
-- **바깥 사실 표**: 날짜가 붙은 바깥 사실을 넣는다. 예: 최신 정식 엔진 버전과 출시일, 지금 판정에 쓰는 기능의 성숙도 표기, 모델 은퇴 일정, 공개 가격, 행사 일정.
-- **출처 접근 가능 여부 표**: 열기 실패한 출처와 커뮤니티 채널의 접근 결과를 방식, 결과, 확인일, 다시 확인할 날짜와 함께 적는다. 결과는 열림 / 막힘(코드) / 부분 / 도구가 막음 가운데 하나다. "도구가 막음"은 사이트가 아니라 Claude Code 의 웹 도구가 그 주소를 열지 않은 경우이고, 방식 칸은 "사람이 내보내 줘야 함"이 된다. 다음 실행에서는 막힌 출처 대신 같은 사실을 다른 1차 출처에서 찾도록 지시한다.
-- **다시 확인할 날짜** 기본값: 확인일 + 30일. 행사 일정은 행사가 끝난 다음 날. 은퇴 일정은 은퇴일 30일 전과 확인일 + 30일 중 이른 날. 접근 표의 행도 확인일 + 30일이다. 날짜 계산은 `date` 로 한다.
-- 한 행에는 출처 하나만 적는다. 출처끼리 말이 다르면 행을 나누고 값 칸에 "SC-xxx 와 어긋남"을 적는다.
-- 발표 단계나 지원 플랫폼을 정하는 사실(Experimental, Beta, 정식 같은 성숙도 표기)은 값 칸에 1차 출처의 원문 문장을 따옴표로 옮기고, 해당 버전과 범위를 좁히는 문구도 함께 적는다. 원문에 범위 한정이 없으면 "범위 한정 없음"이라고 적는다. 다음 실행이 이 행을 재사용할 때도 verdict-rules.md §1 의 원문 인용 규칙을 지킬 수 있게 하기 위해서다.
-- 1차 출처를 찾았지만 끝내 없었으면 출처 종류를 "1차 없음(찾지 못함)"으로, 값 칸에 찾아본 곳을 적는다. 다시 확인할 날짜 전까지는 "1차 출처가 없다"는 사실로만 쓴다(판정은 L7 이나 판단 보류).
-- 재사용: rules.md §3 의 세 조건에 맞는 행은 웹을 다시 열지 않고 근거로 쓴다. 행 ID 와 원래 확인일을 함께 적는다. 조건에 맞지 않는 행(2차·3차, 출처가 섞인 행, 1차끼리 어긋나는 행, 원문 없는 요약)은 근거로 쓰지 않고 다시 확인할 사실로 넘긴다.
-- 정기 점검은 R1 의 "현재 최신 정식 엔진 버전과 출시일"과 우리 버전 이후 릴리스 노트를 늘 다시 연다. 재사용하지 않는다. 새 버전을 놓치지 않기 위해서다.
-- 다시 확인할 날짜가 오늘이거나 지난 사실은 근거로 쓰기 전에 다시 확인한다. 정기 점검의 수집 지시에 "다시 확인할 사실"로 넣는다. 날짜가 지난 채널은 "다시 확인할 채널"로 넣는다.
-- **쓴 고문** 칸: 이 파일은 market·td 와 같이 쓴다. 기술 동향 고문이 새로 쓴 행은 radar 로 적는다. 다른 고문이 넣은 행은 지우지 않는다. 다시 확인했으면 값, 출처 URL, 출처 종류, 확인일, 다시 확인할 날짜를 갱신해도 되고, "쓴 고문"만 처음 넣은 고문 그대로 둔다(state-formats.md). 새 행의 ID 는 표에 있는 가장 큰 번호 다음이다.
-- 머리의 `다음 점검:` 은 두 표의 모든 행(다른 고문의 행 포함) 가운데 가장 이른 "다시 확인할 날짜"다.
+- **External facts table**: put in dated outside facts. Examples: the latest official engine version and its release date, the maturity mark of a feature used in a current verdict, model retirement schedules, public prices, event schedules.
+- **Source access table**: write the access results of sources that failed to open and of community channels, with the method, the result, the check date, and the recheck date. The result is one of open (열림) / blocked (code) (막힘(코드)) / partial (부분) / blocked by the tool (도구가 막음). "Blocked by the tool" is the case where not the site but the web tool of Claude Code did not open that address, and the method column becomes "a person must export it" (사람이 내보내 줘야 함). Instruct the next run to look for the same fact in another primary source instead of the blocked source.
+- Default **recheck date**: check date + 30 days. For an event schedule, the day after the event ends. For a retirement schedule, the earlier of 30 days before the retirement date and check date + 30 days. Rows of the access table are also check date + 30 days. Calculate dates with `date`.
+- Write only one source in one row. If sources say different things, split the rows and write "disagrees with SC-xxx" (SC-xxx 와 어긋남) in the value column.
+- For a fact that decides the announcement stage or supported platforms (a maturity mark such as Experimental, Beta, or production ready), copy the original sentence of the primary source into the value column in quotation marks, and also write the version and the wording that narrows the scope. If the original has no scope limit, write "no scope limit" (범위 한정 없음). This is so that the next run can still keep the original quote rule of verdict-rules.md §1 when it reuses this row.
+- If you looked for a primary source but in the end there was none, write the source kind as "no primary source (not found)" (1차 없음(찾지 못함)), and write the places you looked in the value column. Until the recheck date, use it only as the fact that "there is no primary source" (the verdict is L7 or "verdict withheld — not confirmed").
+- Reuse: use a row that meets the three conditions of rules.md §3 as evidence without opening the web again. Write the row ID and the original check date with it. Do not use rows that do not meet the conditions (secondary and tertiary, rows with mixed sources, rows where primary sources disagree, summaries without the original wording) as evidence. Pass them on as facts to recheck.
+- A periodic check always opens again the "current latest official engine version and its release date" of R1 and the release notes since our version. It does not reuse them. This is so that a new version is not missed.
+- A fact whose recheck date is today or earlier must be checked again before it is used as evidence. Put it in the collection instructions of the periodic check as a "fact to recheck". Put a channel whose date has passed in as a "channel to recheck".
+- **Written by** column: this file is written together with market and td. Write radar for the rows the technology trend advisor newly writes. Do not delete rows that another advisor added. If you checked a row again, you can update the value, the source URL, the source kind, the check date, and the recheck date, and keep only "written by" as the advisor that first added the row (state-formats.md). The ID of a new row is the number after the largest number in the table.
+- The `Next check:` line at the top is the earliest "recheck date" among all rows of the two tables (including other advisors' rows).
 
-## 5. 원문을 열지 못했을 때
+## 5. When the original cannot be opened
 
-- 403, 로그인 요구, 시간 초과로 원문을 열지 못했으면 "열기 실패"로 적는다. 검색 결과 요약문으로 내용을 채우지 않는다.
-- 웹 도구가 주소 자체를 거부했으면("unable to fetch", "not accessible" 같은 오류) "도구가 막음"으로 적는다. 다른 주소, 스크립트, 검색 결과 요약, 캐시로 같은 사이트를 다시 열지 않는다.
-- 같은 사실을 다른 1차 출처에서 찾는다. 끝내 못 찾으면 그 항목은 판정 규칙 L7(근거가 2차뿐)이나 "판단 보류-확인 부족"이다.
-- 출처끼리 내용이 다르면 둘 다 적고 1차를 따르되, 다르다는 사실을 표시한다.
+- If the original could not be opened because of 403, a login requirement, or a timeout, write "failed to open" (열기 실패). Do not fill in the content with search result summaries.
+- If the web tool refused the address itself (errors such as "unable to fetch" or "not accessible"), write "blocked by the tool" (도구가 막음). Do not open the same site again through another address, a script, search result summaries, or a cache.
+- Look for the same fact in another primary source. If it is not found in the end, that item is verdict rule L7 (only secondary evidence) or "verdict withheld — not confirmed".
+- If sources say different things, write both and follow the primary source, but mark that they differ.
 
-## 6. 기억에서 나온 내용
+## 6. Content from memory
 
-- 학습 기억에서 나온 내용(예: "이 기능은 아직 실험 단계였던 것으로 안다")은 리포트 부록 "기억에서 나온 내용 — 근거 아님"에 따로 모으고 판정에 쓰지 않는다.
-- "최신 버전", "현재 지원됨", "아직 실험 단계" 같은 말은 이번 실행에서 연 1차 출처, 또는 rules.md §3 의 재사용 조건에 맞는 source-checks 행으로만 쓴다. 그 행을 쓸 때는 행 ID 와 원래 확인일을 함께 적는다.
+- Collect content that comes from training memory (for example, "I believe this feature was still experimental") separately in the report appendix "Content from memory — not evidence", and do not use it in verdicts.
+- Use words such as "latest version", "currently supported", or "still experimental" only from a primary source opened in this run, or from a source-checks row that meets the reuse conditions of rules.md §3. When you use that row, write the row ID and the original check date with it.
 
-## 7. 이름 확인
+## 7. Name confirmation
 
-설정 이름(CVar, 엔진 동작을 바꾸는 콘솔 변수), 클래스, 플러그인, 모듈 이름은 공식 문서 링크나 로컬 엔진 소스 경로로 존재를 확인한 것만 적는다. 확인하지 못했으면 "이름 미확인"으로 적는다. 그럴듯한 이름을 만들어 쓰지 않는다.
+Write only setting names (CVars, console variables that change engine behavior), class, plugin, and module names whose existence you confirmed with a link to the official documentation or a path in the local engine source. If you could not confirm a name, write "name unconfirmed" (이름 미확인). Do not make up plausible names.
 
-## 8. 성능 수치
+## 8. Performance numbers
 
-발표 측 성능 수치는 출처와 측정 조건(하드웨어, 해상도, 장면)을 함께 적고 "발표 측 수치"로 표시한다. "우리 게임에서 이만큼 좋아진다"로 옮기지 않는다. 우리 쪽 효과는 "미측정 — perf 측정 요청 Q-xxxx"로만 적는다.
+Write performance numbers from the announcer with the source and the measurement conditions (hardware, resolution, scene), and mark them as "announcer's numbers" (발표 측 수치). Do not turn them into "it improves this much in our game". Write the effect on our side only as "not measured — perf measurement request Q-xxxx" (미측정 — perf 측정 요청 Q-xxxx).
 
-## 9. 수집 주제와 검색어
+## 9. Collection topics and search queries
 
-**주제 다섯 가지** — web-scout 를 주제마다 하나씩 병렬로 부른다. 프로필 `radar.excluded` 에 든 분야는 뺀다.
+**The five topics** — call web-scout once for each topic, in parallel. Leave out the areas in profile `radar.excluded`.
 
-| 주제 | 다루는 것 |
+| Topic (주제) | What it covers |
 |---|---|
-| 엔진 | 엔진 릴리스 노트, 버전 정책, 빌드·툴, 공개 소스 저장소의 변경 |
-| 그래픽스·애니메이션 | 렌더링, 조명, 그림자, 지오메트리, 애니메이션, 물리 표현 |
-| 네트워크 | 복제(서버와 클라이언트 사이 상태 동기화), 온라인 서비스 연동, 넷코드 |
-| 개발 도구·AI | 개발 도구, 에디터 확장, 개발 도구용 AI, 게임 안 AI |
-| 플랫폼 | 대상 플랫폼의 공개 SDK·정책·인증 요건(공개된 것만) |
+| engine (엔진) | Engine release notes, version policy, build and tools, changes in the public source repository |
+| graphics and animation (그래픽스·애니메이션) | Rendering, lighting, shadows, geometry, animation, physics presentation |
+| network (네트워크) | Replication (state synchronization between server and client), online service integration, netcode |
+| development tools and AI (개발 도구·AI) | Development tools, editor extensions, AI for development tools, in-game AI |
+| platform (플랫폼) | Public SDKs, policies, and certification requirements of the target platforms (only what is public) |
 
-**검색어 규칙**
-- 공개된 기술·제품·회사 이름, 엔진의 공식 기능 이름, 일반 기술 용어로만 만든다.
-- 넣지 않는 것: 프로필 `search_banned_terms`, `search_banned_combos` 의 조합, 프로젝트 이름, 기술 목록에서 위치가 "프로젝트"인 플러그인과 모듈 이름, 내부 코드 이름, 기획서 문장, 티켓 제목.
-- 엔진 플러그인 이름은 기술 목록 근거 칸의 위치가 "엔진"인 것만 쓴다(엔진이 공개한 이름이다).
-- 위치가 "프로젝트"인 플러그인 가운데 외부 공급사의 공개 제품은 `radar-watchlist.md` 의 "공개 외부 제품으로 확인된 프로젝트 플러그인" 표에 있는 것만 공급사가 공개한 이름으로 검색한다. 표에 없으면 검색하지 않는다. 플러그인 파일(.uplugin)에 적힌 제작자 이름만 보고 외부 제품이라고 정하지 않는다. 표에 넣는 것은 사용자가 확인했을 때뿐이다.
-- 풀어야 할 문제는 일반 기술 용어로 바꿔서 검색한다. 예: 기획서의 "넓은 숲 지역에서 그림자가 무겁다" → "shadow rendering cost dense foliage". 증상을 특정 기술 이름으로 바꾸면 그 기술만 찾게 되므로, 기술 이름은 검색 결과에서 얻는다. 바꾼 검색어에 내부 사정이 드러나지 않는지 한 번 더 본다.
-- 커뮤니티 채널(§10)의 검색어, 태그, 주소에 넣는 말도 이 규칙을 그대로 따른다. 태그와 주소의 검색 조건도 바깥 서비스로 전송되기 때문이다.
+**Search query rules**
+- Build queries only from names of public technologies, products, and companies, official feature names of the engine, and general technical terms.
+- Do not put in: profile `search_banned_terms`, the combinations in `search_banned_combos`, the project name, the names of plugins and modules whose location in the technology inventory is "project" (프로젝트), internal code names, sentences from design documents, ticket titles.
+- Use engine plugin names only when the location in the evidence column of the technology inventory is "engine" (엔진) (these are names the engine published).
+- Among the plugins whose location is "project", search for public products of outside vendors by the name the vendor published, only for the ones in the "Project plugins confirmed as public outside products" table of `radar-watchlist.md`. If a plugin is not in the table, do not search for it. Do not decide that a plugin is an outside product only from the creator name written in the plugin file (.uplugin). Put a plugin in the table only when the user confirmed it.
+- Rewrite problems to solve into general technical terms before searching. Example: "넓은 숲 지역에서 그림자가 무겁다" (shadows are heavy in a wide forest area) in a design document → "shadow rendering cost dense foliage". If you turn a symptom into a specific technology name, you will find only that technology, so get technology names from the search results. Check once more that the rewritten query does not reveal internal matters.
+- The words you put in the search queries, tags, and addresses of community channels (§10) follow these rules as they are. This is because the search conditions in tags and addresses are also sent to outside services.
 
-## 10. 커뮤니티 채널
+## 10. Community channels
 
-**역할**: 무엇이 화제인지, 실제로 써 본 사람의 경험과 버그 보고를 찾는 곳이다. 출처 등급은 3차다(§1). 판정 근거로 쓰지 않고, 출시 여부와 성숙도는 1차 출처로 다시 확인한다. 커뮤니티에서만 나온 내용으로 추천도를 "검토"보다 높이지 않는다(verdict-rules.md L12).
+**Role**: the place to find what is a hot topic, and the experience and bug reports of people who actually used a technology. The source grade is tertiary (§1). Do not use them as evidence for verdicts, and confirm release and maturity again with primary sources. Do not raise the recommendation level above "assess" with content that comes only from communities (verdict-rules.md L12).
 
-**읽는 때**: 정기 점검에서는 auto 채널을 모두 읽는다. 단일 기술 진단에서는 SKILL.md D3 의 조건 C1~C3 에 걸릴 때만, D3(1차 출처 수집)가 돌아온 뒤에 읽는다. TD 고문은 커뮤니티 글을 읽지 않는다.
+**When to read**: in a periodic check, read all auto channels. In a single-technology diagnosis, read them only when conditions C1~C3 of SKILL.md D3 apply, and only after D3 (primary source collection) returns. The TD advisor does not read community posts.
 
-**채널** — 프로필 `radar.community_sources` 에는 아래 채널 이름을 쓴다. auto 는 자동으로 읽는 채널, manual 은 사용자가 글을 붙여 넣거나 파일로 줄 때만 읽는 채널이다.
+**Channels** — use the channel names below in profile `radar.community_sources`. auto is a channel read automatically, and manual is a channel read only when the user pastes posts or gives them as files.
 
-| 채널 이름 | 글의 언어 | 읽는 방법 (주소 형식) | 접근 확인용 주소 | 작성 시 한 번 확인한 접근 결과 |
+| Channel name | Language of posts | How to read (address format) | Address for the access check | Access result checked once at writing time |
 |---|---|---|---|---|
-| qiita | 일본어 | 공개 API `https://qiita.com/api/v2/items?query=tag:<태그>&per_page=<N>`. 태그별 최신 글이 작성일(`created_at`)과 함께 나온다. 태그는 공개 기술 이름으로 쓴다(예: `UnrealEngine`). `<N>` 은 한 번에 받을 글 수다. 대상 기간은 `created_at` 으로 거른다 | 왼쪽 주소에 태그 하나 | 열림 |
-| geeknews | 한국어 | `https://news.hada.io/` 의 글 목록과 항목 페이지. 다른 글을 소개하는 모음이라 항목마다 원문 링크가 있다. 원문까지 따라가 열고, 인용은 원문에서 한다. 기술 이름으로 찾을 때는 웹 검색 범위를 이 사이트로 좁힌다 | `https://news.hada.io/` | 열림 |
-| tencent-gameinstitute | 중국어 | 텐센트 게임 학당 `https://gameinstitute.qq.com/` 의 최신 글 목록. 기술 이름으로 찾을 때는 웹 검색 범위를 이 사이트로 좁힌다 | `https://gameinstitute.qq.com/` | 열림 |
-| reddit | 영어 | 자동으로 읽지 않는다. 사용자가 글을 붙여 넣거나 파일로 줄 때만 읽는다 | `https://www.reddit.com/` | 도구가 막음 (WebFetch 와 WebSearch 모두 이 사이트를 거부) |
-| zhihu | 중국어 | 자동으로 읽지 않는다. 위와 같다 | `https://www.zhihu.com/` | 막힘(403) |
+| qiita | Japanese | Public API `https://qiita.com/api/v2/items?query=tag:<태그>&per_page=<N>`. It returns the latest posts for each tag with the post date (`created_at`). Use public technology names as tags (for example `UnrealEngine`). `<N>` is the number of posts to get at once. Filter the target period with `created_at` | The address on the left with one tag | open |
+| geeknews | Korean | The post list and item pages of `https://news.hada.io/`. It is a collection that introduces other posts, so each item has a link to the original. Follow the link and open the original, and quote from the original. To search by technology name, narrow the web search scope to this site | `https://news.hada.io/` | open |
+| tencent-gameinstitute | Chinese | The latest post list of Tencent Game Institute `https://gameinstitute.qq.com/`. To search by technology name, narrow the web search scope to this site | `https://gameinstitute.qq.com/` | open |
+| reddit | English | Do not read it automatically. Read it only when the user pastes posts or gives them as files | `https://www.reddit.com/` | blocked by the tool (both WebFetch and WebSearch refuse this site) |
+| zhihu | Chinese | Do not read it automatically. Same as above | `https://www.zhihu.com/` | blocked (403) |
 
-- "작성 시 한 번 확인한 접근 결과" 칸은 이 파일을 쓸 때 한 번 확인한 값이다. 판정 근거가 아니고, 실행마다 따르는 값은 `source-checks.md` 접근 표다. 첫 실행 때 채널마다 다시 열어 보고 접근 표에 적는다(쓴 고문 radar). auto 채널은 수집 자체가 확인이고, manual 채널은 접근 확인용 주소를 한 번 열어 본다.
-- 작성 시에는 중국어권 게임 개발 매체 GameLook 도 시험했지만 연결이 거부돼(시험한 PC 기준) 채널에 넣지 않았다. 다른 환경에서 열리면 이 표에 행을 더해 쓸 수 있다.
-- 프로필에 이 표에 없는 채널 이름이 있으면 읽지 않고, 리포트 "확인 못 한 것"에 "모르는 채널 이름"으로 적는다.
+- The "Access result checked once at writing time" column is a value checked once when this file was written. It is not evidence for verdicts, and the value to follow in each run is the access table of `source-checks.md`. In the first run, open each channel again and write it in the access table (written by radar). For auto channels, the collection itself is the check. For manual channels, open the address for the access check once.
+- At writing time, GameLook, a Chinese-language game development medium, was also tested, but the connection was refused (on the PC used for the test), so it was not added as a channel. If it opens in another environment, you can add a row to this table and use it.
+- If the profile has a channel name that is not in this table, do not read it, and write it in "Not checked" of the report as "unknown channel name" (모르는 채널 이름).
 
-**읽는 규칙**
-- 채널에서 찾은 글은 기술 글이어도 3차로 다룬다. 글이 링크한 원문을 열었으면 그 원문은 원문의 종류로 따로 적는다(공식 문서면 1차, 다른 개발자의 기술 글이면 2차).
-- 일본어·중국어 글은 원문 인용과 한국어 번역을 함께 적는다. 번역은 읽기를 돕는 것이고, 수치·버전·발표 단계는 원문 쪽을 근거로 둔다.
-- 자동 조회가 막힌 채널(접근 결과가 "막힘"이나 "도구가 막음")은 다른 주소, 스크립트, 검색 결과 요약, 캐시로 열지 않는다. 사이트나 도구가 자동 수집을 막은 것이기 때문이다. 그 채널은 manual 로만 쓴다. 다시 확인할 날짜가 되면 접근 확인용 주소를 같은 도구로 한 번만 열어 본다. 열리더라도 auto 로 옮길지는 사용자가 정한다(무인 실행이면 리포트에 적기만 한다).
-- manual 채널의 글은 사용자가 대화에 붙여 넣었거나 파일 경로를 준 것만 읽는다. 출처 칸에 "사용자 제공(<채널 이름>)"과, 사용자가 URL 을 줬으면 그 URL 을 적는다. 무인 실행에서는 읽지 않는다.
-- 글의 작성일은 페이지나 API 에 적힌 날짜를 쓴다. 조회일과 섞지 않는다.
+**Reading rules**
+- Treat posts found in channels as tertiary even if they are technical posts. If you opened the original that a post links, write that original separately by its own kind (primary if it is official documentation, secondary if it is a technical post by another developer).
+- For Japanese and Chinese posts, write the original quote together with a translation into the report language. The translation helps reading. Keep numbers, versions, and announcement stages on the original side as evidence.
+- Do not open a channel whose automatic lookup is blocked (access result "blocked" or "blocked by the tool") through another address, a script, search result summaries, or a cache. This is because the site or the tool blocked automatic collection. Use that channel only as manual. When the recheck date comes, open the address for the access check once with the same tool. Even if it opens, the user decides whether to move it to auto (in an unattended run, only write it in the report).
+- For manual channels, read only the posts that the user pasted into the conversation or whose file path the user gave. In the source column, write "provided by the user (<channel name>)" (사용자 제공(<채널 이름>)), and the URL if the user gave one. Do not read them in an unattended run.
+- For the post date of a post, use the date written on the page or in the API. Do not mix it with the access date.
 
-**정기 점검에서 글이 가는 곳**
+**Where posts go in a periodic check**
 
-| 글의 내용 | 가는 곳 | 1차 확인 |
+| Content of the post | Where it goes | Primary confirmation |
 |---|---|---|
-| 기술 목록에 있는 기술(지금 쓰는 기술)의 문제·버그 보고, 버전을 올린 뒤 생긴 문제 | ① 지금 쓰는 기술의 변화의 실마리 | 릴리스 노트의 알려진 문제, 공식 이슈 트래커, 엔진 개발사 직원의 공식 포럼 답변. 확인되면 ① 표에 1차 출처로 올린다 |
-| 풀어야 할 문제(P-n)와 이어지는 기술이나 사용 경험 | ② 문제에 맞는 기술의 후보 | 발표 단계와 지원 플랫폼을 1차로 확인한 뒤 판정 규칙대로 판정한다 |
-| 그 밖의 화제 | ③ 문제와 이어지지 않는 소식 한 줄 | 하지 않는다. 판정하지 않는다 |
+| Problem and bug reports about a technology in the technology inventory (a technology we use now), problems that appeared after a version upgrade | ① a lead for changes to technologies we use now | Known issues in the release notes, the official issue tracker, official forum answers by staff of the engine developer. If confirmed, put it in the ① table with the primary source |
+| A technology or user experience that connects to a problem to solve (P-n) | ② a candidate for technologies that fit the problems | Confirm the announcement stage and supported platforms with primary sources, then rate it by the verdict rules |
+| Other topics | ③ one line of news that connects to no problem | Not done. Do not rate it |
 
-1차로 확인하지 못한 실마리와 후보는 ①②에 올리지 않고, 리포트의 "커뮤니티에서 찾은 실마리" 표에만 "1차 확인 못 함"으로 둔다.
+Do not put leads and candidates not confirmed with a primary source into ① or ②. Keep them only in the "Community leads" table of the report, as "not confirmed with a primary source" (1차 확인 못 함).

@@ -490,19 +490,19 @@ def fingerprint(paths, extra, base):
 
 
 def parse_previous(path):
-    """직전 목록에서 (지문, 이름→(ID, 상태), 날짜) 를 읽는다."""
+    """직전 목록에서 (지문, 이름→(ID, 상태), 날짜) 를 읽는다. 한국어·영어 머리 낱말을 모두 읽는다."""
     prev = {"fp": None, "ids": {}, "date": None}
     if not path or not os.path.isfile(path):
         return prev
     with open(path, "r", encoding="utf-8-sig", errors="replace") as f:
         for line in f:
-            m = re.match(r"^\|\s*입력 지문\s*\|\s*([0-9a-f]+)\s*\|", line)
+            m = re.match(r"^\|\s*(?:입력 지문|Input fingerprint)\s*\|\s*([0-9a-f]+)\s*\|", line, re.I)
             if m:
                 prev["fp"] = m.group(1)
             m = re.match(r"^\|\s*(TI-\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|", line)
             if m:
                 prev["ids"][m.group(2)] = (m.group(1), m.group(3))
-            m = re.search(r"마지막 갱신:\s*(\d{4}-\d{2}-\d{2})", line)
+            m = re.search(r"(?:마지막 갱신|Last updated)\s*:\s*(\d{4}-\d{2}-\d{2})", line, re.I)
             if m:
                 prev["date"] = m.group(1)
     return prev

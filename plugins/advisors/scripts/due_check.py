@@ -20,11 +20,14 @@ if hasattr(sys.stdout, "reconfigure"):
 
 # 고문 목록은 이 플러그인의 skills/ 아래 폴더 이름이다. 고문을 더해도 이 파일은 고치지 않는다.
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NEXT_RE = re.compile(r"^\s*다음 점검:\s*(\d{4}-\d{2}-\d{2})", re.M)
-# 마일스톤 기준 형식: "다음 점검: 마일스톤 14일 전" — 프로필 next_milestone 의 날짜에서 뺀다
-MILESTONE_RE = re.compile(r"^\s*다음 점검:\s*마일스톤\s*(\d+)\s*일\s*전", re.M)
+# 머리 줄은 한국어와 영어 두 형식을 모두 읽는다(프로필 report_language 에 따라 쓴다)
+NEXT_LABEL = r"(?:다음 점검|Next check)\s*:"
+NEXT_RE = re.compile(r"^\s*" + NEXT_LABEL + r"\s*(\d{4}-\d{2}-\d{2})", re.M | re.I)
+# 마일스톤 기준 형식: "다음 점검: 마일스톤 14일 전" 또는 "Next check: 14 days before milestone" — 프로필 next_milestone 의 날짜에서 뺀다
+MILESTONE_RE = re.compile(
+    r"^\s*" + NEXT_LABEL + r"\s*(?:마일스톤\s*(\d+)\s*일\s*전|(\d+)\s*days?\s+before\s+(?:the\s+)?milestone)", re.M | re.I)
 MILESTONE_DATE_RE = re.compile(r"^next_milestone:[^#\n]*?(\d{4}-\d{2}-\d{2})", re.M)  # 주석(#) 속 예시 날짜는 읽지 않는다
-LAST_UPDATE_RE = re.compile(r"마지막 갱신:\s*(\d{4}-\d{2}-\d{2})")
+LAST_UPDATE_RE = re.compile(r"(?:마지막 갱신|Last updated)\s*:\s*(\d{4}-\d{2}-\d{2})", re.I)
 REPORT_DIR_RE = re.compile(r"^report_dir:\s*(.*?)\s*(#.*)?$", re.M)
 
 
@@ -96,14 +99,14 @@ def due_cadence_rows(report_dir, today):
 
 
 def open_questions(inbox_text):
-    """받는 고문별 '열림' 질문 수."""
+    """받는 고문별 '열림'(open) 질문 수."""
     counts = {}
     for line in inbox_text.splitlines():
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if len(cells) < 8 or not cells[0].startswith("Q-"):
             continue
         receiver, status = cells[3], cells[7]
-        if status == "열림":
+        if status == "열림" or status.lower() == "open":
             counts[receiver] = counts.get(receiver, 0) + 1
     return counts
 
@@ -154,7 +157,7 @@ def main():
             md = MILESTONE_DATE_RE.search(profile_text)
             if mm and md:
                 try:
-                    due = dt.date.fromisoformat(md.group(1)) - dt.timedelta(days=int(mm.group(1)))
+                    due = dt.date.fromisoformat(md.group(1)) - dt.timedelta(days=int(mm.group(1) or mm.group(2)))
                 except ValueError:
                     due = None
                 # 알림 시작일 이후에 이미 갱신(점검)했으면 다시 알리지 않는다

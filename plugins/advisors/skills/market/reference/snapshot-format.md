@@ -1,43 +1,45 @@
-# market-snapshot.md 형식
+# market-snapshot.md format
 
-파일: `<report_dir>/_state/market-snapshot.md`. market 만 쓰고 읽는다. 변화 점검의 비교 기준이고, 흐름 판정의 "두 시점 비교"에 쓰는 이력이다. Step Final 에서 갱신한다.
+File: `<report_dir>/_state/market-snapshot.md`. Only market writes and reads it. It is the comparison baseline of a change check, and the history used for the "comparison at two points in time" of trend judgment. Update it in Step Final.
+
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
 ```markdown
-# 시장 수치 기록
+# Market numbers record (시장 수치 기록)
 
-다음 점검: YYYY-MM-DD
-작성: market / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <CL 또는 커밋, 없으면 확인 못 함>
+Next check: YYYY-MM-DD
+Written by: market / Last updated: YYYY-MM-DD / Base revision: <CL or commit; if none, not checked>
 
-## 지표
+## Metrics (지표)
 
-| 지표 ID | 게임 | 지표 | 값 | 출처 | 기준 기간 | 조회일 | 메모 |
+| Metric ID (지표 ID) | Game (게임) | Metric (지표) | Value (값) | Source (출처) | Base period (기준 기간) | Accessed (조회일) | Note (메모) |
 |---|---|---|---|---|---|---|---|
-| MS-001 | MC-003 <게임 이름> | Steam 누적 리뷰 수 (언어 전체, 구매 경로 전체) | 12,340 | Steam 리뷰 JSON, steam_reviews.py count | 출시~조회일 누적 | YYYY-MM-DD | |
-| MS-002 | MC-003 <게임 이름> | Steam 누적 리뷰 추천 비율 | 87.2% | Steam 리뷰 JSON, steam_reviews.py count | 출시~조회일 누적 | YYYY-MM-DD | 보조 신호 |
-| MS-003 | MC-005 <게임 이름> | 공식 판매 발표 (실판매량) | 1,000,000 | <퍼블리셔> 실적 자료 <URL> | ~YYYY-MM-DD 누적 | YYYY-MM-DD | 원문: "sold" |
-| MS-004 | MC-006 <게임 이름> | 최근 30일 평균 동시 접속 | 조회 실패 | <통계 사이트> | - | YYYY-MM-DD | 자동 조회 막힘, 사용자 자료 없음 |
+| MS-001 | MC-003 <game name> | Steam cumulative review count (all languages, all purchase types) | 12,340 | Steam review JSON, steam_reviews.py count | Cumulative from release to the access date | YYYY-MM-DD | |
+| MS-002 | MC-003 <game name> | Steam cumulative review recommendation ratio | 87.2% | Steam review JSON, steam_reviews.py count | Cumulative from release to the access date | YYYY-MM-DD | supporting signal |
+| MS-003 | MC-005 <game name> | Official sales announcement (units sold) | 1,000,000 | <publisher> earnings material <URL> | Cumulative to YYYY-MM-DD | YYYY-MM-DD | Original: "sold" |
+| MS-004 | MC-006 <game name> | Average concurrent players over the last 30 days | query failed | <statistics site> | - | YYYY-MM-DD | Automatic lookup blocked, no user material |
 
-## 축 등급
+## Axis grades (축 등급)
 
-| 축 | 등급 | 확신도 | 제한 | 리포트 |
+| Axis (축) | Grade (등급) | Confidence (확신도) | Restriction (제한) | Report (리포트) |
 |---|---|---|---|---|
-| 장르 수요 | 중립 | 추정 | 주 플랫폼 수치 없음 | market/YYYY-MM-DD-full.md |
+| Genre demand | Neutral | estimated | No main-platform numbers | market/YYYY-MM-DD-full.md |
 
-## 리뷰 표본
+## Review sample (리뷰 표본)
 
-| 게임 | 표본 규칙 | 원문 파일 | 분류 파일 | 분류 체계 | 조회일 |
+| Game (게임) | Sample rule (표본 규칙) | Original file (원문 파일) | Classification file (분류 파일) | Classification scheme (분류 체계) | Accessed (조회일) |
 |---|---|---|---|---|---|
-| MC-003 <게임 이름> | recent, 언어 전체, 구매 경로 전체, 최근 3개월, 최대 300 | market/data/YYYY-MM-DD/reviews-<앱 ID>.jsonl | market/data/YYYY-MM-DD/labels-<앱 ID>.csv | v1 | YYYY-MM-DD |
+| MC-003 <game name> | recent, all languages, all purchase types, last 3 months, max 300 | market/data/YYYY-MM-DD/reviews-<앱 ID>.jsonl | market/data/YYYY-MM-DD/labels-<앱 ID>.csv | v1 | YYYY-MM-DD |
 ```
 
-## 규칙
+## Rules
 
-- **같은 지표 ID 는 같은 게임·같은 정의·같은 출처다.** 정의나 출처가 바뀌면 새 ID 를 만든다. 옛 ID 의 마지막 줄 메모에 "MS-0xx 로 대체 — 직접 비교 안 함"을 적는다.
-- **지우지 않고 쌓는다.** 조회할 때마다 같은 ID 로 새 줄을 아래에 더한다. 그래야 두 시점 비교가 된다. `market_calc.py snapshot` 은 ID 별로 숫자 값이 있는 줄 가운데 조회일이 가장 늦은 줄을 직전 값으로 읽는다.
-- 값 칸에는 숫자와 단위 기호(%, 통화 기호, 천 단위 쉼표)만 쓴다. "약", "이상" 같은 말은 메모 칸에 둔다. 숫자가 아닌 값("조회 실패", "확인 못 함")은 그대로 쓴다. 스크립트는 이런 줄을 직전 값으로 쓰지 않고 그 전 숫자 줄과 비교하며, 그렇게 했다는 것을 메모 칸에 적는다.
-- 조회 실패도 줄로 남긴다. 다음 점검에서 같은 출처를 다시 시도할 수 있게 하기 위해서다.
-- 게임 칸은 `market-competitors.md` 의 ID 와 이름을 함께 적는다. 목록 밖 게임이면 "목록 밖" 이라고 적는다.
-- 주 플랫폼이 Steam 이 아니면 Steam 지표 줄의 메모에 "보조 신호"를 적는다.
-- "축 등급" 표는 매 리포트 뒤 현재 값으로 덮어쓴다. 이력은 리포트 파일에 남는다.
-- "리뷰 표본" 표는 게임마다 마지막 표본 한 줄만 둔다. 변화 점검은 이 줄의 표본 규칙과 분류 체계를 그대로 쓴다. 분류까지 마치지 못한 표본(무인 실행에서 받기만 한 것 등)으로는 이 줄을 바꾸지 않는다. 받은 파일 경로는 리포트에만 적는다.
-- 경로는 `report_dir` 기준 상대 경로로 적는다.
+- **The same metric ID means the same game, the same definition, and the same source.** If the definition or the source changes, make a new ID. In the note of the last row of the old ID, write "replaced by MS-0xx — not compared directly" (MS-0xx 로 대체 — 직접 비교 안 함).
+- **Do not delete; add up.** Every time you query, add a new row with the same ID below. This makes the comparison at two points in time possible. `market_calc.py snapshot` reads, for each ID, the row with the latest access date among the rows that have a numeric value as the previous value.
+- In the value column, write only the number and unit symbols (%, currency symbols, thousands separators). Put words such as "about" or "or more" in the note column. Write non-numeric values ("query failed" (조회 실패), "not checked" (확인 못 함)) as they are. The script does not use such rows as the previous value; it compares with the numeric row before them, and writes in the note column that it did so.
+- Keep query failures as rows too. This lets the next check try the same source again.
+- In the game column, write the ID and the name from `market-competitors.md` together. For a game outside the list, write "outside the list" (목록 밖).
+- If the main platform is not Steam, write "supporting signal" (보조 신호) in the note of the Steam metric rows.
+- Overwrite the "Axis grades" table with the current values after every report. The history stays in the report files.
+- Keep only one row, the last sample, per game in the "Review sample" table. A change check uses the sample rule and the classification scheme of this row as they are. Do not change this row with a sample whose classification was not finished (for example, one that was only fetched in an unattended run). Write the paths of the fetched files only in the report.
+- Write paths relative to `report_dir`.

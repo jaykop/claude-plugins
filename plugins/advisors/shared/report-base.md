@@ -36,12 +36,12 @@ Material that could not be read, failed searches, empty profile values. For each
 The list of IDs of the questions posted to _state/inbox.md.
 
 ## Next check condition (다음 점검 조건)
-A date or a condition. It must be the same value as the `다음 점검:` line of the _state file. That line itself stays literally `다음 점검:` in every report language.
+A date or a condition. It must be the same value as the `Next check:` line (`다음 점검:` in a Korean file) of the _state file. Write that line exactly in one of the two forms (rules.md §11, state-formats.md "Literal tokens that scripts read").
 ```
 
 ## Evidence notation examples
 
 - File: `Docs/Combat/dodge.md:42` — path and line number
-- Web: `<title> (<URL>, 발행 YYYY-MM-DD, 조회 YYYY-MM-DD)` — 발행 is the publish date and 조회 is the access date. If the publish date was not found, "발행일 미상"
+- Web: `<title> (<URL>, published YYYY-MM-DD, accessed YYYY-MM-DD)` — when `report_language` is `ko`: `<title> (<URL>, 발행 YYYY-MM-DD, 조회 YYYY-MM-DD)`. If the publish date was not found, "publish date unknown" (발행일 미상)
 - Measurement: `<file path> — <scenario ID>, <build configuration>, <measurement count>`
 - Calculation: the formula, the input file and rows, the command that was run

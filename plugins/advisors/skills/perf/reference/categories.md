@@ -1,170 +1,172 @@
-# 부문·항목 분류표
+# Category and item table
 
-최적화 고문이 점검 대상을 부르는 이름과 ID 를 정한다. 진단 리포트, 주기 점검 리포트, 점검 기록(`_state/perf-ledger.md`)이 모두 이 ID 를 쓴다.
+This file sets the names and IDs that the optimization advisor uses for its check targets. Diagnosis reports, periodic check reports, and the check ledger (`_state/perf-ledger.md`) all use these IDs.
 
-## 1. ID 규칙
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-- 항목 ID 는 바꾸지 않는다. 항목 이름을 고쳐도 ID 는 그대로 둔다.
-- 이 파일에 항목을 더할 때는 그 부문의 마지막 번호 다음 번호를 쓴다. 지운 번호는 다시 쓰지 않는다.
-- 한 프로젝트에만 있는 항목(그 게임의 고유 시스템 등)은 이 파일에 넣지 않는다. 점검 기록의 "프로젝트 추가 항목" 표에 두고, 번호 앞에 `P` 를 붙여(`게임스레드-P01`) 이 파일의 번호와 겹치지 않게 한다.
-- 오디오처럼 표에 없는 부문이 필요하면 프로젝트 추가 항목으로 부문 이름과 함께 더한다.
-- 히치(한두 프레임이 갑자기 길어지는 순간 끊김)는 원인을 찾으면 원인 부문의 항목에도 같이 적는다. 예: 가비지 컬렉션 때문인 히치는 `히치-01` 과 `GC-01` 에 함께 적는다.
+## 1. ID rules
 
-## 2. 명령 이름을 쓰기 전에
+- Do not change item IDs. Even if you change an item name, keep the ID as it is.
+- When you add an item to this file, use the number after the last number of that category. Do not reuse deleted numbers.
+- Do not put items that exist in only one project (such as a system unique to that game) in this file. Put them in the "Project-specific items" table of the check ledger, and add `P` before the number (`게임스레드-P01`) so that they do not overlap with the numbers of this file.
+- If you need a category that is not in the table, such as audio, add it as a project-specific item together with the category name.
+- When you find the cause of a hitch (a moment when one or two frames suddenly take long, a stutter), also write it in the item of the cause category. Example: write a hitch caused by garbage collection in both `히치-01` and `GC-01`.
 
-아래 표의 콘솔 명령, 콘솔 변수(실행 중에 바꿀 수 있는 엔진 설정 값), 명령줄 인자, 트레이스 채널 이름은 널리 쓰이는 이름을 적어 둔 것이다. 엔진 버전마다 이름과 동작이 바뀐다.
+## 2. Before you use a command name
 
-1. 측정 계획이나 리포트에 넣기 전에 대상 엔진 소스(프로필 `engine.root`. 런처 설치본이면 그 설치 폴더)에서 이름을 검색해 실재를 확인하고, 찾은 위치(파일:줄)를 리포트의 "근거 확인 기록"에 적는다.
-   - 검색 범위는 `Engine/Source` 의 `*.cpp`·`*.h` 로 좁히고 대소문자를 무시한다. 엔진 폴더 전체를 한 번에 검색하면 시간 초과가 나기 쉽다. 이름이 많으면 analyst 에게 이름 목록과 검색 범위를 넘겨 위치 표로 받는다.
-   - 콘솔 명령과 콘솔 변수: 이름 문자열 그대로 검색한다.
-   - `stat <이름>`: 통계 묶음이면 `STATGROUP_<이름>` 으로 검색한다. `stat unit`, `stat dumphitches` 처럼 묶음이 아닌 하위 명령은 하위 명령 문자열(예: `dumphitches`)로 검색한다.
-   - 트레이스 채널 묶음(프리셋): `Engine/Config/BaseEngine.ini` 의 `[Trace.ChannelPresets]` 부분을 읽는다.
-   - 검색이 시간 초과나 오류로 끝났으면 "검색 실패"이고, 이름이 없다는 뜻이 아니다. 이때도 "확인 필요"를 붙인다.
-2. 엔진 소스를 볼 수 없으면 이름 옆에 "확인 필요"를 붙인다. 측정을 요청할 때 사용자에게 그 사실을 함께 알린다.
-3. 표에서 "(확인 필요)"가 붙은 이름은 이 파일을 쓸 때도 확실하지 않았던 것이다. 다른 이름보다 먼저 확인한다.
-4. 표에 없는 이름을 기억으로 지어 쓰지 않는다. 필요하면 엔진 소스에서 찾는다.
-5. 엔진 기능이 무엇을 지원하는지, 기본값이 무엇인지도 기억으로 쓰지 않는다. 대상 엔진의 소스와 `Engine/Config/Base*.ini` 로 확인한다. 릴리스 노트 같은 바깥 자료가 필요하면 질문함으로 radar 에 묻는다. 이 파일에도 그런 제약을 적지 않는다.
+The console commands, console variables (engine setting values that can be changed while running), command-line arguments, and trace channel names in the table below are widely used names written down for reference. Names and behavior change with each engine version.
 
-## 3. 부문과 항목
+1. Before you put a name in a measurement plan or a report, search for the name in the target engine source (profile `engine.root`; for a launcher install, its install folder) to check that it exists, and write the location found (file:line) in the "Evidence check log" of the report.
+   - Narrow the search scope to `*.cpp` and `*.h` in `Engine/Source`, and ignore case. Searching the whole engine folder at once easily times out. If there are many names, hand analyst the name list and the search scope, and receive a location table.
+   - Console commands and console variables: search for the name string as it is.
+   - `stat <이름>`: if it is a stat group, search for `STATGROUP_<이름>`. For subcommands that are not groups, such as `stat unit` and `stat dumphitches`, search for the subcommand string (for example, `dumphitches`).
+   - Trace channel groups (presets): read the `[Trace.ChannelPresets]` part of `Engine/Config/BaseEngine.ini`.
+   - If the search ended with a timeout or an error, it is "search failed" (검색 실패). It does not mean that the name does not exist. In this case too, add "check needed" (확인 필요).
+2. If you cannot see the engine source, add "check needed" next to the name. When you request a measurement, tell the user that fact too.
+3. Names marked "(check needed)" in the table were not certain even when this file was written. Check them before the other names.
+4. Do not make up names that are not in the table from memory. If you need one, find it in the engine source.
+5. Do not write from memory what an engine feature supports or what its default value is either. Check it with the target engine's source and `Engine/Config/Base*.ini`. If outside material such as release notes is needed, ask radar through the question inbox. Do not write such constraints in this file either.
 
-| 부문 | 항목 ID | 항목 | 주로 보는 값 |
+## 3. Categories and items
+
+| Category (부문) | Item ID (항목 ID) | Item (항목) | Main values to look at (주로 보는 값) |
 |---|---|---|---|
-| 게임 스레드 CPU | 게임스레드-01 | 틱(매 프레임 불리는 갱신 함수) 수와 비용: 켜진 틱, 틱 간격, 본문이 빈 틱 | 틱 구간의 포함 시간(그 함수가 부른 하위 함수 시간까지 합친 시간), 등록된 틱 수 |
-| | 게임스레드-02 | 블루프린트에서 매 프레임 도는 로직 | 블루프린트 함수 구간의 포함 시간 |
-| | 게임스레드-03 | AI: 지각, 경로 탐색, 행동 트리·상태 트리 갱신 | AI 구간 시간, 경로 탐색 요청 수 |
-| | 게임스레드-04 | 애니메이션 갱신: 애님 그래프 평가, 화면 밖 캐릭터 갱신, 게임 스레드에 남은 애님 로직 | 애님 구간 시간, 갱신되는 캐릭터 수 |
-| | 게임스레드-05 | 물리: 충돌 질의(트레이스·스윕·겹침 검사) 횟수, 시뮬레이션 물체 수, 겹침 이벤트 | 물리 구간 시간, 프레임당 질의 수 |
-| | 게임스레드-06 | 액터·오브젝트 생성과 파괴 빈도 | 프레임당 생성·파괴 수, 그 구간 시간 |
-| | 게임스레드-07 | UI 갱신: 매 프레임 평가되는 속성 연결, 위젯 수 | UI 구간 시간 |
-| 렌더 스레드 | 렌더스레드-01 | 그리기 호출(드로우 콜)과 메시 묶음 수 | 그리기 호출 수, 렌더 스레드 시간 |
-| | 렌더스레드-02 | 가시성 판정(보이는 물체 고르기) 비용 | 가시성 구간 시간, 판정 대상 수 |
-| | 렌더스레드-03 | 그림자를 드리우는 광원과 물체 수 | 그림자 준비 구간 시간 |
-| | 렌더스레드-04 | 매 프레임 렌더 상태를 다시 만드는 코드 | 해당 구간 시간과 호출 수 |
-| GPU | GPU-01 | 전역 조명과 반사 | GPU 패스별 시간 |
-| | GPU-02 | 그림자 | GPU 패스별 시간 |
-| | GPU-03 | 메시 처리량: 가상화 지오메트리 메시와 그 밖의 고폴리 메시 | 기하 처리 패스 시간, 삼각형 수 |
-| | GPU-04 | 반투명, 후처리, 파티클 | GPU 패스별 시간 |
-| | GPU-05 | 해상도, 업스케일, 화질 단계 설정 | 화질 단계별 GPU 프레임 시간 |
-| 메모리 | 메모리-01 | 텍스처 스트리밍 풀 | 풀 사용량, 풀 초과 여부 |
-| | 메모리-02 | 하드 참조(불러올 때 함께 따라 들어오는 참조)로 딸려 오는 에셋 | 맵·캐릭터별 상주 메모리 |
-| | 메모리-03 | 오래 플레이할 때 늘어나는 추세(누수 의심) | 같은 시나리오 시작·끝 메모리 차이 |
-| | 메모리-04 | 플랫폼 상한 대비 최고점 | 최고 사용량 |
-| 로딩·스트리밍 | 로딩-01 | 맵 로딩 시간 | 로딩 시작부터 조작 가능까지 시간 |
-| | 로딩-02 | 플레이 중 스트리밍 대기: 월드 분할 셀, 비동기 로드 대기 | 대기 횟수와 길이 |
-| | 로딩-03 | 게임 도중 동기 로드(다 읽을 때까지 게임 스레드가 멈추는 로드) | 동기 로드 횟수와 시간 |
-| 네트워크·복제 | 네트워크-01 | 서버 복제 처리 시간 | 서버 프레임 중 복제 구간 시간 |
-| | 네트워크-02 | 연결당 송수신 대역폭 | 초당 바이트 |
-| | 네트워크-03 | 원격 호출(RPC) 빈도와 신뢰 보장 호출 사용 | 초당 호출 수 |
-| | 네트워크-04 | 이동 복제와 위치 보정 횟수 | 초당 보정 수 |
-| 가비지 컬렉션·오브젝트 수 | GC-01 | 가비지 컬렉션(안 쓰는 엔진 오브젝트를 모아 지우는 과정) 멈춤 시간과 빈도 | 1회 시간, 분당 횟수 |
-| | GC-02 | 메모리에 남아 있는 엔진 오브젝트(UObject) 수 추세 | 시나리오 시작·끝 개수 |
-| | GC-03 | 클래스별 오브젝트 수 상위 | 클래스별 개수 |
-| 히치(순간 끊김) | 히치-01 | 히치 횟수와 최대 길이 | 히치 기준을 넘은 프레임 수, 최대 프레임 시간 |
-| | 히치-02 | 셰이더와 그리기 상태 묶음(PSO: 처음 쓸 때 만들어지며 멈칫하게 하는 그리기 설정 묶음) 컴파일 | 첫 등장 시 히치 수 |
-| | 히치-03 | 원인을 아직 모르는 히치 | 히치 프레임 목록 |
-| 빌드·쿡 시간 | 빌드-01 | 전체 빌드 시간 | 빌드 시간 |
-| | 빌드-02 | 공용 헤더 하나를 고친 뒤 증분 빌드 시간과 다시 컴파일되는 파일 수 | 시간, 파일 수 |
-| | 빌드-03 | 쿡(에디터용 에셋을 플랫폼용 데이터로 바꾸는 과정) 시간과 셰이더 수 | 시간, 셰이더 수 |
-| | 빌드-04 | 패키지 크기 | 바이트 |
-| 코드 건강도 | 코드-01 | 변경이 몰리는 파일 | 기간 안 변경 횟수 |
-| | 코드-02 | 늘 함께 바뀌는 파일 묶음(결합) | 함께 바뀐 횟수 |
-| | 코드-03 | 버그 수정이 되풀이되는 파일 | 버그 티켓이 걸린 변경 수 |
-| | 코드-04 | 테스트가 없는 순수 계산 로직 | 테스트 유무(파일:줄) |
+| Game thread CPU (게임 스레드 CPU) | 게임스레드-01 | Number and cost of ticks (update functions called every frame): enabled ticks, tick interval, ticks with an empty body | Inclusive time of the tick region (the time including the time of the child functions that the function called), number of registered ticks |
+| | 게임스레드-02 | Logic that runs every frame in Blueprints | Inclusive time of the Blueprint function region |
+| | 게임스레드-03 | AI: perception, pathfinding, behavior tree and state tree updates | AI region time, number of pathfinding requests |
+| | 게임스레드-04 | Animation update: anim graph evaluation, updates of off-screen characters, anim logic left on the game thread | Anim region time, number of characters updated |
+| | 게임스레드-05 | Physics: number of collision queries (traces, sweeps, overlap tests), number of simulated bodies, overlap events | Physics region time, queries per frame |
+| | 게임스레드-06 | Frequency of actor and object creation and destruction | Creations and destructions per frame, time of that region |
+| | 게임스레드-07 | UI update: property bindings evaluated every frame, number of widgets | UI region time |
+| Render thread (렌더 스레드) | 렌더스레드-01 | Draw calls and number of mesh batches | Number of draw calls, render thread time |
+| | 렌더스레드-02 | Cost of visibility determination (choosing the visible objects) | Visibility region time, number of objects tested |
+| | 렌더스레드-03 | Number of shadow-casting lights and objects | Shadow setup region time |
+| | 렌더스레드-04 | Code that rebuilds the render state every frame | Time and call count of that region |
+| GPU | GPU-01 | Global illumination and reflections | Time per GPU pass |
+| | GPU-02 | Shadows | Time per GPU pass |
+| | GPU-03 | Mesh throughput: virtualized geometry meshes and other high-poly meshes | Geometry pass time, triangle count |
+| | GPU-04 | Translucency, post-processing, particles | Time per GPU pass |
+| | GPU-05 | Resolution, upscaling, quality level settings | GPU frame time per quality level |
+| Memory (메모리) | 메모리-01 | Texture streaming pool | Pool usage, whether the pool is exceeded |
+| | 메모리-02 | Assets pulled in by hard references (references that are loaded together when the referencing asset is loaded) | Resident memory per map and per character |
+| | 메모리-03 | Growth trend during long play (suspected leak) | Memory difference between the start and the end of the same scenario |
+| | 메모리-04 | Peak compared with the platform limit | Peak usage |
+| Loading and streaming (로딩·스트리밍) | 로딩-01 | Map loading time | Time from the start of loading until the player can control |
+| | 로딩-02 | Streaming waits during play: world partition cells, async load waits | Number and length of waits |
+| | 로딩-03 | Synchronous loads during the game (loads that stop the game thread until everything is read) | Number and time of synchronous loads |
+| Network and replication (네트워크·복제) | 네트워크-01 | Server replication processing time | Replication region time within the server frame |
+| | 네트워크-02 | Send and receive bandwidth per connection | Bytes per second |
+| | 네트워크-03 | Frequency of remote calls (RPC) and use of reliable calls | Calls per second |
+| | 네트워크-04 | Movement replication and number of position corrections | Corrections per second |
+| Garbage collection and object count (가비지 컬렉션·오브젝트 수) | GC-01 | Pause time and frequency of garbage collection (the process that collects and deletes unused engine objects) | Time per run, runs per minute |
+| | GC-02 | Trend of the number of engine objects (UObject) remaining in memory | Count at the start and the end of the scenario |
+| | GC-03 | Top object counts by class | Count per class |
+| Hitches (momentary stutters) (히치(순간 끊김)) | 히치-01 | Number of hitches and maximum length | Number of frames over the hitch threshold, maximum frame time |
+| | 히치-02 | Compilation of shaders and pipeline state objects (PSO: a bundle of drawing settings that is created at first use and causes a stutter) | Number of hitches at first appearance |
+| | 히치-03 | Hitches whose cause is not known yet | List of hitch frames |
+| Build and cook time (빌드·쿡 시간) | 빌드-01 | Full build time | Build time |
+| | 빌드-02 | Incremental build time and number of recompiled files after changing one shared header | Time, number of files |
+| | 빌드-03 | Cook (the process that converts editor assets into platform data) time and number of shaders | Time, number of shaders |
+| | 빌드-04 | Package size | Bytes |
+| Code health (코드 건강도) | 코드-01 | Files where changes concentrate | Number of changes in the period |
+| | 코드-02 | Groups of files that always change together (coupling) | Number of times changed together |
+| | 코드-03 | Files where bug fixes recur | Number of changes linked to bug tickets |
+| | 코드-04 | Pure calculation logic without tests | Whether tests exist (file:line) |
 
-코드 건강도 부문의 [확인]은 프레임 측정이 아니라 버전 관리 이력과 이슈 트래커에서 직접 센 수치다(같은 reference 폴더의 `refactor.md`).
+The [confirmed] items of the code health category are not frame measurements. They are numbers counted directly from the version control history and the issue tracker (`refactor.md` in the same reference folder).
 
-## 4. 부문별 측정 방법과 코드 의심 패턴
+## 4. Measurement methods and suspect code patterns by category
 
-"빠른 확인"은 화면이나 로그로 바로 보는 명령이다. 화면에 뜬 숫자는 평균이거나 순간값이라 리포트 근거로 쓰지 않는다. 근거는 로그나 파일로 남긴 값만 쓴다(`measure.md` 5번 항목).
-"코드 의심 패턴"은 측정으로 그 부문이 병목으로 정해진 뒤에만 돌린다. 측정이 없으면 사용자가 지목한 시스템 경로 안에서만 돌린다.
+A "quick check" is a command that shows values directly on screen or in a log. Numbers shown on screen are averages or instant values, so do not use them as evidence in a report. Use as evidence only values left in a log or a file (`measure.md` item 5).
+Run the "suspect code patterns" only after measurement has decided that the category is the bottleneck. If there is no measurement, run them only inside the system path that the user named.
 
-### 게임 스레드 CPU
+### Game thread CPU
 
-- 빠른 확인: `stat unit`, `stat game`, `dumpticks`(등록된 틱 목록을 로그로), `StartFPSChart` / `StopFPSChart`(구간 프레임 통계를 파일로)
-- 하위 항목 빠른 확인: AI `stat ai`, 애니메이션 `stat anim`, 물리 `stat physics`, 충돌 질의 `stat collision`
-- 깊은 측정: Insights 트레이스(Unreal Insights: 엔진의 프로파일링 기록·분석 도구)의 cpu 채널. 블루프린트 함수 이름까지 보려면 명령줄 `-statnamedevents`. CSV 프로파일러(프레임마다 통계를 한 행씩 CSV 로 남기는 기능)의 `CsvProfile Start` / `CsvProfile Stop`
-- 코드 의심 패턴:
-  - 틱 함수 안의 전체 탐색: `GetAllActorsOfClass`, `TActorIterator`, 컴포넌트 검색(`GetComponents`, `FindComponentByClass`)을 매 프레임 부름
-  - 틱 함수 안의 생성·파괴: `SpawnActor`, `NewObject`, `Destroy`
-  - 틱 함수 안의 로그와 문자열 만들기: `UE_LOG`, `FString::Printf`
-  - 본문이 비었거나 부모 함수만 부르는 틱 재정의, 틱 간격이 0 인 채로 켜진 틱이 많은 클래스
-  - 반복문 안의 충돌 질의(`LineTrace*`, `Sweep*`, `Overlap*`)
-  - 애님 인스턴스의 갱신 함수 안 무거운 탐색, 화면 밖에서도 항상 갱신하도록 둔 설정(`VisibilityBasedAnimTickOption` 값)
-  - 겹침 이벤트를 켠 컴포넌트가 많은 클래스(`bGenerateOverlapEvents`)
-  - UI: 매 프레임 평가되는 속성 연결, 위젯 틱 안의 글자 갱신
-- 블루프린트는 에셋 파일(.uasset)이 이진 형식이라 텍스트 검색으로 판단하지 않는다. `dumpticks` 로그, `-statnamedevents` 트레이스, 에디터 안 확인으로만 본다. 못 봤으면 "확인 못 함"이다.
+- Quick check: `stat unit`, `stat game`, `dumpticks` (writes the list of registered ticks to the log), `StartFPSChart` / `StopFPSChart` (writes frame statistics of a section to a file)
+- Quick check of sub-items: AI `stat ai`, animation `stat anim`, physics `stat physics`, collision queries `stat collision`
+- Deep measurement: the cpu channel of an Insights trace (Unreal Insights: the engine's tool for recording and analyzing profiles). To see Blueprint function names too, the command-line argument `-statnamedevents`. `CsvProfile Start` / `CsvProfile Stop` of the CSV profiler (a feature that writes one row of statistics per frame to a CSV)
+- Suspect code patterns:
+  - Full searches inside tick functions: calling `GetAllActorsOfClass`, `TActorIterator`, or component searches (`GetComponents`, `FindComponentByClass`) every frame
+  - Creation and destruction inside tick functions: `SpawnActor`, `NewObject`, `Destroy`
+  - Logging and string building inside tick functions: `UE_LOG`, `FString::Printf`
+  - Tick overrides whose body is empty or only calls the parent function; classes with many ticks enabled with a tick interval of 0
+  - Collision queries inside loops (`LineTrace*`, `Sweep*`, `Overlap*`)
+  - Heavy searches inside the update function of an anim instance; settings that always update even off screen (the `VisibilityBasedAnimTickOption` value)
+  - Classes with many components that have overlap events enabled (`bGenerateOverlapEvents`)
+  - UI: property bindings evaluated every frame, text updates inside widget ticks
+- Blueprints are asset files (.uasset) in a binary format, so do not judge them by text search. Look at them only through `dumpticks` logs, `-statnamedevents` traces, and checks inside the editor. If you could not look, it is "not checked" (확인 못 함).
 
-### 렌더 스레드
+### Render thread
 
-- 빠른 확인: `stat scenerendering`, `stat rhi`, `stat initviews`
-- 깊은 측정: Insights 트레이스의 cpu·gpu·frame 채널(렌더링용 프리셋이 있으면 그것)
-- 코드 의심 패턴:
-  - 같은 메시를 개별 컴포넌트로 대량 배치(인스턴스 묶음 컴포넌트를 쓰지 않음)
-  - 매 프레임 렌더 상태를 다시 만드는 호출(`MarkRenderStateDirty`, 컴포넌트 재등록)
-  - 매 프레임 동적 머티리얼 인스턴스 생성(`CreateDynamicMaterialInstance` 를 틱에서 부름)
-  - 동적 그림자를 켠 작은 광원이 많은 클래스
+- Quick check: `stat scenerendering`, `stat rhi`, `stat initviews`
+- Deep measurement: the cpu, gpu, and frame channels of an Insights trace (the rendering preset if there is one)
+- Suspect code patterns:
+  - Placing many copies of the same mesh as individual components (not using instanced components)
+  - Calls that rebuild the render state every frame (`MarkRenderStateDirty`, component re-registration)
+  - Creating dynamic material instances every frame (calling `CreateDynamicMaterialInstance` in a tick)
+  - Classes with many small lights that have dynamic shadows enabled
 
 ### GPU
 
-- 빠른 확인: `stat gpu`, `ProfileGPU`(한 프레임의 GPU 패스별 시간을 로그로)
-- 깊은 측정: Insights 트레이스의 gpu 채널. CSV 프로파일러의 GPU 통계는 켜는 인자가 따로 있을 수 있다(예: `-csvGpuStats`). 플랫폼 제조사의 GPU 분석 도구
-- 코드로는 근거가 약하다. 설정 파일(`Config/Default*.ini` 의 조명·그림자·화질 단계 값)과 `_state/radar-inventory.md` 의 "주요 렌더링·네트워크 설정" 표를 읽고, 판단은 측정으로 한다.
+- Quick check: `stat gpu`, `ProfileGPU` (writes the time per GPU pass of one frame to the log)
+- Deep measurement: the gpu channel of an Insights trace. GPU statistics of the CSV profiler can have a separate argument that enables them (for example, `-csvGpuStats`). GPU analysis tools of the platform makers
+- Code is weak evidence here. Read the settings files (lighting, shadow, and quality level values in `Config/Default*.ini`) and the "주요 렌더링·네트워크 설정" (main rendering and network settings; the script writes this table name in Korean) table of `_state/radar-inventory.md`, and judge by measurement.
 
-### 메모리
+### Memory
 
-- 빠른 확인: `memreport -full`(메모리 보고서를 파일로), `obj list`(클래스별 오브젝트 수), `stat llm`(LLM 을 켠 빌드에서)
-- 깊은 측정: Memory Insights(트레이스의 메모리 채널), LLM(Low-Level Memory Tracker: 태그별로 메모리를 나눠 세는 기능) 명령줄 `-llm`, CSV 로 남기는 `-LLMCSV`
-- 코드 의심 패턴:
-  - 큰 에셋을 하드 참조하는 멤버(클래스 참조, 오브젝트 포인터)가 줄줄이 이어짐. 지연 참조(`TSoftObjectPtr`, `TSoftClassPtr`)로 둘 수 있는지 본다
-  - 비우지 않는 캐시 컨테이너, 줄지 않는 풀
-  - `AddToRoot` 를 하고 `RemoveFromRoot` 가 없음
+- Quick check: `memreport -full` (writes a memory report to a file), `obj list` (object count per class), `stat llm` (in a build with LLM enabled)
+- Deep measurement: Memory Insights (the memory channel of a trace), LLM (Low-Level Memory Tracker: a feature that counts memory split by tag) with the command-line argument `-llm`, and `-LLMCSV` to write it as CSV
+- Suspect code patterns:
+  - A chain of members that hard-reference large assets (class references, object pointers). Check whether they can be soft references (`TSoftObjectPtr`, `TSoftClassPtr`)
+  - Cache containers that are never emptied, pools that never shrink
+  - `AddToRoot` without `RemoveFromRoot`
 
-### 로딩·스트리밍
+### Loading and streaming
 
-- 빠른 확인: `stat streaming`, `stat levels`
-- 깊은 측정: Insights 트레이스의 로딩 관련 채널(로딩용 프리셋이 있으면 그것)
-- 코드 의심 패턴:
-  - 게임 도중 동기 로드: `LoadObject`, `StaticLoadObject`, `LoadSynchronous`, `LoadClass`
-  - 비동기 로드를 기다리며 멈추는 호출(`FlushAsyncLoading`)
-  - 레벨 전환 때 한꺼번에 불러오는 구조
+- Quick check: `stat streaming`, `stat levels`
+- Deep measurement: the loading-related channels of an Insights trace (the loading preset if there is one)
+- Suspect code patterns:
+  - Synchronous loads during the game: `LoadObject`, `StaticLoadObject`, `LoadSynchronous`, `LoadClass`
+  - Calls that stop and wait for async loads (`FlushAsyncLoading`)
+  - A structure that loads everything at once at level transitions
 
-### 네트워크·복제
+### Network and replication
 
-- 빠른 확인: `stat net`
-- 깊은 측정: Network Insights(트레이스의 net 채널. 기록 상세도는 `NetTrace.SetTraceVerbosity`), 서버 프로세스에서 따로 남긴 트레이스
-- 코드 의심 패턴:
-  - 틱 안에서 부르는 원격 호출, 매 프레임 부르는 신뢰 보장 원격 호출
-  - 복제 빈도(`NetUpdateFrequency`)를 기본값으로 둔 액터가 많음
-  - 큰 배열을 통째로 복제
-  - 휴면(바뀔 일이 없을 때 복제를 멈추는 설정)을 쓰지 않음
-  - 값이 바뀐 순간에만 복제 표시를 하는 방식(푸시 모델)을 프로젝트가 쓰는데 빠진 속성
+- Quick check: `stat net`
+- Deep measurement: Network Insights (the net channel of a trace; the recording detail level is `NetTrace.SetTraceVerbosity`), traces recorded separately in the server process
+- Suspect code patterns:
+  - Remote calls made inside a tick; reliable remote calls made every frame
+  - Many actors that leave the replication frequency (`NetUpdateFrequency`) at the default value
+  - Replicating a large array as a whole
+  - Not using dormancy (a setting that stops replication when nothing will change)
+  - Properties missing from the push model (a method that marks a property for replication only at the moment its value changes) when the project uses it
 
-### 가비지 컬렉션·오브젝트 수
+### Garbage collection and object count
 
-- 빠른 확인: `obj list`, 로그의 가비지 컬렉션 시간 줄(로그 범주 이름은 확인 필요)
-- 깊은 측정: Insights 트레이스에서 가비지 컬렉션 구간, CSV 프로파일러의 관련 통계(이름은 결과 파일 머리 행에서 확인)
-- 코드 의심 패턴:
-  - 수명이 짧은 엔진 오브젝트를 매 프레임 대량 생성(`NewObject` 를 틱에서 부름)
-  - `AddToRoot` 누적
+- Quick check: `obj list`, the garbage collection time lines in the log (log category name: check needed)
+- Deep measurement: the garbage collection regions in an Insights trace, the related statistics of the CSV profiler (check the names in the header row of the result file)
+- Suspect code patterns:
+  - Creating many short-lived engine objects every frame (calling `NewObject` in a tick)
+  - Accumulating `AddToRoot`
 
-### 히치(순간 끊김)
+### Hitches (momentary stutters)
 
-- 빠른 확인: `stat dumphitches`(히치 프레임을 로그로), 히치 기준 콘솔 변수 `t.HitchFrameTimeThreshold`
-- 깊은 측정: CSV 프로파일러의 프레임 시간 열에서 히치 프레임을 고른 뒤, 같은 회차의 Insights 트레이스에서 그 프레임 구간을 본다. 히치는 평균이 아니라 히치가 난 프레임으로 원인을 짚는다
-- 코드 의심 패턴: 셰이더·그리기 상태 묶음을 미리 만들어 두는 설정(설정 이름은 확인 필요), 게임 도중 동기 로드, 가비지 컬렉션
+- Quick check: `stat dumphitches` (writes hitch frames to the log), the hitch threshold console variable `t.HitchFrameTimeThreshold`
+- Deep measurement: choose the hitch frames from the frame time column of the CSV profiler, and then look at that frame range in the Insights trace of the same round. Point to the cause of a hitch with the frames where the hitch happened, not with the average
+- Suspect code patterns: settings that build shaders and pipeline state objects in advance (setting name: check needed), synchronous loads during the game, garbage collection
 
-### 빌드·쿡 시간
+### Build and cook time
 
-- 빠른 확인: 빌드 로그의 총 시간, 쿡 로그의 통계
-- 깊은 측정: 빌드 도구의 컴파일러·링커 시간 기록 옵션(옵션 이름은 확인 필요)
-- 코드 의심 패턴: 공개 헤더의 무거운 include, 전방 선언으로 대신할 수 있는 include, 자주 바뀌는 공용 헤더(`vcs_churn.py` 결과)
-- 클린 빌드(중간 결과를 지우고 처음부터 하는 빌드)와 쿡은 오래 걸리고, 그동안 그 PC 에서 다른 작업을 하기 어렵다. 고문은 직접 돌리지 않고, 사용자가 돌린 로그만 읽는다.
+- Quick check: the total time in the build log, the statistics in the cook log
+- Deep measurement: the build tool's options that record compiler and linker time (option names: check needed)
+- Suspect code patterns: heavy includes in public headers, includes that a forward declaration can replace, shared headers that change often (`vcs_churn.py` result)
+- A clean build (a build that deletes intermediate results and starts from the beginning) and a cook take a long time, and other work on that PC is hard during them. The advisor does not run them itself. It reads only the logs that the user ran.
 
-### 코드 건강도
+### Code health
 
-- 측정: `<플러그인 폴더>/scripts/vcs_churn.py` 로 변경 횟수와 함께 바뀐 파일, 티켓 키를 센다. 버그 여부는 이슈 트래커 조회로 정한다.
-- 판단 기준은 같은 reference 폴더의 `refactor.md`.
+- Measurement: count the change counts, the files changed together, and the ticket keys with `<플러그인 폴더>/scripts/vcs_churn.py`. Decide whether a change is a bug by looking up the issue tracker.
+- The judgment criteria are in `refactor.md` in the same reference folder.
 
-## 5. 부문과 코드 경로 연결
+## 5. Linking categories and code paths
 
-주기 점검에서 "그 기간 변경이 건드린 부문"을 고르려면 부문마다 코드 경로와 버전 관리 경로가 있어야 한다. 경로는 프로젝트마다 다르므로 이 파일에 적지 않는다. 점검 기록의 "부문별 경로" 표(`ledger-format.md`)에 사용자가 확인한 값으로 둔다. 표가 비어 있으면 그 단계는 건너뛰고 리포트의 "확인 못 한 것"에 적는다.
+To choose "the categories that the changes in that period touched" in the periodic check, each category must have code paths and version control paths. Paths differ by project, so do not write them in this file. Keep them in the "Paths by category" table of the check ledger (`ledger-format.md`) with values that the user checked. If the table is empty, skip that step and write it in "Not checked" in the report.

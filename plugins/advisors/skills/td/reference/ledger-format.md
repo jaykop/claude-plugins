@@ -1,78 +1,80 @@
-# TD 고문의 `_state` 파일 형식 — td-ledger.md(TD 기록), td-debt.md(기술 부채 기록)
+# TD advisor `_state` file formats — td-ledger.md (TD ledger), td-debt.md (technical debt record)
 
-TD 고문만 쓰는 `_state` 파일 둘의 형식이다(shared/state-formats.md 머리의 관례대로 스킬 reference 에 둔다). td-debt.md 머리의 `마지막 갱신` 은 PM 고문의 정기 점검 계산도 읽는다. 두 파일로 나눈 까닭은 세션 시작 알림 때문이다. 알림 스크립트(`scripts/due_check.py`)는 "마일스톤 N일 전" 형식일 때 파일의 `마지막 갱신` 이 알림 시작일과 같거나 그 뒤면 이미 점검한 것으로 본다. 설계 검토가 기술 부채 알림을 끄지 않게, 부채는 부채 점검 때만 고치는 파일에 따로 둔다.
+These are the formats of the two `_state` files that only the TD advisor writes (they are in the skill reference, by the convention at the top of shared/state-formats.md). The PM advisor's periodic check calculation also reads the `Last updated:` line at the top of td-debt.md. The reason for splitting into two files is the session start notice. When the line has the "N days before milestone" format, the notice script (`scripts/due_check.py`) treats the file as already checked if its `Last updated:` date is on or after the notice start date. So that a design review does not turn off the technical debt notice, debts are kept in a separate file that changes only at a debt audit.
 
-| 파일 | 담는 것 | 고치는 때 | 머리 `다음 점검:` |
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
+
+| File | What it holds | When it changes | Head `Next check:` line (`다음 점검:`) |
 |---|---|---|---|
-| `td-ledger.md` (TD 기록) | 판정 기준, 결정 기록(TD-D), 층 규칙(TD-L), 바뀐 기록 | 설계 검토, 모듈 의존 점검, 판정 기준을 정했을 때 | 늘 `조건 — 질문함에 td 앞 질문이 오거나 기다리던 답이 왔을 때` |
-| `td-debt.md` (기술 부채 기록) | 기술 부채(TD-B) | 부채 행을 더하거나 순위를 다시 매기는 일은 기술 부채 구조 점검 때만. 사용자가 부채 하나의 결정을 말하면 어느 실행에서든 그 행의 상태·결정 시점만 고친다(`마지막 갱신` 은 그대로). 다른 실행에서 처음 만들 때는 빈 표와 `마지막 갱신: 점검 전` 으로 만든다 | 늘 `마일스톤 N일 전`(N 은 판정 기준 표의 값). 프로필에 마일스톤 날짜가 없으면 알림 스크립트가 알리지 않는다 |
+| `td-ledger.md` (TD ledger (TD 기록)) | Criteria, decision records (TD-D), layer rules (TD-L), change log | Design review, module dependency audit, when criteria are set | Always `Condition — when a question addressed to td arrives in the question inbox or an awaited answer has arrived` (`조건 — 질문함에 td 앞 질문이 오거나 기다리던 답이 왔을 때`) |
+| `td-debt.md` (technical debt record (기술 부채 기록)) | Technical debts (TD-B) | Adding debt rows or ranking them again happens only at a technical debt structure audit. If the user states a decision on one debt, in any run change only that row's status and decide-by date (leave `Last updated:` as is). When another run creates the file for the first time, create it with an empty table and `Last updated: not checked yet` (`마지막 갱신: 점검 전`) | Always `N days before milestone` (`마일스톤 N일 전`) (N is the value in the criteria table). If the profile has no milestone date, the notice script does not give a notice |
 
 ## td-ledger.md
 
 ```markdown
-# TD 고문 기록
+# TD advisor ledger (TD 고문 기록)
 
-다음 점검: 조건 — 질문함에 td 앞 질문이 오거나 기다리던 답이 왔을 때
-작성: td / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <CL 또는 커밋, 확인 못 했으면 "확인 못 함">
+Next check: Condition — when a question addressed to td arrives in the question inbox or an awaited answer has arrived
+Written by: td / Last updated: YYYY-MM-DD / Base revision: <CL or commit; if it could not be checked, "not checked">
 
-## 판정 기준
-| 항목 | 값 | 정한 사람 |
+## Criteria (판정 기준)
+| Item (항목) | Value (값) | Set by (정한 사람) |
 |---|---|---|
-| 변경 이력 기간 | <예: 180일> | 사용자 / 비어 있음 |
-| 티켓 키 접두사 | <예: ABC> | |
-| 버그로 셀 이슈 종류·라벨 | <예: Bug, 라벨 crash> | |
-| 임시 표시 주석 패턴 | <정규식, 비면 기본 TODO\|FIXME\|HACK> | |
-| 점검 제외 경로 | <프로젝트 루트 기준 경로 목록. 외부 공급사 플러그인 등> | |
-| 마일스톤 전 알림 일수 | 30 | |
-| 부채 결정 기한 일수 | 7 | |
-| 시드 고정 난수 경로 | <팀이 정한 난수 함수·서브시스템 이름, 없으면 "없음". 에이전트 검증 가능성 점검에 쓴다> | |
+| Change history period (변경 이력 기간) | <example: 180 days> | user (사용자) / empty (비어 있음) |
+| Ticket key prefix (티켓 키 접두사) | <example: ABC> | |
+| Issue kinds and labels to count as bugs (버그로 셀 이슈 종류·라벨) | <example: Bug, label crash> | |
+| Temporary marker comment pattern (임시 표시 주석 패턴) | <regex; if empty, the default TODO\|FIXME\|HACK> | |
+| Excluded paths (점검 제외 경로) | <list of paths relative to the project root. External vendor plugins and so on> | |
+| Days of notice before a milestone (마일스톤 전 알림 일수) | 30 | |
+| Debt decision deadline days (부채 결정 기한 일수) | 7 | |
+| Seeded random number path (시드 고정 난수 경로) | <the random function or subsystem name that the team set; if there is none, "none" (없음). Used in the agent verifiability audit> | |
 
-## 결정 기록
-| ID | 질문 | 대상 경로 | 안 | 결론 | 걸린 상한 | 결정권자 | 상태 | 기다리는 질문 | 다시 볼 조건 | 근거 리포트 |
+## Decision records (결정 기록)
+| ID | Question (질문) | Target paths (대상 경로) | Options (안) | Conclusion (결론) | Cap rules applied (걸린 상한) | Decision owner (결정권자) | Status (상태) | Waiting question (기다리는 질문) | Recheck condition (다시 볼 조건) | Evidence report (근거 리포트) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| TD-D-001 | <질문을 줄인 말> | <경로> | 안0 유지 / 안1 <이름> / 안2 <이름> | 시험 후 결정 | T2, T10 | <이름> | 제안 | Q-0012 | <사건> | td/2026-10-15-decision.md |
+| TD-D-001 | <shortened question> | <path> | keep option 0 / option 1 <name> / option 2 <name> | decide after a trial | T2, T10 | <name> | proposed | Q-0012 | <event> | td/2026-10-15-decision.md |
 
-상태: 제안 / 시험 중 / 채택 / 기각 / 보류
-바뀌는 범위 같은 비교 칸은 근거 리포트의 "4. 선택지 비교" 표에 있다.
+Status (상태): proposed (제안) / in trial (시험 중) / adopted (채택) / rejected (기각) / on hold (보류)
+Comparison columns such as the changed scope are in the "4. Option comparison" table of the evidence report.
 
-## 층 규칙
-| ID | 층 | 모듈 | 출처 | 상태 |
+## Layer rules (층 규칙)
+| ID | Layer (층) | Modules (모듈) | Source (출처) | Status (상태) |
 |---|---|---|---|---|
-| TD-L-001 | <층 이름> | <모듈 목록> | <팀 문서 위치 / --layer-draft 초안> | 확정 / 초안 |
+| TD-L-001 | <layer name> | <module list> | <team document location / --layer-draft draft> | final (확정) / draft (초안) |
 
-## 바뀐 기록
-| 날짜 | ID | 이전 | 이후 | 바꾼 근거(새 사실의 위치) |
+## Change log (바뀐 기록)
+| Date (날짜) | ID | Before (이전) | After (이후) | Evidence for the change (location of the new fact) (바꾼 근거(새 사실의 위치)) |
 |---|---|---|---|---|
 ```
 
 ## td-debt.md
 
 ```markdown
-# TD 고문 기술 부채 기록
+# TD advisor technical debt record (TD 고문 기술 부채 기록)
 
-다음 점검: 마일스톤 30일 전
-작성: td / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <CL 또는 커밋>
+Next check: 30 days before milestone
+Written by: td / Last updated: YYYY-MM-DD / Base revision: <CL or commit>
 
-| ID | 종류 | 위치 | 근거 수치와 명령 | 순위 | 갚는 범위 | 권고 | 결정 시점 | 상태 | 마지막 확인일 |
+| ID | Kind (종류) | Location (위치) | Evidence numbers and command (근거 수치와 명령) | Rank (순위) | Payoff scope (갚는 범위) | Recommendation (권고) | Decide by (결정 시점) | Status (상태) | Last check date (마지막 확인일) |
 |---|---|---|---|---|---|---|---|---|---|
-| TD-B-001 | 되풀이된 버그 | <경로> | 버그 티켓 3 (vcs_churn.py …) | 2 | 파일 4 | 갚음 — 다음 마일스톤에 이슈 | YYYY-MM-DD | 열림 | YYYY-MM-DD |
+| TD-B-001 | recurring bug | <path> | bug tickets 3 (vcs_churn.py …) | 2 | files 4 | pay off — issue in the next milestone | YYYY-MM-DD | open | YYYY-MM-DD |
 ```
 
-종류: 출시 막음 / 되풀이된 버그 / 엔진 버전 올리기 비용 / 켜짐·사용 흔적 없음 플러그인 / 임시 표시 주석 / 리팩터링 권장(perf)
-권고: 갚음 / 받아들임 / 조건 대기 가운데 하나와 한 줄 이유. 갚음이면 넣을 곳(지금 마일스톤 / 다음 마일스톤 / 백로그), 조건 대기면 다시 볼 조건(어떤 이슈를 시작할 때, 어떤 사건이 생길 때)을 적는다. 고문의 제안이고 결정은 사용자가 한다
-결정 시점: 사용자가 권고를 받아들일지 정할 날짜(`YYYY-MM-DD`). 갚음·받아들임 권고는 등록일 + 판정 기준 표의 "부채 결정 기한 일수"(기본 7), 순위 1 은 그보다 늦지 않게 다음 마일스톤 마감 전으로 둔다. 상태가 조건 대기면 `조건 — <다시 볼 조건>` 이고, 갚는 중·갚음·받아들임이면 `-` 다
-상태: 열림(결정 전) / 조건 대기 / 갚는 중 (#이슈) / 갚음 / 받아들임
+Kind (종류): blocks release (출시 막음) / recurring bug (되풀이된 버그) / engine upgrade cost (엔진 버전 올리기 비용) / plugin on, no sign of use (켜짐·사용 흔적 없음 플러그인) / temporary marker comment (임시 표시 주석) / refactoring recommended (perf) (리팩터링 권장(perf))
+Recommendation (권고): one of pay off (갚음) / accept (받아들임) / wait for condition (조건 대기), and a one-line reason. For pay off, write where to put it (current milestone (지금 마일스톤) / next milestone (다음 마일스톤) / backlog (백로그)). For wait for condition, write the recheck condition (when a certain issue starts, when a certain event happens). It is the advisor's proposal, and the user decides
+Decide by (결정 시점): the date by which the user decides whether to accept the recommendation (`YYYY-MM-DD`). For a pay off or accept recommendation, it is the registration date + the "Debt decision deadline days" in the criteria table (default 7). For rank 1, set it no later than that, before the deadline of the next milestone. If the status is waiting for condition, it is `Condition — <recheck condition>` (`조건 — <다시 볼 조건>`). If the status is paying off, paid off, or accepted, it is `-`
+Status (상태): open (열림) (before the decision) / waiting for condition (조건 대기) / paying off (갚는 중) (#issue) / paid off (갚음) / accepted (받아들임)
 
-## 규칙
+## Rules
 
-- ID 는 다시 쓰지 않는다. 지운 행의 번호도 다음 행에 주지 않는다.
-- 결정 기록과 부채의 상태는 사용자가 대화에서 결정을 말했거나, 결정이 적힌 문서를 인용할 수 있을 때만 바꾼다. 무인 실행에서는 바꾸지 않는다.
-- 판정 기준 표는 대화 실행에서 사용자가 답한 값만 적는다. 무인 실행에서는 읽기만 한다.
-- 층 규칙은 팀 문서에 있으면 "확정"이다. `--layer-draft` 로 뽑은 것은 "초안"이고, 사용자가 확인하면 "확정"으로 바꾼다.
-- 결론을 바꿨으면 반드시 "바뀐 기록"에 한 줄을 남긴다(choice-rules.md §10).
-- td-debt.md 머리의 N 은 판정 기준 표의 "마일스톤 전 알림 일수" 값으로 쓴다. 표의 값을 바꿨으면 다음 부채 점검 때 머리 줄도 같이 바꾼다. 날짜를 직접 계산하지 않는다.
-- 새 부채(TD-B) 행은 권고와 결정 시점을 비워 두지 않는다. 결정 전 부채가 쌓였다가 한꺼번에 판단하는 일을 막으려는 것이다. PM 고문은 주간 점검에서 결정 시점이 지났거나 가까운 "열림" 부채를 알린다(`pm_calc.py debts`).
-- 사용자가 권고와 다르게 정하면 상태와 결정 시점을 그 결정대로 고치고 권고 칸은 남긴다. 조건 대기 부채의 조건이 생기면 결정 시점을 그날로 바꾸고 상태를 "열림"으로 되돌린다.
-- 이 파일의 표는 첫 표 하나다(PM 의 `debts` 가 첫 표를 읽는다). 해소 기록 같은 표를 더 두려면 부채 표 뒤에 둔다.
-- td-debt.md 의 `마지막 갱신` 은 기술 부채 구조 점검 때만 날짜로 바꾼다. 점검 전이면 "점검 전"이다. 알림 스크립트는 이 칸에서 날짜를 읽지 못하면 이미 점검한 것으로 보지 않는다.
-- 기다리는 질문이 "폐기 — <고문>으로 넘김 Q-yyyy"로 닫혔으면 Q-yyyy 로 바꿔 적는다(SKILL.md Step 0 의 2).
+- Do not reuse IDs. Do not give the number of a deleted row to the next row either.
+- Change the status of decision records and debts only when the user stated a decision in the conversation, or when you can quote a document in which the decision is written. Do not change them in an unattended run.
+- In the criteria table, write only values that the user answered in a conversation run. In an unattended run, only read it.
+- A layer rule is "final" if it is in a team document. One extracted with `--layer-draft` is a "draft", and it changes to "final" when the user confirms it.
+- If you changed a conclusion, you must leave one line in the "Change log" (choice-rules.md §10).
+- Write the N at the top of td-debt.md as the value of "Days of notice before a milestone" in the criteria table. If you changed the value in the table, change the head line too at the next debt audit. Do not calculate the date directly.
+- Do not leave the recommendation and the decide-by date empty in a new debt (TD-B) row. The reason: to prevent undecided debts from piling up and then being judged all at once. The PM advisor gives a notice in the weekly check about "open" debts whose decide-by date has passed or is near (`pm_calc.py debts`).
+- If the user decides differently from the recommendation, change the status and the decide-by date to match that decision, and keep the recommendation column. If the condition of a debt that waits for a condition happens, change the decide-by date to that day and set the status back to "open".
+- This file has only one table, the first one (PM's `debts` reads the first table). If you want more tables, such as a resolution log, put them after the debt table.
+- Change the `Last updated:` of td-debt.md to a date only at a technical debt structure audit. If no audit has run yet, it is "not checked yet". If the notice script cannot read a date from this field, it does not treat the file as already checked.
+- If the waiting question was closed as "dropped — passed to <advisor> Q-yyyy", change it to Q-yyyy (SKILL.md Step 0, item 2).

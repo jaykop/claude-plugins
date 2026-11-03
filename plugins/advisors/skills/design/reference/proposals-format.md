@@ -1,91 +1,93 @@
-# 제안 기록 형식 — `_state/design-proposals.md`
+# Proposal record format — `_state/design-proposals.md`
 
-기획 고문만 쓰고 읽는 기록이다. 고문이 낸 제안의 상태를 따라가고, 이미 기각된 아이디어를 다시 내지 않기 위해 둔다.
-Step 0 에서 읽고, Step Final 에서 갱신한다.
+Only the design advisor writes and reads this record. It exists to track the status of the proposals that the advisor made, and to avoid proposing an already rejected idea again.
+Read it in Step 0, and update it in Step Final.
 
-## 새 장부를 만들지 않는 원칙
+## Principle of not making a new ledger
 
-프로젝트에 이미 쓰는 기획 도구(프로필 `design.existing_tools`)가 있으면 그 도구가 맡은 일은 여기 다시 적지 않는다.
+If the project has design tools that it already uses (profile `design.existing_tools`), do not write here again the work that those tools take.
 
-| 기존 도구의 역할 | 이 파일에 적는 것 | 적지 않는 것 |
+| Role of the existing tool | What to write in this file | What not to write |
 |---|---|---|
-| 관찰 포인트 게시 | 제안 ID 와 '검증 후보로 넘김' 표시 | 검증 계획 본문(리포트에 그 도구 형식의 후보로만 둔다) |
-| 피드백 정리 | 검증 결과 요약 한 줄과 그 산출물 위치 | 피드백 원문, 정리 문서의 원인 분석·공수·효과 추정 |
-| 수치 분석 | 인용한 결과 위치 | 계산 재현 |
+| 관찰 포인트 게시 (observation point posting) | The proposal ID and the mark "passed on as a verification candidate" (검증 후보로 넘김) | The verification plan body (keep it in the report only as candidates in that tool's format) |
+| 피드백 정리 (feedback summary) | A one-line summary of the verification result and the location of that output | The original feedback text, and the cause analysis, effort, and effect estimates of the summary document |
+| 수치 분석 (numeric analysis) | The location of the quoted result | Reproducing the calculation |
 
-도구가 없으면 '검증 계획' 항목에 검증 방법을 직접 담는다.
+If there is no such tool, put the verification method directly in the "Verification plan" entry.
 
-## 파일 형식
+## File format
+
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
 ```markdown
-# 기획 제안 기록
+# Design proposal record (기획 제안 기록)
 
-다음 점검: 마일스톤 14일 전        (또는: 다음 점검: 조건 — 새 플레이테스트 기록이 생기거나 다음 마일스톤 날짜가 정해졌을 때)
-작성: design / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <CL 또는 커밋>
+Next check: 14 days before milestone        (or: Next check: Condition — a new playtest record appears or the next milestone date is set)
+Written by: design / Last updated: YYYY-MM-DD / Base revision: <CL or commit>
 
-## 제안
-| ID | 처음 낸 날 | 종류 | 영역·대상 | 한 줄 요약 (입력 → 규칙 → 결과) | 상태 | 상태 바뀐 날 | 상태 근거 | 되살릴 조건 | 리포트 |
+## Proposals (제안)
+| ID | First proposed (처음 낸 날) | Kind (종류) | Area / target (영역·대상) | One-line summary (input → rule → result) (한 줄 요약 (입력 → 규칙 → 결과)) | Status (상태) | Status changed (상태 바뀐 날) | Status evidence (상태 근거) | Revival condition (되살릴 조건) | Report (리포트) |
 |---|---|---|---|---|---|---|---|---|---|
-| DP-0001 | YYYY-MM-DD | 보류 | 미션 / 보급 상자 | … | 보류 | YYYY-MM-DD | 사용자 확인(대화) | 협동 3인 기록에서 … 이 관찰되면 | design/YYYY-MM-DD-area.md |
+| DP-0001 | YYYY-MM-DD | on hold | Missions / supply crate | … | on hold | YYYY-MM-DD | user confirmed (conversation) | if … is observed in 3-player co-op records | design/YYYY-MM-DD-area.md |
 
-## 검증 결과
-| 제안 ID | 확인한 날 | 미리 적은 성공·실패 방향 | 관찰 | 결과 | 근거 등급 | 출처 |
+## Verification results (검증 결과)
+| Proposal ID (제안 ID) | Checked (확인한 날) | Success and failure directions written in advance (미리 적은 성공·실패 방향) | Observation (관찰) | Result (결과) | Evidence grade (근거 등급) | Source (출처) |
 |---|---|---|---|---|---|---|
 
-## 예측 적중 기록
-| 기간 | 맞음 | 틀림 | 판단 불가 | 틀린 제안이 기댄 근거 등급 |
+## Prediction hit record (예측 적중 기록)
+| Period (기간) | Right (맞음) | Wrong (틀림) | Cannot judge (판단 불가) | Evidence grade that the wrong proposals relied on (틀린 제안이 기댄 근거 등급) |
 |---|---|---|---|---|
 
-## 검증 계획 (기존 관찰 도구가 없을 때만)
+## Verification plan (only when there is no existing observation tool) (검증 계획 (기존 관찰 도구가 없을 때만))
 ### DP-0003
-- 관찰 장면:
-- 관찰 신호:
-- 성공 / 실패:
-- 조건:
-- 측정 수단:
+- Observation scene (관찰 장면):
+- Observation signal (관찰 신호):
+- Success / failure (성공 / 실패):
+- Conditions (조건):
+- Measurement means (측정 수단):
 
-## 아이디어 메모 (최소 조건을 채우지 못해 제안으로 올리지 않은 것)
-| 날짜 | 아이디어 (입력 → 규칙 → 결과) | 못 채운 조건 | 출처 |
+## Idea notes (not raised as proposals because they did not meet the minimum conditions) (아이디어 메모 (최소 조건을 채우지 못해 제안으로 올리지 않은 것))
+| Date (날짜) | Idea (input → rule → result) (아이디어 (입력 → 규칙 → 결과)) | Condition not met (못 채운 조건) | Source (출처) |
 |---|---|---|---|
 ```
 
-## 칸 규칙
+## Column rules
 
-- **ID**: `DP-` 뒤에 네 자리 번호. 한 번 붙인 ID 는 지우거나 다시 쓰지 않는다. 이름이 바뀌어도 ID 는 유지한다.
-- **종류**: 추가 / 수정(수치) / 수정(구조) / 보류 / 제거 권고 / 통합
-- **상태**: 다섯 가지 중 하나.
+- **ID**: `DP-` followed by a four-digit number. Never delete or reuse an ID once it is given. If the name changes, keep the ID.
+- **Kind (종류)**: add (추가) / modify numbers (수정(수치)) / modify structure (수정(구조)) / on hold (보류) / recommend removal (제거 권고) / merge (통합)
+- **Status (상태)**: one of five.
 
-  | 상태 | 뜻 |
+  | Status (상태) | Meaning |
   |---|---|
-  | 제안 | 고문이 냈고 아직 결정되지 않음 |
-  | 채택 | 결정권자가 진행하기로 함 |
-  | 기각 | 결정권자가 하지 않기로 함. '상태 근거'에 기각 이유를 원문대로 |
-  | 보류 | 결정권자가 미루기로 함. '되살릴 조건' 필수 |
-  | 검증 중 | 채택 뒤 플레이테스트로 확인하는 중 |
+  | proposed (제안) | The advisor made it and it is not decided yet |
+  | adopted (채택) | The decision owner decided to proceed |
+  | rejected (기각) | The decision owner decided not to do it. Write the rejection reason in "Status evidence" as the original text |
+  | on hold (보류) | The decision owner decided to postpone it. "Revival condition" is required |
+  | in verification (검증 중) | After adoption, it is being checked with playtests |
 
-- **상태 근거**: 누가 어디서 정했는지. `사용자 확인(대화)`, `결정권자 기록 <문서 위치>` 처럼 쓴다.
+- **Status evidence (상태 근거)**: who decided it and where. Write it like `user confirmed (conversation)` (`사용자 확인(대화)`) or `decision owner record <document location>` (`결정권자 기록 <문서 위치>`).
 
-## 갱신 규칙
+## Update rules
 
-1. 새 제안은 항상 '제안' 상태로 추가한다.
-2. 상태를 '채택·기각·보류·검증 중'으로 바꾸는 것은 다음 두 경우뿐이다.
-   - 이번 대화에서 사용자가 그렇게 정했다고 말했다. 사용자가 결정권자가 아니면 '결정권자 결정을 전해 들음'으로 적는다.
-   - 결정권자의 결정이 적힌 문서를 인용할 수 있다.
-   고문이 스스로 판단해서 상태를 바꾸지 않는다.
-3. 무인 실행에서는 상태를 바꾸지 않는다. 새 제안 추가, 검증 결과 기록, 아이디어 메모 추가만 한다.
-4. 검증 결과는 미리 적어 둔 성공·실패 방향과 관찰을 대조해 맞음 / 틀림 / 판단 불가로 적는다. 관찰이 [관찰-의견]뿐이면 '판단 불가'가 기본이고, 서로 다른 빌드에서 되풀이됐을 때만 맞음·틀림을 적는다.
-5. 틀린 제안은 어느 근거 등급에 기댄 판단이 틀렸는지 '예측 적중 기록'에 적는다. 다음 판정에서 그 등급의 근거를 더 조심해서 쓴다.
-6. 기각된 아이디어와 같거나 비슷한 것이 다시 들어오면, 기각 이유를 인용하고 그때와 달라진 점을 적지 못하는 한 다시 제안하지 않는다.
-7. 머리의 `다음 점검:` 줄은 아래 '머리의 다음 점검 줄'대로 정한다. 기획 고문은 예약 점검을 하지 않으므로 이 줄을 읽는 것은 세션 시작 알림뿐이다.
+1. Always add a new proposal with the "proposed" status.
+2. Change the status to "adopted", "rejected", "on hold", or "in verification" only in the following two cases.
+   - The user said in this conversation that they decided so. If the user is not the decision owner, write "decision owner's decision heard secondhand" (결정권자 결정을 전해 들음).
+   - You can quote a document that records the decision owner's decision.
+   The advisor does not change a status by its own judgment.
+3. In an unattended run, do not change statuses. Only add new proposals, record verification results, and add idea notes.
+4. Record a verification result as right / wrong / cannot judge by comparing the observation with the success and failure directions written in advance. If the observation is only [observed-opinion], "cannot judge" is the default, and write right or wrong only when it was repeated in different builds.
+5. For a wrong proposal, write in "Prediction hit record" which evidence grade the wrong judgment relied on. In the next verdicts, use evidence of that grade more carefully.
+6. If an idea that is the same as or similar to a rejected idea comes in again, do not propose it again unless you quote the rejection reason and write what changed since then.
+7. Set the `Next check:` line (`다음 점검:` in a Korean file) of the head as described in "The Next check line of the head" below. The design advisor does not do scheduled checks, so only the session start notice reads this line.
 
-## 머리의 다음 점검 줄
+## The Next check line of the head
 
-세션 시작 알림 스크립트(`scripts/due_check.py`)는 `다음 점검: 마일스톤 N일 전` 을 프로필 `next_milestone` 의 날짜에서 N일을 뺀 날짜로 바꾸고, 그날부터 알린다. 조건 형식은 날짜 비교를 하지 않는다.
+The session start notice script (`scripts/due_check.py`) turns `Next check: N days before milestone` (`다음 점검: 마일스톤 N일 전`) into the date that is N days before the date in profile `next_milestone`, and notifies from that day. The condition form does not do a date comparison.
 
-| 경우 | 쓰는 줄 |
+| Case | Line to write |
 |---|---|
-| `next_milestone` 에 날짜(YYYY-MM-DD)가 있음 | `다음 점검: 마일스톤 14일 전` |
-| `next_milestone` 에 날짜가 없음 | `다음 점검: 조건 — 새 플레이테스트 기록이 생기거나 다음 마일스톤 날짜가 정해졌을 때` |
+| `next_milestone` has a date (YYYY-MM-DD) | `Next check: 14 days before milestone` (`다음 점검: 마일스톤 14일 전`) |
+| `next_milestone` has no date | `Next check: Condition — a new playtest record appears or the next milestone date is set` (`다음 점검: 조건 — 새 플레이테스트 기록이 생기거나 다음 마일스톤 날짜가 정해졌을 때`) |
 
-- 마일스톤 날짜가 이미 지났으면 리포트의 '확인 못 한 것'에 '프로필 next_milestone 의 날짜가 지났음'을 적는다.
-- 알림 스크립트는 마일스톤 날짜에서 14일을 뺀 날부터 알린다. 다만 머리의 `마지막 갱신` 이 그날과 같거나 뒤면 알리지 않는다. 그래서 오늘이 이미 그날과 같거나 뒤여도 마일스톤 형식을 쓰고, 이번 실행이 그 마일스톤 전 점검으로 처리된다. 날짜를 직접 계산하지 않는다.
+- If the milestone date has already passed, write "the date in profile next_milestone has passed" (프로필 next_milestone 의 날짜가 지났음) in "Not checked" of the report.
+- The notice script notifies from the day that is 14 days before the milestone date. But if the `Last updated` in the head is on or after that day, it does not notify. So even if today is already on or after that day, use the milestone form, and this run is handled as the check before that milestone. Do not calculate the date yourself.

@@ -17,9 +17,9 @@ business_model:               # 패키지 / 부분 유료 / 구독 / 미정 (= p
 release_window:               # e.g. 2027 H2, 미정 (= undecided)
 dev_stage:                    # 프리프로덕션 / 본 제작 / 알파 / 베타 / 라이브 (= preproduction / production / alpha / beta / live)
 next_milestone:               # Name and date. e.g. 알파 2027-03-31 (date in YYYY-MM-DD)
-team_size:                    # Number of developers and its source. e.g. about 40 people [사용자]. The technology trend advisor uses it to pick '비슷한 규모의 출시 사례' (shipped cases of similar scale)
-feature_cutoff:               # Feature addition deadline YYYY-MM-DD. If it has passed, the design advisor moves large addition proposals to '다음 단계 후보' (next-stage candidates)
-report_language: en           # en / ko. Language of the report body. The conversation with the user uses the conversation language. Lines that scripts read, such as 다음 점검:, stay unchanged
+team_size:                    # Number of developers and its source. e.g. about 40 people [사용자]. The technology trend advisor uses it to pick 'shipped cases of similar scale' (비슷한 규모의 출시 사례)
+feature_cutoff:               # Feature addition deadline YYYY-MM-DD. If it has passed, the design advisor moves large addition proposals to 'next-stage candidate' (다음 단계 후보)
+report_language: en           # en / ko. Language of reports and of new _state files (labels and the lines that scripts read, such as Next check: / 다음 점검:). The conversation with the user uses the conversation language
 
 engine:
   kind:                       # unreal / godot. Advisor documents are written for Unreal. If godot, read them remapped as in shared/engine-godot.md
@@ -35,7 +35,7 @@ project_file:                 # Project file. e.g. Game/MyGame.uproject, project
 vcs: git                      # git / p4 / 기타 (= other)
 vcs_read_commands: []         # Read commands the advisor can use. e.g. [git log, git show] or [p4 filelog, p4 changes, p4 describe, p4 fstat]
 
-decision_owners:              # Decision owner per area. If it is not the user, downgrade proposals to '참고 선택지' (reference options)
+decision_owners:              # Decision owner per area. If it is not the user, downgrade proposals to 'reference option' (참고 선택지)
   design:
   business:                   # Release timing, regions, price, business model
   tech:                       # Engine version upgrades, technology adoption (radar), code structure and design choices (td)
@@ -44,7 +44,7 @@ user_role:                    # Role of the person who uses this profile. e.g. c
 
 report_dir: .claude/advisors/reports   # Path relative to the project root, or an absolute path
 share_scope: personal         # personal / team
-stale_after_days: 90          # When you cite another advisor's report older than this, mark it as '오래된 리포트' (stale report)
+stale_after_days: 90          # When you cite another advisor's report older than this, mark it as 'outdated report' (오래된 리포트)
 code_change_entry:            # Name of the skill to hand code changes to. Leave empty if there is none
 search_banned_terms: []       # Words that must not go into search queries. Internal code names, names of unannounced features, and so on
 search_banned_combos: []      # Combinations that reveal unannounced information when used together. e.g. ["<IP 이름> + 협동"]
@@ -78,7 +78,7 @@ radar:
   excluded: []                # Areas not to watch
   ai_tool_policy:             # Whether the company's AI tool policy has been checked. 미확인 / 허용 / 제한 (= unchecked / allowed / restricted)
   community_sources:          # Community channels for finding news. They are for finding 'what people are talking about', not evidence for verdicts
-    auto: [qiita, geeknews, tencent-gameinstitute]   # Channels read automatically. Channel names are in the '커뮤니티 채널' section of skills/radar/reference/sources.md
+    auto: [qiita, geeknews, tencent-gameinstitute]   # Channels read automatically. Channel names are in the '10. Community channels' section of skills/radar/reference/sources.md
     manual: [reddit, zhihu]   # Channels where automatic access is blocked. Read them only when the user pastes posts or hands them over as files
   knowledge_dir:              # Folder of notes on technology adoption criteria (internal adoption process, kinds of technology to avoid, and so on). Reading rules: shared/rules.md §13
 
@@ -88,7 +88,7 @@ market:
   target_player:              # Target players that the team set (a decision. The market advisor looks at the gap between this and the confirmed player base)
   paid_data_files: []         # Paid data files that the user provided
   price_band:                 # Expected price band and currency. e.g. 39.99~49.99 USD
-  check_interval: quarterly   # Change check interval. Also used as the default '다시 확인할 날짜' (recheck date) of rows that market adds to source-checks.md
+  check_interval: quarterly   # Change check interval. Also used as the default 'recheck date' (다시 확인할 날짜) of rows that market adds to source-checks.md
   knowledge_dir:              # Folder of notes on market judgment criteria (internal rules for reading metrics, regional conditions, and so on). Reading rules: shared/rules.md §13
 
 # ── Optimization advisor ─────────────────────────────
@@ -123,7 +123,7 @@ pm:
 # ── TD advisor ───────────────────────────────────────
 td:
   rule_docs: []               # Team technical rule documents (paths or wildcard patterns. e.g. Docs/*.md). First-priority evidence. e.g. [Dev/Client/CLAUDE.md, Docs/CodingStandard.md]
-  record_roots: []            # Folders of design records, incident records, and backlogs. Read the cause analyses in those documents as '출처 문서의 추정' (estimates of the source document)
+  record_roots: []            # Folders of design records, incident records, and backlogs. Read the cause analyses in those documents as 'source document's estimate' (출처 문서의 추정)
   extra_roots: []             # Build, deploy, server, and tool folders outside source_roots to read
   vanilla_engine_root:        # Vanilla engine source folder (local). If set, compare engine modification blocks and per-version behavior locally
   engine_base_ref:            # Vanilla engine baseline on the version control server (p4 stream or git branch). Used to count the change history, on the vanilla engine side, of files that contain engine modification blocks
@@ -132,4 +132,4 @@ td:
 
 # Profile notes
 
-Older profiles and the Korean reference files call this section "프로필 메모". Write here the circumstances that the values above cannot fully hold. Examples: why the data is provisional, areas with two decision owners, cautions about search terms.
+Older profiles call this section "프로필 메모". Write here the circumstances that the values above cannot fully hold. Examples: why the data is provisional, areas with two decision owners, cautions about search terms.

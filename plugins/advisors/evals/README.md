@@ -1,48 +1,48 @@
-# advisors 시험 질문
+# advisors test questions
 
-고문이 불린 뒤 지켜야 할 동작을 사례로 모은다. 지침을 고친 뒤 같은 잘못이 다시 나오지 않는지 이 사례로 확인한다. 어느 스킬이 불리는지(스킬 자동 선택)는 여기서 보지 않는다. 사례마다 요청 문장에 스킬 이름을 적어 그 고문을 부르게 한다.
+This folder collects, as cases, the behaviors that an advisor must keep after it is called. After you change the instructions, use these cases to check that the same mistake does not come back. This folder does not check which skill is called (automatic skill selection). Each case writes the skill name in the request sentence so that it calls that advisor.
 
-형식은 Claude Code 의 `claude plugin eval` 이다([공식 문서](https://code.claude.com/docs/en/plugin-evals)). 사례 하나가 폴더 하나다. 고문 이름 폴더는 사례를 묶는 폴더일 뿐 사례가 아니다.
+The format is Claude Code's `claude plugin eval` ([official documentation](https://code.claude.com/docs/en/plugin-evals)). One case is one folder. An advisor name folder only groups cases. It is not a case.
 
 ```
 evals/<고문>/<사례>/
-├─ prompt.md      요청 문장. 머리에 허용 도구와 지켜야 할 동작(expected_outcome)
-├─ case.yaml      사례 이름과 시험용 프로젝트를 만드는 스크립트
-├─ fixture.sh     빈 작업 폴더에 프로필, _state 파일, 코드 몇 줄을 만든다
-└─ graders/       판정. 도구 호출 횟수(tool_used)와 마지막 답 판정(llm)
+├─ prompt.md      request sentence. In the head: allowed tools and the behavior to keep (expected_outcome)
+├─ case.yaml      case name and the script that makes the test project
+├─ fixture.sh     makes a profile, _state files, and a few lines of code in an empty work folder
+└─ graders/       verdicts. Tool call counts (tool_used) and the final answer verdict (llm)
 ```
 
-## 고문별 사례
+## Cases by advisor
 
-| 고문 | 사례 | 요청 | 지켜야 할 동작 | 판정 |
+| Advisor | Case | Request | Behavior to keep | Verdicts |
 |---|---|---|---|---|
-| radar | `radar/internal-tech-to-td` | 이미 쓰는 GAS 로 자체 쿨다운을 옮겨 넓혀 써도 되는지 | 웹·커뮤니티 수집을 시작하지 않고, TD 고문이 맡는 질문이라고 말한 뒤 TD 고문으로 볼지 묻는다 | web-scout 호출·WebSearch·WebFetch 0번, 묻기 전 TD 스킬 호출 0번, 마지막 답 |
-| pm | `pm/debt-rank-not-inbox` | 다음 작업과 기술 부채 순위 | 질문함에 TD 앞 질문을 쓰지 않는다. 부채 순위는 TD 고문의 기술 부채 점검 몫이라고 말하고, 그 점검(정기 점검표 PC-009)을 돌릴지 묻는다. 순위를 스스로 지어내지 않는다 | inbox.md 쓰기·고치기 0번, 묻기 전 TD 스킬 호출 0번, 마지막 답 |
-| td | `td/no-community` | 쓰고 있는 Niagara 컴포넌트 재사용을 넓혀도 되는지, 다른 팀 후기와 커뮤니티 반응도 | 커뮤니티 글을 찾거나 읽지 않고, 후기와 커뮤니티 반응은 기술 동향 고문의 단일 기술 진단에 맡기자고 묻는다 | WebSearch·WebFetch 0번, 커뮤니티 채널 이름이 든 에이전트 지시 0번, 묻기 전 기술 동향 스킬 호출 0번, 마지막 답 |
+| radar | `radar/internal-tech-to-td` | Whether the project can move its own cooldown to the GAS it already uses and use GAS more widely | It does not start web or community collection. It says the question belongs to the TD advisor, then asks whether to look at it with the TD advisor | web-scout calls·WebSearch·WebFetch 0 times, TD skill calls before asking 0 times, final answer |
+| pm | `pm/debt-rank-not-inbox` | The next task and a technical debt ranking | It does not write a question addressed to TD in the question inbox. It says that debt ranking is the work of the TD advisor's technical debt check, and asks whether to run that check (periodic check table PC-009). It does not invent a ranking itself | inbox.md writes·edits 0 times, TD skill calls before asking 0 times, final answer |
+| td | `td/no-community` | Whether the project can widen the reuse of the Niagara component it uses, plus other teams' reviews and community reactions | It does not look for or read community posts. It asks to hand the reviews and community reactions to the technology trend advisor's single technology diagnosis | WebSearch·WebFetch 0 times, agent instructions that contain community channel names 0 times, technology trend skill calls before asking 0 times, final answer |
 
-모든 사례에 "그 고문 스킬이 불렸다"(`skill-fired`) 판정이 있다. 실행이 중간에 실패하면 "0번" 판정은 저절로 통과하므로, 이 판정과 마지막 답 판정까지 모두 통과해야 사례가 통과한 것이다.
+Every case has the verdict "that advisor skill was called" (`skill-fired`). If a run fails partway, the "0 times" verdicts pass by themselves. So a case passes only when this verdict and the final answer verdict also pass.
 
-## 돌리는 법
+## How to run
 
-필요한 것: Claude Code 2.1.269 이상(`claude --version`), git 2.31 이상. 실제 모델을 부르므로 사용량이 든다. 사례마다 기본 3번 돌고, 마지막 답 판정은 판정용 모델을 따로 부른다. 상한이 필요하면 `--max-cost-usd` 를 붙인다.
+Requirements: Claude Code 2.1.269 or later (`claude --version`), git 2.31 or later. It calls the real model, so it uses usage. Each case runs 3 times by default, and the final answer verdict calls a separate grading model. If you need a cap, add `--max-cost-usd`.
 
 ```bash
 claude plugin eval plugins/advisors --scaffold --ablation none --allow-tools Write Edit WebFetch WebSearch --no-publish
 ```
 
-- `--scaffold`: 사례의 fixture.sh 로 시험용 프로젝트를 만든다. 이 스크립트는 실행한 사람의 권한으로 돈다. 이 저장소에서 쓴 스크립트만 있을 때 붙인다.
-- `--ablation none`: 플러그인 없이 도는 비교 실행을 뺀다. 여기서는 고문이 불린 뒤의 동작만 보므로 비교 실행이 필요 없다.
-- `--allow-tools`: 잘못된 동작(웹 검색, 질문함 쓰기)이 실제로 일어날 수 있게 그 도구를 허용한다. 허용하지 않으면 도구가 아예 없어서 "0번" 판정이 저절로 통과한다.
-- Bash 는 허용하지 않는다. Windows 에서 Bash 를 허용하면 WSL2 안에서만 돈다(공식 문서). 그래서 고문의 스크립트(`date`, 계산 스크립트)는 돌지 않고 고문은 그 단계를 "확인 못 함"으로 둔다. 시험하는 동작은 그보다 앞에서 정해진다.
-- 고문 하나만: `--tag radar`. 사례 하나만: `--case td-no-community`.
-- 결과는 `plugins/advisors/evals/results/` 에 쌓인다(.gitignore 에 있음).
-- fixture.sh 는 bash 로 돈다. Windows 에서 어느 bash 를 쓰는지는 공식 문서에 없다. 처음 돌릴 때 `scaffold failed` 가 나오면 Git Bash 가 PATH 에 있는지 본다.
+- `--scaffold`: makes the test project with the case's fixture.sh. This script runs with the permissions of the person who runs it. Add it only when the only scripts are ones written in this repository.
+- `--ablation none`: removes the comparison run without the plugin. Here only the behavior after the advisor is called is checked, so the comparison run is not needed.
+- `--allow-tools`: allows the tools so that the wrong behavior (web search, writing to the question inbox) can really happen. If they are not allowed, the tools do not exist at all, and the "0 times" verdicts pass by themselves.
+- Do not allow Bash. On Windows, if Bash is allowed, it runs only inside WSL2 (official documentation). So the advisor's scripts (`date`, calculation scripts) do not run, and the advisor leaves those steps as "not checked". The behavior under test is decided before that.
+- Only one advisor: `--tag radar`. Only one case: `--case td-no-community`.
+- Results pile up in `plugins/advisors/evals/results/` (it is in .gitignore).
+- fixture.sh runs with bash. The official documentation does not say which bash is used on Windows. If `scaffold failed` appears on the first run, check whether Git Bash is on the PATH.
 
-## 사례 더하기
+## Adding cases
 
-결과 표시 기록(`<report_dir>/_state/feedback.md`, 형식은 `shared/state-formats.md`)에서 "반영함"이 된 행을 사례로 옮긴다. 고친 뒤에도 같은 잘못을 하지 않는지 보려는 것이다. 고문은 이 폴더를 고치지 않으므로 사람이 옮긴다.
+Move rows that became "applied" in the result feedback log (`<report_dir>/_state/feedback.md`, format in `shared/state-formats.md`) into cases. The purpose is to see that the same mistake does not happen after the fix. Advisors do not change this folder, so people move them.
 
-1. 같은 고문 폴더 아래 비슷한 사례 폴더를 복사한다. 폴더 이름과 case.yaml 의 `name` 을 바꾼다(`<고문>-<짧은 설명>`).
-2. prompt.md 본문에 그때의 요청을 쓴다. 첫머리에 `advisors:<고문> 스킬로` 를 넣어 그 고문이 불리게 한다. `expected_outcome` 에 지켜야 할 동작을 한 줄로 쓴다.
-3. fixture.sh 에는 그 판정에 필요한 파일만 만든다. 프로필은 그 고문 SKILL.md 의 "필요한 프로필 값" 칸을 모두 채운다. 빈 칸이 있으면 고문이 Step 0 에서 묻고 멈춰서, 시험하려는 단계까지 가지 않는다. 플러그인과 함께 배포되는 폴더이므로 프로젝트 내부 이름을 넣지 않는다.
-4. graders/ 에서 하지 말아야 할 도구 호출은 `tool_used` 에 `min: 0`, `max: 0` 으로, 마지막 답은 `llm` 으로 판정한다. `skill-fired` 판정은 그대로 둔다. 정규식 판정(`regex`)의 패턴은 JavaScript 문법이라 `(?i)` 를 쓸 수 없다(공식 문서). `input_match` 도 같은 문법으로 보고, 대소문자는 `[Rr]eddit` 처럼 적는다.
+1. Copy a similar case folder under the same advisor folder. Change the folder name and `name` in case.yaml (`<고문>-<짧은 설명>`).
+2. In the body of prompt.md, write the request from that time. Put `advisors:<고문> 스킬로` at the start so that that advisor is called. In `expected_outcome`, write the behavior to keep in one line.
+3. In fixture.sh, make only the files that the verdict needs. In the profile, fill in all fields of the "Required profile values" table of that advisor's SKILL.md. If a field is empty, the advisor asks in Step 0 and stops, so it does not reach the step under test. This folder is distributed with the plugin, so do not put internal project names in it.
+4. In graders/, judge the tool calls that must not happen with `tool_used` with `min: 0`, `max: 0`, and the final answer with `llm`. Keep the `skill-fired` verdict as it is. The pattern of a regex verdict (`regex`) uses JavaScript syntax, so you cannot use `(?i)` (official documentation). Treat `input_match` as the same syntax, and write case like `[Rr]eddit`.

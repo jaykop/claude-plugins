@@ -1,105 +1,107 @@
-# 경쟁작 고르기와 흐름 판정
+# Choosing competitors and judging trends
 
-전면 평가의 조사 조건(Step 1-1)·경쟁작 선정(Step 1-4)·흐름 판정(Step 1-6), 변화 점검의 범위 정하기(Step 2-3)·목록 유지(Step 2-5)에서 읽는다.
-선정 결과는 `<report_dir>/_state/market-competitors.md` 에 저장하고, 그 형식은 공용 `shared/state-formats.md` 를 따른다.
+Read this in the survey conditions (Step 1-1), competitor selection (Step 1-4), and trend judgment (Step 1-6) of a full review, and in setting the scope (Step 2-3) and maintaining the list (Step 2-5) of a change check.
+Save the selection result in `<report_dir>/_state/market-competitors.md`. Its format follows the shared `shared/state-formats.md`.
 
-## 1. 게임을 구분하는 법
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-- 게임마다 스토어 고유 식별자를 붙여 `market-competitors.md` 의 "식별자" 칸에 적는다. Steam 게임은 `steam:<앱 ID>`, 그 밖에는 스토어 상품 페이지 URL(콘솔 스토어 포함)이다. 스토어 페이지가 없으면(발표만 된 게임 등) "없음"으로 두고 공식 페이지 주소는 선정 근거 칸에 적는다. 변화 점검은 식별자 칸의 값으로 다시 조회한다.
-- 리마스터, 지역마다 다른 제목, 같은 이름의 다른 게임, 체험판·무료판을 본편과 섞지 않는다. 식별자가 다르면 다른 게임으로 센다.
-- 목록 ID(`MC-001` …)는 한 번 붙이면 바꾸지 않는다. 목록에서 빼도 줄을 지우지 않고, 선정 근거 칸 끝에 `제외 YYYY-MM-DD — 이유` 를 덧붙인다.
+## 1. How to tell games apart
 
-## 2. 조사 조건 (리포트 머리에 고정)
+- Give each game its unique store identifier, and write it in the "identifier" column of `market-competitors.md`. For a Steam game, it is `steam:<앱 ID>`. Otherwise, it is the store product page URL (including console stores). If there is no store page (for example, a game that is only announced), leave it as "none", and write the official page address in the "Selection evidence" column. A change check queries again with the value in the identifier column.
+- Do not mix remasters, region-specific titles, different games with the same name, demos, or free editions with the main game. If the identifiers differ, count them as different games.
+- Once you give a list ID (`MC-001` …), do not change it. Even if you remove a game from the list, do not delete the row. Append `removed YYYY-MM-DD — <reason>` (`제외 YYYY-MM-DD — 이유`) to the end of the "Selection evidence" column.
 
-경쟁작을 고르기 전에 아래 세 가지를 정해 리포트 머리 "조사 조건"에 적는다. 변화 점검은 가장 최근 전면 평가 리포트의 값을 그대로 쓴다(변화 점검 리포트에는 이 세 칸이 없다).
+## 2. Survey conditions (fixed in the report header)
 
-| 조건 | 정하는 법 |
+Before you choose competitors, set the three items below and write them in "Survey conditions" at the top of the report. A change check uses the values of the most recent full review report as they are (a change check report does not have these three cells).
+
+| Condition | How to set it |
 |---|---|
-| 기준 태그 3~5개 | 프로필 `genre` 를 스토어 태그로 옮긴다. 대화 실행이면 경쟁작 목록과 함께 사용자에게 확인받는다 |
-| 가격 구간 | 주 지역 통화로 네 칸 안팎. 예: "미국 달러 20 미만 / 20~39.99 / 40~59.99 / 60 이상". 부분 유료는 "무료 시작" 한 칸으로 둔다 |
-| 성과 지표 | 아래 §5 의 순서로 하나 고른다 |
+| Base tags, 3~5 | Convert profile `genre` to store tags. In a conversation run, get them confirmed by the user together with the competitor list |
+| Price bands | About four bands in the main region's currency. Example: "under USD 20 / 20~39.99 / 40~59.99 / 60 and over". Put free-to-play in one band, "free to start" (무료 시작) |
+| Performance metric | Choose one in the order of §5 below |
 
-## 3. 직접 경쟁 조건 (여섯 가지)
+## 3. Direct competitor conditions (six)
 
-| 기호 | 조건 | 판정 |
+| Symbol | Condition | Judgment |
 |---|---|---|
-| a | 태그 | 스토어 태그(이용자 태그 상위)가 기준 태그와 3개 이상 겹친다 |
-| b | 플랫폼 | 프로필 `platforms` 중 하나 이상이 같다 |
-| c | 수익 모델 | 프로필 `business_model` 과 같다 |
-| d | 가격 구간 | §2 의 가격 구간에서 같은 칸이다. 우리 칸은 프로필 `market.price_band` 로 정한다. 비어 있으면 d 는 확인 못 함이다 |
-| e | 출시 시기 | 우리 출시 예정 시작일 36개월 전 ~ 끝일 12개월 뒤 사이에 출시했거나 출시 예정으로 발표됐다. 시작일·끝일은 `release_window` 를 날짜로 옮긴 값이고(미정이면 오늘), 범위는 `market_calc.py window`·`next` 로 구한다 |
-| f | 플레이 구성 | 프로필 `play_mode`(싱글 / 협동 / 대전 / 혼합)와 같다 |
+| a | Tags | The store tags (top user tags) overlap with the base tags by 3 or more |
+| b | Platform | At least one of profile `platforms` is the same |
+| c | Business model | The same as profile `business_model` |
+| d | Price band | The same band in the price bands of §2. Set our band with profile `market.price_band`. If it is empty, d is not checked |
+| e | Release period | Released, or announced as planned for release, between 36 months before our planned release start date and 12 months after the end date. The start date and the end date are `release_window` converted to dates (today if undecided), and get the range with `market_calc.py window`·`next` |
+| f | Play mode | The same as profile `play_mode` (single / co-op / versus / mixed) |
 
-- 확인하지 못한 조건은 만족하지 않은 것으로 센다. 선정 근거 칸에 "a·b·c·f 충족, d 확인 못 함"처럼 적는다.
-- 넷 이상을 만족한 게임을 **비교군**이라고 부른다. 직접 경쟁과 부진 사례는 모두 비교군에서 나온다.
+- Count a condition that you could not check as not met. Write it in the "Selection evidence" column, as in "a·b·c·f met, d not checked".
+- Call the games that meet four or more conditions the **comparison set**. Direct competitors and underperforming cases all come from the comparison set.
 
-## 4. 다섯 묶음
+## 4. Five groups
 
-| 묶음 | 개수 | 넣는 조건 | 쓰는 곳 | 쓰지 않는 곳 |
+| Group | Count | Condition to include | Where it is used | Where it is not used |
 |---|---|---|---|---|
-| 직접 경쟁 | 5~8 | 비교군에서, 부진 사례로 고른 것을 뺀 나머지 가운데 조건을 많이 만족한 순서 | 모든 축, 흐름 판정, 특징 비교 | |
-| 기준작 | 2~3 | 장르를 대표하는 성공작. 출시 시기 제한 없음. 회사 전작은 이 묶음에만 넣는다 | 장르 수요 축에서 이 장르의 위쪽 끝을 보는 용도 | 우리와 직접 비교하는 문장 |
-| 부진 사례 | 2~3, 반드시 넣는다 | 비교군에서 성과 지표가 비교군 중앙값 미만인 게임을 낮은 쪽부터 | 생존자 편향 점검, 흐름 판정, 특징 비교 | 실패 원인 단정 |
-| 이용자 시간 경쟁 | 보통 1~3 | 수익 모델이 달라도 같은 이용자의 시간을 쓰는 대형 서비스 게임 | 출시 시점 축, 경쟁 밀도 축의 보조 근거 | 성과 중앙값, 특징 비교 |
-| 선례 전용 | - | design 고문이 목록 밖 게임을 선례로 쓸 때 design 이 붙이는 표시 | market 은 쓰지 않는다 | |
+| direct competitor (직접 경쟁) | 5~8 | From the comparison set, among the rest after removing the ones chosen as underperforming cases, in order of the most conditions met | All axes, trend judgment, feature comparison | |
+| benchmark title (기준작) | 2~3 | Successful titles that represent the genre. No release period limit. The company's previous titles go only in this group | To look at the upper end of this genre on the Genre demand axis | Sentences that compare directly with us |
+| underperforming case (부진 사례) | 2~3, you must include them | From the comparison set, games whose performance metric is below the comparison set median, from the lowest | Survivorship bias check, trend judgment, feature comparison | Stating the cause of failure as settled |
+| competitor for player time (이용자 시간 경쟁) | Usually 1~3 | Large live-service games that use the same players' time, even if the business model differs | Release timing axis, supporting evidence for the Competition density axis | Performance median, feature comparison |
+| precedent only (선례 전용) | - | A mark that design attaches when the design advisor uses a game outside the list as a precedent | market does not use it | |
 
-- 부진 사례를 반드시 넣는 이유: 성공작만 보고 공통점을 성공 원인으로 읽는 실수(생존자 편향, 살아남은 사례만 보고 결론을 내는 오류)를 막기 위해서다. 비교군에 중앙값 미만 게임이 없으면 후보 수집을 한 번 더 한다(§6). 그래도 없으면 "부진 사례 찾지 못함"을 확인 못 한 것에 적는다.
-- 사용자가 지정한 게임(`market.competitors_seed`)은 조건을 못 맞춰도 넣는다. 어느 묶음에 넣었는지와 만족한 조건을 선정 근거 칸에 적는다. 넷 미만이면 직접 경쟁에 넣지 않고 기준작이나 이용자 시간 경쟁에 넣는다.
-- 성과가 낮다는 이유로 부진 사례에 넣은 게임에 "실패작" 같은 평가어를 붙이지 않는다. 지표 값만 적는다.
+- Why you must include underperforming cases: to prevent the mistake of looking only at successful titles and reading what they share as the cause of success (survivorship bias, the error of drawing a conclusion only from the cases that survived). If the comparison set has no game below the median, collect candidates once more (§6). If there is still none, write "no underperforming case found" (부진 사례 찾지 못함) in Not checked.
+- Include the games that the user named (`market.competitors_seed`) even if they do not meet the conditions. Write which group you put each one in and the conditions met in the "Selection evidence" column. If it meets fewer than four, do not put it in direct competitor; put it in benchmark title or competitor for player time.
+- Do not attach evaluative words such as "failure" to a game that you put in underperforming case because of low performance. Write only the metric values.
 
-## 5. 성과 지표 고르기
+## 5. Choosing the performance metric
 
-비교군의 게임 모두에 **같은 출처·같은 정의**로 있는 지표 하나를 고른다. 순서는 다음과 같다.
+Choose one metric that exists for all games in the comparison set **from the same source with the same definition**. The order is as follows.
 
-1. 같은 종류의 공식 판매 발표(모든 게임에 같은 지표 종류로 있을 때만. 지표 종류는 `metrics.md` §3)
-2. 같은 스토어의 누적 리뷰 수(Steam 이면 `steam_reviews.py count` 가 돌려주는 누적 리뷰 수). 판매량으로 바꾸지 않고 순서 비교에만 쓴다
-3. 같은 추정 도구의 값(도구 이름을 적는다. 확신도는 '추정')
+1. Official sales announcements of the same kind (only when they exist for every game with the same metric kind. For metric kinds, see `metrics.md` §3)
+2. The cumulative review count on the same store (for Steam, the cumulative review count that `steam_reviews.py count` returns). Do not convert it to sales; use it only to compare order
+3. Values from the same estimation tool (write the tool name. The confidence is "estimated")
 
-- 고른 지표와 이유를 조사 조건에 적는다.
-- 값이 없는 게임은 "확인 못 함"으로 두고 중앙값 계산에서 뺀다. 뺀 개수를 적는다.
-- 누적 값은 출시가 오래된 게임 쪽으로 기운다. 표에 출시 후 개월 수를 같이 적고, 이 차이를 장르 수요 축의 반대 근거로 적는다.
-- 주 플랫폼이 Steam 이 아니면 2번 지표는 '보조 신호'다(`axes-and-grades.md` §4).
-- 중앙값과 사분위는 `market_calc.py stats` 로 구한다.
+- Write the chosen metric and the reason in the survey conditions.
+- Leave a game without a value as "not checked", and exclude it from the median calculation. Write the number excluded.
+- Cumulative values lean toward games released long ago. Also write the months since release in the table, and write this difference as counter-evidence on the Genre demand axis.
+- If the main platform is not Steam, metric 2 is a "supporting signal" (`axes-and-grades.md` §4).
+- Get the median and the quartiles with `market_calc.py stats`.
 
-## 6. 후보 수집에서 지킬 것
+## 6. What to keep in candidate collection
 
-- 후보는 web-scout 에 맡긴다. 검색 주제는 기준 태그, 플랫폼, 출시 기간, 공개된 게임 이름뿐이다. 우리 게임 특징 목록은 넘기지 않는다.
-- "올해의 흥행작" 같은 성공작 정리 기사만으로 후보를 모으지 않는다. 태그별 신작 목록, 스토어 검색 결과, 출시 일정 정리도 함께 본다. 부진 사례가 후보에서 빠지지 않게 하기 위해서다.
-- 사용자가 지정한 게임은 이름으로 따로 조회한다.
+- Give candidate collection to web-scout. The search topics are only the base tags, platforms, the release period, and public game names. Do not hand over our game's feature list.
+- Do not collect candidates only from articles that summarize successful titles, such as "the hits of the year". Also look at new release lists per tag, store search results, and release schedule summaries. This keeps underperforming cases from dropping out of the candidates.
+- Look up the games that the user named separately, by name.
 
-## 7. 목록 유지 (변화 점검)
+## 7. Maintaining the list (change check)
 
-- 직전 목록을 그대로 다시 조회한다. 목록을 바꿀 때는 이유를 적는다.
-- 직전 조회일 이후 나온 같은 조건의 신작·발표작은 §3 으로 걸러 "추가 후보"로 리포트에 적는다. 대화 실행에서는 사용자가 확인하면 목록에 넣고, 무인 실행에서는 목록에 넣지 않는다.
-- 묶음을 옮길 때(예: 직접 경쟁 → 부진 사례)는 ID 를 유지하고, 선정 근거 칸에 옮긴 날짜와 근거 지표를 덧붙인다.
+- Query the previous list again as it is. When you change the list, write the reason.
+- Filter new and announced games with the same conditions that came out after the previous access date with §3, and write them in the report as "additional candidate" (추가 후보). In a conversation run, add them to the list if the user confirms. In an unattended run, do not add them to the list.
+- When you move a game between groups (for example, direct competitor → underperforming case), keep the ID, and append the date of the move and the evidence metric to the "Selection evidence" column.
 
-## 8. 흐름 판정
+## 8. Trend judgment
 
-### 8-1. '흐름'과 '사례'
+### 8-1. "Trend" and "case"
 
-다음 세 가지를 모두 만족할 때만 "흐름"이라고 쓴다.
+Write "trend" (흐름) only when all three of the following are met.
 
-1. 같은 특징을 가진 게임이 비교군 안에 3개 이상 있고, 모두 '최근' 범위(출시작 기준) 안에 출시했다.
-2. 그 3개 이상이 성과 지표에서 **직접 경쟁 묶음의 중앙값** 이상이다. 직접 경쟁 묶음은 부진 사례를 뺀 게임에서 고르므로 비교군 중앙값과 값이 다르다. 부진 사례를 고를 때는 비교군 중앙값을, 흐름 판정에는 직접 경쟁 묶음의 중앙값을 쓴다. 아래 8-1·8-2 에서 "중앙값"은 모두 이 값이고, `market_calc.py stats` 에 직접 경쟁 묶음의 값만 넣어 구한다.
-3. 그 성과를 같은 지표·같은 출처에서 두 시점 이상으로 확인했다. 첫 전면 평가라면 같은 출처가 주는 과거 값(분기 실적 두 번, 월별 리뷰 분포 등)으로 확인할 수 있다. 그런 값이 없으면 "사례(두 시점 확인 전)"로 두고 다음 변화 점검에서 다시 본다.
+1. There are 3 or more games with the same feature in the comparison set, and all of them were released within the 'recent' window (for releases).
+2. Those 3 or more are at or above **the median of the direct competitor group** on the performance metric. The direct competitor group is chosen from the games other than the underperforming cases, so its median differs from the comparison set median. Use the comparison set median when you choose underperforming cases, and the median of the direct competitor group for trend judgment. In 8-1 and 8-2 below, "median" always means this value. Get it by putting only the values of the direct competitor group into `market_calc.py stats`.
+3. That performance was confirmed at two or more points in time with the same metric from the same source. In the first full review, you can confirm it with past values that the same source gives (two quarterly results, a monthly review distribution, and so on). If there are no such values, leave it as "case (before the two-point check)" (사례(두 시점 확인 전)), and look again in the next change check.
 
-하나라도 빠지면 "사례"다. 기사에서 화제가 된 횟수는 근거로 세지 않는다.
+If even one is missing, it is a "case" (사례). Do not count the number of times something was talked about in articles as evidence.
 
-"내려가는 흐름"도 같은 규칙으로 판정한다. 같은 특징을 가진 게임 3개 이상이 중앙값 미만이고, 두 시점 이상에서 확인했을 때만 쓴다.
+Judge a "declining trend" (내려가는 흐름) by the same rules. Write it only when 3 or more games with the same feature are below the median and this was confirmed at two or more points in time.
 
-### 8-2. 생존자 편향 점검
+### 8-2. Survivorship bias check
 
-성공 쪽(중앙값 이상)에서 공통 특징을 뽑았으면, 같은 특징을 가진 중앙값 미만 게임(부진 사례 포함)이 몇 개인지 반드시 함께 센다. 흐름 표에 "중앙값 이상 n개 중 k개 / 중앙값 미만 m개 중 j개"처럼 두 쪽을 나란히 적는다. 중앙값 이상 쪽 비율(k/n)이 미만 쪽 비율(j/m)보다 높을 때만 성공 쪽 특징으로 적는다. 같거나 낮으면 성공 요인으로 쓰지 않는다. 중앙값 미만 게임이 2개 미만이면(m < 2) 비교할 수 없으므로 "사례"로 둔다.
+If you extracted a common feature from the success side (at or above the median), you must also count how many games below the median (including underperforming cases) have the same feature. Write the two sides side by side in the trend table, as in "k of n at or above the median / j of m below the median" (중앙값 이상 n개 중 k개 / 중앙값 미만 m개 중 j개). Write it as a success-side feature only when the ratio on the at-or-above side (k/n) is higher than the ratio on the below side (j/m). If it is the same or lower, do not use it as a success factor. If there are fewer than 2 games below the median (m < 2), they cannot be compared, so leave it as a "case".
 
-### 8-3. 출시 때까지 이어질지
+### 8-3. Whether it will last until release
 
-- 출시까지 18개월 이상 남았는데 최근 12개월에만 나타난 흐름이면 "출시 때 지나갔을 수 있음"이라고 표시한다.
-- 출시 시점 계산은 `market_calc.py window` 와 `next` 로 한다.
+- If 18 months or more remain until release and the trend appeared only in the last 12 months, mark it "may have passed by release" (출시 때 지나갔을 수 있음).
+- Calculate release timing with `market_calc.py window` and `next`.
 
-## 9. 특징 비교표
+## 9. Feature comparison table
 
-- 행은 우리 게임 특징(전면 평가 Step 1-2 에서 메인이 만든 목록), 열은 직접 경쟁작과 부진 사례다.
-- 칸에는 "있음 / 없음 / 확인 못 함"과 출처 번호만 적는다. 근거는 스토어 설명, 공식 페이지, 공식 발표처럼 web-scout 가 원문을 인용해 온 자료다.
-- 그 특징이 얼마나 재미있는지, 잘 만들었는지는 쓰지 않는다.
-- "우리에게만 있음"이나 "우리에게 없음"을 "그러니 넣자/빼자"로 이어 쓰지 않는다. 게임 내용에 관한 것은 design 에 질문으로 넘긴다.
-- 비교는 수집이 끝난 뒤 메인에서 한다. web-scout 에는 경쟁작의 기능 목록을 원문 그대로 가져오게만 한다.
+- The rows are our game's features (the list that the main agent made in Full review Step 1-2). The columns are the direct competitors and the underperforming cases.
+- In the cells, write only "has (있음) / does not have (없음) / not checked (확인 못 함)" and the source number. The evidence is material whose original text web-scout quoted, such as store descriptions, official pages, and official announcements.
+- Do not write how fun the feature is or how well it is made.
+- Do not continue "only we have it" or "we do not have it" into "so let us add it / remove it". Pass anything about game content to design as a question.
+- Do the comparison in the main agent after collection ends. Have web-scout only bring the competitors' feature lists in the original text.

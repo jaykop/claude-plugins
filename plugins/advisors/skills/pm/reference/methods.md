@@ -1,189 +1,191 @@
-# PM 고문의 판단 방법
+# Judgment methods of the PM advisor
 
-PM 고문이 일정·범위·위험을 판단할 때 쓰는 기본 방법이다. 프로젝트가 프로필 `pm.knowledge_dir` 에 자기 기준 노트를 두었으면 그 노트를 먼저 읽고, 이 파일과 다르면 노트를 따른다. 그 노트는 비공개 자료일 수 있으므로 리포트에 원문을 옮기지 않고 노트 경로와 항목 이름만 인용한다.
+These are the basic methods that the PM advisor uses to judge schedule, scope, and risks. If the project keeps its own reference notes in profile `pm.knowledge_dir`, read those notes first. If they differ from this file, follow the notes. The notes can be private material, so do not copy their original text into reports. Quote only the note path and the item name.
 
-## 1. 우선순위
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-### 1-1. 필수성 세 단계
+## 1. Priority
 
-| 단계 | 뜻 | 판정 질문 |
+### 1-1. Three levels of necessity
+
+| Level | Meaning | Judgment question |
 |---|---|---|
-| 필수 (A) | 빠지면 이번 목표(마일스톤 완료 기준, 출시)를 채울 수 없다 | "이것 없이 완료 기준을 통과하는가?" — 아니면 필수 |
-| 원함 (B) | 빠져도 목표는 채우지만 결과의 질이 크게 떨어진다 | "빠지면 누가 무엇을 잃는가?" |
-| 여유 (C) | 여력이 있을 때 더한다 | 나머지 |
+| must (필수) (A) | Without it, this goal (milestone completion criteria, release) cannot be met | "Does it pass the completion criteria without this?" — if not, it is must |
+| want (원함) (B) | Without it, the goal is still met, but the quality of the result drops a lot | "If it is left out, who loses what?" |
+| spare (여유) (C) | Add it when there is spare capacity | The rest |
 
-- 높은 단계가 끝나기 전에 낮은 단계를 시작하지 않는다. 예외는 필수 작업이 다른 사람·외부를 기다리는 동안뿐이고, 예외를 쓰면 이유를 남긴다.
-- 같은 종류를 여러 개 만들 계획이면 하나씩 나눠 단계를 따로 매긴다. 첫 번째만 필수일 때가 많다. "최대한 많이"는 우선순위가 아니다.
-- 우선순위는 계속 바뀐다. 주간 점검마다 다시 본다. 몇 주째 한 번도 바뀌지 않았으면 점검을 형식적으로 하고 있다는 신호로 본다.
-- 출시 준비 작업(설치·실행 확인, 플레이테스트, 인증·제출 조건 확인)은 기능보다 덜 눈에 띄지만 대개 필수다. 빠져 있는지 확인한다.
+- Do not start a lower level before a higher level is finished. The only exception is while a must task waits for another person or an outside party. If you use the exception, record the reason.
+- If you plan to make several of the same kind, split them and give each one its own level. Often only the first one is must. "As many as possible" is not a priority.
+- Priorities keep changing. Review them at every weekly check. If they have not changed even once for several weeks, take it as a sign that the check is done only as a formality.
+- Release preparation work (checking installation and launch, playtests, checking certification and submission requirements) is less visible than features, but it is usually must. Check whether it is missing.
 
-### 1-2. 순서 초안 — 우선순위 × 수고
+### 1-2. Order draft — priority × effort
 
-- 우선순위 1~5(1이 가장 높음)와 수고 1~5(1이 가장 쉽고 짧음)를 곱한 1~25 점수를 작은 값부터 검토한다.
-- 점수는 순서 **초안**이다. 필수 여부, 선행 관계, 맡을 사람의 역량, 급한 문제를 함께 보고 순서를 바꾸면 이유를 적는다.
-- 프로젝트가 자기 등급 체계(예: 중요도×규모 등급 라벨)를 쓰면 그 체계를 따르고 이 점수는 쓰지 않는다. 프로필 `pm.order_labels` 가 있으면 그것이 프로젝트 체계다.
+- Multiply priority 1–5 (1 is the highest) by effort 1–5 (1 is the easiest and shortest) to get a score from 1 to 25, and review from the smallest value.
+- The score is an order **draft**. If you change the order after you look also at whether the task is must, prerequisites, the skills of the person who takes it, and urgent problems, write the reason.
+- If the project uses its own grade system (for example, grade labels of importance × size), follow that system and do not use this score. If profile `pm.order_labels` exists, it is the project's system.
 
-### 1-3. 추정
+### 1-3. Estimation
 
-- 시간은 대략이면 된다. 정확한 시간에 매달리지 않는다.
-- **비교 추정**: 이미 끝낸 작업 하나를 기준으로 "그것보다 크다/비슷하다/작다"로 잰다. 기준 작업의 실제 걸린 시간을 기록해 둔다.
-- 규모 칸(S·M·L·XL, 또는 1·2·3·5·8·13 같은 점수)을 쓰면 칸마다 시간 범위를 정해 두고, 한 칸에 작업이 몰리면 칸 경계를 다시 정한다.
-- **시간 상자(timebox)**: 얼마나 걸릴지 전혀 모르는 작업은 먼저 "알아보는 시간"을 정해 놓고 그 안에서 조사·시험한다. 상자가 끝난 뒤에 추정한다. 상자 자체를 작업 하나로 잡는다.
-- 처음 해 보는 기술이거나 결과를 예측하기 어려우면 한 단계 크게 잡는다.
-- 일정은 늘 낙관에서 시작한다. 계획에는 가능 시간의 일부(프로필 `pm.capacity.plan_ratio`)만 쓴다.
+- A rough time is enough. Do not chase exact times.
+- **Relative estimation**: take one finished task as the reference, and measure "bigger than / about the same as / smaller than that one". Record the real time the reference task took.
+- If you use size buckets (S·M·L·XL, or points such as 1·2·3·5·8·13), set a time range for each bucket. If tasks gather in one bucket, set the bucket boundaries again.
+- **Timebox**: for a task whose duration is completely unknown, first set a "time to find out", and research and test within it. Estimate after the box ends. Count the box itself as one task.
+- If the technology is new to you, or the result is hard to predict, take one size larger.
+- A schedule always starts optimistic. In the plan, use only part of the available time (profile `pm.capacity.plan_ratio`).
 
-## 2. 위험과 대응책
+## 2. Risks and responses
 
-### 2-1. 위험이란
+### 2-1. What a risk is
 
-- 아직 일어나지 않았지만 일어나면 완료나 품질을 흔드는 문제다. 이미 일어난 문제는 위험이 아니라 할 일이다.
-- 손쓸 수 있고 영향이 큰 위험만 목록에서 관리한다. 영향이 작거나 손쓸 수 없는 것은 "관찰"로만 둔다.
+- A risk is a problem that has not happened yet but would shake completion or quality if it happens. A problem that already happened is not a risk but a task.
+- Manage in the list only the risks that you can act on and that have a large impact. Keep risks with a small impact, or risks that you cannot act on, only as "watching".
 
-### 2-2. 종류
+### 2-2. Kinds
 
-| 종류 | 예 |
+| Kind | Examples |
 |---|---|
-| 사람 | 인원 부족, 갈등, 속도 저하, 한 사람에게 몰린 지식, 번아웃 |
-| 프로젝트 | 시간·예산 부족, 범위 증가, 늦은 기획 변경, 후반에 몰리는 일(현지화, 인증·제출 조건) |
-| 제작 과정 | 아트·콘텐츠 파이프라인 병목, 새 도구 도입, 리팩터링 미룸, 빌드 시간 |
-| 기술 | 엔진 버전·실험 기능 의존, 성능 예산 초과, 확인되지 않은 핵심 기술 |
+| people (사람) | Not enough people, conflict, slower pace, knowledge held by one person, burnout |
+| project (프로젝트) | Not enough time or budget, scope growth, late design changes, work that piles up late (localization, certification and submission requirements) |
+| production process (제작 과정) | Art and content pipeline bottlenecks, adopting new tools, deferred refactoring, build time |
+| technology (기술) | Dependence on an engine version or experimental features, going over the performance budget, core technology that is not proven |
 
-1인 개발이면 사람 위험은 "시간 부족·우선순위 흔들림·혼자만 아는 결정"으로 읽는다.
+For solo development, read people risks as "not enough time, shaky priorities, decisions that only one person knows".
 
-### 2-3. 기록 항목
+### 2-3. What to record
 
-위험마다 다음을 적는다(형식: `state-format.md` 의 `pm-risks.md`).
+For each risk, write the following (format: `pm-risks.md` in `state-format.md`).
 
-1. 무엇이 일어날 수 있나
-2. 영향 — 일어나면 무엇이 망가지나. 치명 / 심각 / 보통 / 가벼움
-3. 가능성 — 높음 / 중간 / 낮음. 근거를 붙인다
-4. 대응책 2~3개 — 실제로 할 수 있는 것. **능동**(위험 자체를 줄이는 행동)과 **대체**(다른 위험이나 비용을 받아들여 피해를 줄이는 것)를 구분한다
-5. 결정 시점 — "이 날짜(또는 이 마일스톤)까지 해소되지 않으면 대응책 X 로 확정한다"
-6. 대응책의 비용과 효과, 지금 결정이 뒤의 선택지를 어떻게 좁히는지
+1. What can happen
+2. Impact — what breaks if it happens. critical (치명) / severe (심각) / moderate (보통) / minor (가벼움)
+3. Likelihood — high (높음) / medium (중간) / low (낮음). Attach evidence
+4. 2 to 3 responses — things that can really be done. Separate **active** (능동: an action that reduces the risk itself) and **fallback** (대체: accepting another risk or cost to reduce the damage)
+5. Decide by — "If it is not resolved by this date (or this milestone), confirm response X"
+6. The cost and effect of each response, and how a decision now narrows later options
 
-### 2-4. 순서와 갱신
+### 2-4. Order and updates
 
-- 영향 × 가능성이 큰 순으로 정렬한다. 순서가 같으면 결정 시점이 이른 것이 먼저다.
-- 프로젝트의 핵심 원칙(필러)을 해치는 위험을 먼저 본다. 필러가 정해져 있지 않으면 그것부터가 위험이다.
-- 주간 점검마다 결정 시점이 지났거나 2주 안에 오는 위험을 다시 본다. 해소된 위험은 지우지 않고 "해소"로 바꾸고 어떻게 해소했는지 적는다.
+- Sort by Impact × Likelihood, largest first. If the order is the same, the one with the earlier Decide by comes first.
+- Look first at the risks that harm the project's core principles (pillars). If the pillars are not decided, that itself is a risk.
+- At every weekly check, review again the risks whose Decide by has passed or comes within 2 weeks. Do not delete a resolved risk. Change it to "resolved" and write how it was resolved.
 
-## 3. 핵심 원칙(필러)과 범위
+## 3. Core principles (pillars) and scope
 
-- 필러는 이 게임이 반드시 지켜야 할 핵심 경험이나 원칙이다. 4~5개를 넘지 않는다. 팀 전원이 동의하지 않은 필러는 판단 기준으로 쓰지 않는다.
-- 새 기능이나 변경은 필러에 비추어 본다. 필러끼리 부딪히면 필러 우선순위가 이긴다. 필러 자체의 판단(재미, 원칙 해석)은 design 고문 몫이고, PM 은 "지금 일정·용량·위험으로 넣을 수 있는가"를 본다.
-- 범위를 줄일 때는 원함·여유부터 뺀다. 필수를 빼야 하면 그것은 PM 이 정할 일이 아니라 목표를 바꾸는 결정이다. 결정권자에게 올린다.
+- Pillars are the core experiences or principles that this game must keep. There are no more than 4–5. Do not use a pillar that the whole team has not agreed to as a judgment criterion.
+- Look at a new feature or change against the pillars. If pillars conflict, the pillar priority wins. Judging the pillars themselves (fun, interpreting the principles) is the design advisor's work. The PM looks at "can it be added with the current schedule, capacity, and risks".
+- When you cut scope, remove want and spare first. If a must item has to be removed, the PM does not decide it: it is a decision that changes the goal. Raise it to the decision owner.
 
-## 4. 마일스톤
+## 4. Milestones
 
-### 4-1. 완료 기준을 등급표로
+### 4-1. Completion criteria as a grade table
 
-마일스톤을 시작할 때 완료 기준을 결과물 단위로 먼저 적는다. 기준마다 등급과 확인 방법을 붙인다.
+When a milestone starts, first write the completion criteria by deliverable. Attach a grade and a check method to each criterion.
 
-| 등급 | 뜻 |
+| Grade | Meaning |
 |---|---|
-| 필수 | 없으면 이 마일스톤을 완료로 보지 않는다 |
-| 기본 | 있어야 할 품질. 빠지면 결과의 질이 떨어진다 |
-| 추가 | 기대 이상. 여력이 있을 때 채운다 |
+| must (필수) | Without it, this milestone is not counted as complete |
+| basic (기본) | Quality that must be there. Without it, the quality of the result drops |
+| extra (추가) | Beyond expectations. Fill it in when there is spare capacity |
 
-- 항목마다 상태(없음 / 일부 / 완료 / 제외 / 해당 없음)를 매긴다. 기준에서 빼기로 했으면 마일스톤이 끝나기 **전에** 결정권자에게 확인받고 이유를 남긴다.
-- 프로젝트가 자기 평가표를 쓰면 그 등급과 상태값을 그대로 쓴다.
-- 확인 방법은 "빌드에서 직접 해 보기", "시연", "플레이테스트 결과"처럼 결과물로 보는 방법이어야 한다. 대화나 메신저에서 "됐다"고 한 것은 확인이 아니다.
+- Give each item a status (none (없음) / partial (일부) / done (완료) / excluded (제외) / not applicable (해당 없음)). If you decided to remove an item from the criteria, get it confirmed by the decision owner **before** the milestone ends, and record the reason.
+- If the project uses its own evaluation table, use its grades and status values as they are.
+- The check method must look at the deliverable, such as "try it directly in the build", "demo", or "playtest results". Someone saying "it is done" in a conversation or a messenger is not a check.
 
-### 4-2. 남은 마일스톤을 통으로 나누기
+### 4-2. Splitting the remaining milestones into buckets
 
-남은 마일스톤이 여럿이면 지금 마일스톤마다 통을 하나씩 만들고, 할 일을 통에 나눠 담는다. 여러 마일스톤에 걸친 일은 마일스톤 단위로 쪼갠다. 다음 마일스톤에 대해 더 현실적으로 볼 수 있게 된다.
+If several milestones remain, make one bucket for each milestone now, and split the work into the buckets. Split work that spans several milestones by milestone. This lets you look at the next milestone more realistically.
 
-### 4-3. 용량 점검
+### 4-3. Capacity check
 
-- 프로젝트가 마일스톤마다 용량을 정해 두었으면(마일스톤 설명의 `용량: N시간` 줄 등) 그 값이 필수 비율의 기준이다.
-- 남은 기간에 실제로 쓸 수 있는 시간 = 평일 수 × 평일 시간 + 휴일 수 × 휴일 시간, 여기에 계획 비율을 곱한다. 계산은 `pm_calc.py capacity` 로 한다. 정해 둔 용량과 이 값이 크게 다르면 둘 다 적는다.
-- 필수 작업 규모 합이 가능 시간의 `pm.must_ratio_limit`(기본 60%)를 넘으면 목표를 줄인다. 남는 40% 는 추정 오차, 버그, 급한 일 몫이다.
-- 규모가 없는 이슈는 합에 넣지 않고 "규모 없음 N건"으로 따로 적는다. 규모를 지어내 채우지 않는다.
+- If the project set a capacity for each milestone (a `capacity: Nh` (`용량: N시간`) line in the milestone description, and so on), that value is the basis of the must ratio.
+- Time that can really be used in the remaining period = number of weekdays × weekday hours + number of holidays × holiday hours, multiplied by the plan ratio. Calculate it with `pm_calc.py capacity`. If the capacity that was set and this value differ a lot, write both.
+- If the size sum of must tasks is over `pm.must_ratio_limit` (default 60%) of the available time, reduce the goal. The remaining 40% is for estimation error, bugs, and urgent work.
+- Do not add issues without a size to the sum. Write them separately as "no size: N issues". Do not invent sizes to fill them in.
 
-### 4-4. 큰 방향을 바꿀 마지막 시점
+### 4-4. The last point to change the big direction
 
-본격 제작에 들어가기 전이 게임의 근본을 바꾸기 가장 싼 시점이다. 제작이 진행될수록 큰 변경의 비용이 커진다. 이 시점의 마일스톤 계획에서는 아래 "재정비 점검"을 함께 하고, 바탕을 정리하지 않은 채 기능만 계속 더하고 있지 않은지 본다.
+Before full production starts is the cheapest point to change the foundation of the game. As production goes on, the cost of a big change grows. In the milestone plan at this point, also do the "refit check" below, and check that you are not only adding features without cleaning up the base.
 
-### 4-5. 재정비 점검 (마일스톤 시작 때)
+### 4-5. Refit check (at the start of a milestone)
 
-| 축 | 볼 것 |
+| Axis | What to look at |
 |---|---|
-| 기술 | 미뤄 둔 기술 부채와 임시 코드, 핵심 시스템·도구의 완성도. 기술마다 그대로 둘지, 보강할지, 리팩터링할지, 다시 만들지, 버릴지 정했는가 |
-| 게임 | 지금 기획이 남은 기간에 실현 가능한가. 플레이테스트 결과로 실제로 바꾼 것이 있는가 |
-| 팀 | 역할과 결정 방식이 지금 인원에 맞는가. 지난 기간의 일하는 방식에서 고칠 점을 정했는가 |
+| Technology | Deferred technical debt and temporary code, how complete the core systems and tools are. For each technology, did you decide whether to keep it as it is, reinforce it, refactor it, rebuild it, or drop it |
+| Game | Can the current design be built in the remaining period. Is there anything that you really changed because of playtest results |
+| Team | Do the roles and the way of deciding fit the current number of people. Did you decide what to fix in the way of working of the last period |
 
-축마다 근거(리포트, 이슈, 플레이테스트 기록)를 붙이고, 근거가 없으면 "확인 못 함"으로 둔다. 1인 개발이면 팀 축은 "시간 배분과 혼자 정한 결정의 기록"으로 읽는다.
+Attach evidence (reports, issues, playtest records) to each axis. If there is no evidence, leave it as "not checked". For solo development, read the team axis as "time allocation and the record of decisions made alone".
 
-## 5. 주간 점검
+## 5. Weekly check
 
-- 매주 같은 요일에 한다. 계획과 실제를 비교하고, 우선순위를 다시 보고, 위험을 갱신하고, 다음 주 할 일을 정한다.
-- 매일 모여 구두로 진행을 듣는 방식보다 주간 점검 + 급한 일은 생긴 날 바로 처리하는 방식이 낫다. 진행 상황은 이슈 트래커에서 읽는다.
-- 업무 지시, 담당, 기한, 완료 상태는 이슈 트래커에 남긴다. 메신저나 대화에서만 정한 것은 정해지지 않은 것으로 본다.
-- 회의(1인 개발이면 혼자 하는 점검)마다 "무엇을 결정하거나 해결할지"를 먼저 적는다.
+- Do it on the same weekday every week. Compare the plan with the actual results, review priorities again, update risks, and decide next week's work.
+- A weekly check plus handling urgent work on the day it comes up is better than gathering every day to hear progress orally. Read progress from the issue tracker.
+- Record work instructions, owners, deadlines, and completion states in the issue tracker. Treat something decided only in a messenger or a conversation as not decided.
+- For each meeting (for solo development, a check done alone), first write "what to decide or solve".
 
-## 6. 회고
+## 6. Retrospectives
 
-### 6-1. 주간 회고 (짧게)
+### 6-1. Weekly retrospective (short)
 
-- 잘된 것 / 안된 것 / 다음 주에 바꿀 것 각 1~3개.
-- 계획보다 늦어진 작업은 원인을 하나로 적는다: 추정이 틀림 / 범위가 늘어남 / 선행 작업 대기 / 급한 일 끼어듦 / 시간 부족 / 원인 모름.
+- 1 to 3 items each for what went well / what went badly / what to change next week.
+- For a task that was later than planned, write one cause: estimate was wrong (추정이 틀림) / scope grew (범위가 늘어남) / waiting for a prerequisite (선행 작업 대기) / urgent work cut in (급한 일 끼어듦) / not enough time (시간 부족) / cause unknown (원인 모름).
 
-### 6-2. 마일스톤·프로젝트 회고
+### 6-2. Milestone and project retrospective
 
-- 목적은 다음 프로젝트를 낫게 하는 것이다. 탓하지 않고 해결책에 집중한다.
-- 질문: 계속할 것, 그만둘 것, 새로 시작할 것, 이번에 배운 가장 중요한 것.
-- 어느 프로젝트에나 나오는 일반론보다 이 프로젝트에만 있었던 잘된 점·잘못된 점을 찾는다. 게임 업계 포스트모템에서 흔히 쓰는 "잘된 것 5, 잘못된 것 5" 형식이 쓸 만하다.
-- 결과는 문서로 남기고, 다음 마일스톤 계획에서 바꿀 것 1~3개를 실제 작업이나 규칙으로 옮긴다.
+- The purpose is to make the next project better. Do not blame. Focus on solutions.
+- Questions: what to continue, what to stop, what to start, the most important thing learned this time.
+- Look for what went well and what went wrong only in this project, rather than generic points that appear in every project. The "5 things that went well, 5 things that went wrong" format often used in game industry postmortems is useful.
+- Leave the result as a document, and move 1 to 3 things to change into real tasks or rules in the next milestone plan.
 
-## 7. 플레이테스트 계획 (PD 몫)
+## 7. Playtest plan (PD work)
 
-### 7-1. 무엇을 보는 테스트인가
+### 7-1. What the test looks at
 
-- 여기서 말하는 플레이테스트는 게임을 처음 보는 대상 이용자 소수가 해 보며 할 만한지, 흐름, 몰입, 조작·튜토리얼을 알아먹는지를 보는 것이다. 기능 확인, 부하 시험, 자동화 시험, 베타와는 다르다.
-- 무엇을 확인하려는지 먼저 정한다. 그러면서도 예상 밖의 반응을 받아들인다.
+- A playtest here means that a few target players who see the game for the first time play it, to see whether it is worth playing, the flow, immersion, and whether they understand the controls and the tutorial. It is different from feature checks, load tests, automated tests, and betas.
+- Decide first what you want to check. At the same time, accept unexpected reactions.
 
-### 7-2. 진행 절차
+### 7-2. Procedure
 
-1. 준비: 시험할 기기에 빌드를 설치하고 여러 번 직접 해 본다. 피드백을 막을 만한 문제는 고치고, 고장 난 부분은 막아 둔다.
-2. 안내: 정해 둔 시간과 시작 방법만 알려 준다. 게임 설명은 하지 않는다. 설명이 필요하다면 그것이 이번 테스트의 발견이다.
-3. 관찰: 보면서 기록한다. 플레이어가 오래 막혀 진행이 불가능할 때만 최소한으로 돕고, 도운 시점과 내용을 기록한다.
-4. 마무리: 반응을 그대로 받아 적고, 한 사람의 의견에 과하게 반응하지 않는다. 같은 사람은 다음 테스트에서 "처음 보는 사람"이 아니다.
-5. 빈도: 정기적으로. 프로토타입 때 시작해 출시 직전까지 이어 간다. 주기는 정기 점검표에서 관리한다.
+1. Preparation: install the build on the test device and play it yourself several times. Fix problems that could block feedback, and block off broken parts.
+2. Instructions: tell only the time limit and how to start. Do not explain the game. If an explanation is needed, that is a finding of this test.
+3. Observation: watch and record. Help minimally only when the player is stuck for a long time and cannot progress, and record when and how you helped.
+4. Wrap-up: write down reactions as they are, and do not overreact to one person's opinion. The same person is not a "first-time player" in the next test.
+5. Frequency: regularly. Start in the prototype stage and continue until just before release. Manage the cycle in the periodic check table.
 
-### 7-3. 물어볼 것
+### 7-3. What to ask
 
-- 가장 중요한 것은 계속 하고 싶어 하는가다. 그만하라고 해도 계속하려 하면 가장 강한 신호다.
-- 끝난 뒤에는 추상적인 질문("재미있었나요?")보다 게임의 특정 장면에 대한 문장을 주고 동의 정도(리커트 척도)로 답하게 한다. 이 게임이 필러로 노리는 경험만 묻는다.
-- 질문지는 이 프로젝트의 장면 이름으로 새로 쓴다. 문장 형식 예: "<장면>에서 <노리는 경험>을 느꼈다".
+- The most important thing is whether they want to keep playing. If they try to continue even when told to stop, that is the strongest signal.
+- After the test, rather than abstract questions ("Was it fun?"), give sentences about specific scenes of the game and let them answer with the degree of agreement (Likert scale). Ask only about the experiences that this game aims for with its pillars.
+- Write the questionnaire new, with this project's scene names. Sentence form example: "I felt <target experience> in <scene>".
 
-### 7-4. 예·아니오 점검 항목
+### 7-4. Yes/no check items
 
-플레이테스트 결과를 "단위 테스트"처럼 예·아니오 항목으로 정리하고 매번 같은 항목을 다시 본다.
+Organize playtest results into yes/no items like "unit tests", and look at the same items again every time.
 
-- <첫 목표>를 도움 없이 찾은 사람이 모두였나?
-- <핵심 조작>을 설명 없이 쓴 사람이 있었나?
-- <정해 둔 구간>에서 그만두고 싶다고 한 사람이 있었나?
+- Did everyone find <first goal> without help?
+- Did anyone use <core control> without explanation?
+- Did anyone say they wanted to quit at <a set section>?
 
-어떤 기능을 더하고 무엇을 고치고 무엇을 남길지는 이런 시험 결과가 정한다. 시험 없이 회의나 문서로만 계획을 늘리고 있으면 방향이 틀린 것이다.
+The results of tests like these decide which features to add, what to fix, and what to keep. If you keep growing the plan only with meetings or documents without tests, the direction is wrong.
 
-### 7-5. 기록에서 볼 것
+### 7-5. What to look at in the records
 
-- 어디서 그만두는가, 어디서 가장 오래 걸리는가, 어디서 자주 죽는가(로그·분석 기록이 있으면 그것으로).
-- 숨은 정보를 플레이어가 알아차리는가: 조작, 행동 결과, 상태(체력·버프 등), 위치, 목표와 진행.
+- Where players quit, where it takes the longest, where they die often (from logs and analytics records, if there are any).
+- Whether players notice hidden information: controls, results of actions, states (health, buffs, and so on), location, goals and progress.
 
-## 8. 팀 상태 진단
+## 8. Team state diagnosis
 
-팀이 성과를 내는 조건으로 흔히 다섯 가지를 본다. 규칙으로 강제하지 않고 진단 기준으로만 쓴다.
+Five conditions are commonly looked at for a team to perform well. Use them only as diagnosis criteria, not as enforced rules.
 
-1. 심리적 안정 — 실수나 반대 의견을 말해도 괜찮다고 느끼는가
-2. 믿고 맡김 — 약속한 일을 제때 기대한 수준으로 해내는가
-3. 분명한 역할과 목표 — 누가 무엇을 맡고 누가 결정하는지 아는가
-4. 일의 의미 — 각자 자기 일이 왜 필요한지 납득하는가
-5. 일의 영향 — 이 일이 중요하다고 믿는가
+1. Psychological safety — do people feel it is fine to say a mistake or a disagreement
+2. Dependability — do people do what they promised on time, at the expected level
+3. Clear roles and goals — do people know who takes what and who decides
+4. Meaning of the work — does each person accept why their work is needed
+5. Impact of the work — do people believe this work matters
 
-신뢰가 이미 높은 팀에 규칙과 역할을 너무 촘촘히 더하면 오히려 느려진다. 신뢰가 약한 팀에는 분명한 역할·목표가 도움이 된다. 1인 개발이면 2·4·5만 본다(약속한 범위를 지키는가, 지금 일이 목표에 어떻게 이어지는가, 동기가 남아 있는가).
+Adding too many rules and roles to a team whose trust is already high makes it slower. For a team with weak trust, clear roles and goals help. For solo development, look only at 2·4·5 (do you keep the promised scope, how does the current work connect to the goal, is motivation still there).
 
-## 9. 빠르게 배우기
+## 9. Learning fast
 
-- 계획을 오래 세우기보다 작게 만들어 보고, 보고, 고친다.
-- 한 번 시도하고 다음 시도까지의 시간을 줄이는 것이 핵심이다. 도구, 빌드 시간, 플레이테스트 빈도가 그 시간을 정한다. 이 시간을 늘리는 일(느린 빌드, 수동 반복 작업)은 위험 목록이나 개선 후보에 올린다.
+- Rather than planning for a long time, make something small, look at it, and fix it.
+- The key is to shorten the time from one try to the next try. Tools, build time, and playtest frequency decide that time. Put work that makes this time longer (slow builds, manual repeated work) on the risk list or the improvement candidates.

@@ -1,135 +1,137 @@
-# 분석 틀
+# Analysis frameworks
 
-기획 고문이 시스템을 점검할 때 쓰는 틀이다. 영역 진단 Step A3, 단건 심사 Step B3 에서 읽는다. 자료를 모으는 analyst 는 부른 쪽이 지정한 항목만 읽는다.
+These are the frameworks that the design advisor uses when it checks systems. Read this file in area diagnosis Step A3 and in single review Step B3. The analyst that collects material reads only the items that the caller named.
 
-틀은 정답을 주는 도구가 아니라 **점검 질문을 만드는 도구**다. 그래서 틀마다 쓰는 단계를 정해 둔다.
+A framework is not a tool that gives the right answer. It is **a tool that makes check questions**. So each framework has the steps where it is used.
 
-- 원칙 문서에 프로젝트 자체 검증 체크리스트가 있으면 시스템별 점검의 첫 칸으로 쓴다. 체크리스트를 통과했다는 것은 방향이 맞다는 뜻일 뿐 재미의 근거가 아니다.
-- 입력 자료가 없는 틀은 돌리지 않는다. 리포트에서 그 칸을 통째로 빼고, 본문 '0. 기준'에 '<틀 이름>: 입력 자료 없음(필요한 것: …)' 한 줄만 적는다. '자료 없음'만 늘어선 표를 만들지 않는다.
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-| # | 틀 | 영역 진단 | 단건 심사 | 입력 자료 |
+- If the principle document has the project's own verification checklist, use it as the first column of the per-system check. Passing the checklist only means that the direction is right. It is not evidence of fun.
+- Do not run a framework that has no input material. Leave its column out of the report entirely, and write only one line in body "0. Basis": "<framework name>: no input material (needed: …)" (`<틀 이름>: 입력 자료 없음(필요한 것: …)`). Do not make a table filled only with "no material".
+
+| # | Framework (틀) | Area diagnosis | Single review | Input material |
 |---|---|---|---|---|
-| 1 | 핵심 반복 구조 고리 지도 | A3-2 | 붙을 고리 확인 | 기획서, 구현 확인 |
-| 2 | MDA 사슬 | 제안 카드 | B3-2 | 대상 규칙 |
-| 3 | 의미 있는 선택 | A3-4 | B3-3 | 선택지가 있는 시스템, 데이터 |
-| 4 | 위험-보상 | A3-4 | B3-3 | 위험을 감수하는 행동, 데이터 |
-| 5 | 역할 중복 | A3-4 | 비슷한 기존 시스템 | 시스템 목록, 고리 지도 |
-| 6 | 플레이어 동기 | A3-4 (타깃이 있을 때) | 타깃이 있을 때 | 프로필 `market.target_player` |
-| 7 | 긴장 곡선 | A3-4 (배치 데이터가 있을 때) | 쓰지 않음 | 콘텐츠 배치 데이터 |
-| 8 | 학습 순서 | A3-4 (배치·튜토리얼 자료가 있을 때) | 새 규칙을 넣을 때 | 콘텐츠 순서, 튜토리얼 문서 |
-| 9 | 의도와 다른 플레이의 해석 | A3-5 | B3-1 | 플레이테스트 관찰 |
+| 1 | Core loop map (핵심 반복 구조 고리 지도) | A3-2 | Check the loop it attaches to | Design documents, implementation check |
+| 2 | MDA chain (MDA 사슬) | Proposal card | B3-2 | Rules of the target |
+| 3 | Meaningful choice (의미 있는 선택) | A3-4 | B3-3 | Systems that have options, data |
+| 4 | Risk-reward (위험-보상) | A3-4 | B3-3 | Actions that take a risk, data |
+| 5 | Role overlap (역할 중복) | A3-4 | Similar existing systems | System list, loop map |
+| 6 | Player motivation (플레이어 동기) | A3-4 (when there is a target) | When there is a target | Profile `market.target_player` |
+| 7 | Tension curve (긴장 곡선) | A3-4 (when there is placement data) | Not used | Content placement data |
+| 8 | Learning order (학습 순서) | A3-4 (when there is placement or tutorial material) | When a new rule is added | Content order, tutorial documents |
+| 9 | Interpreting play that differs from the intent (의도와 다른 플레이의 해석) | A3-5 | B3-1 | Playtest observations |
 
 ---
 
-## 1. 핵심 반복 구조 고리 지도
+## 1. Core loop map
 
-**무엇인가** — 플레이어가 되풀이하는 '행동 → 피드백 → 보상 → 다음 행동의 이유' 고리(코어 루프)를 시간 단위 셋으로 나눠 그린다.
+**What it is** — Draw the loop that the player repeats, "action → feedback → reward → reason for the next action" (the core loop), split into three time units.
 
-| 단위 | 범위 |
+| Unit (단위) | Range |
 |---|---|
-| 순간 | 수 초~수십 초. 전투 한 합, 퍼즐 한 수 |
-| 한 판 | 미션·스테이지·경기 한 번 |
-| 장기 | 여러 판에 걸친 성장, 수집, 해금 |
+| moment (순간) | A few seconds to a few tens of seconds. One exchange in combat, one move in a puzzle |
+| one round (한 판) | One mission, stage, or match |
+| long term (장기) | Growth, collection, and unlocks across several rounds |
 
-**하는 법**
-1. 기획서에서 단위마다 고리를 뽑는다. 문서에 없는 칸은 '문서에 없음'으로 둔다. 장르 상식으로 채우지 않는다.
-2. 고리의 각 칸이 구현됐는지 구현 확인 단계를 붙인다.
-3. 시스템마다 어느 고리의 어느 칸에 붙어 있는지 표시한다.
+**How to do it**
+1. From the design documents, extract the loop for each unit. Leave a cell that is not in the documents as "not in the documents" (문서에 없음). Do not fill it with genre common sense.
+2. Attach the implementation check stage to show whether each cell of the loop is implemented.
+3. For each system, mark which cell of which loop it is attached to.
 
-**결과물** — 고리 지도 표, '끊긴 고리'(피드백이나 보상이 비어 있는 고리), '어느 고리에도 붙지 않은 시스템'.
-- 어느 고리에도 붙지 않은 시스템에서 보류·제거 후보를 찾기 시작한다.
-- 끊긴 고리에서 추가 후보를 찾기 시작한다.
+**Output** — The loop map table, "broken loops" (loops whose feedback or reward is empty), and "systems not attached to any loop".
+- Start looking for on hold and removal candidates in the systems not attached to any loop.
+- Start looking for add candidates in the broken loops.
 
-**흔한 잘못** — 요약 문서만 보고 고리를 채운다. 요약 문서는 읽을 대상을 고르는 데만 쓰고, 고리의 근거는 본문에서 인용한다.
+**Common mistake** — Filling the loop by looking only at summary documents. Use summary documents only to choose what to read, and quote the evidence for the loop from the main documents.
 
-## 2. MDA 사슬
+## 2. MDA chain
 
-**무엇인가** — 규칙(Mechanics)이 플레이 중 행동 양상(Dynamics)을 만들고, 그 양상이 플레이어의 감정(Aesthetics)을 만든다고 보는 분석 틀이다. 규칙에서 감정으로 바로 건너뛰지 못하게, 가운데의 '행동 양상'을 반드시 쓰게 하는 것이 목적이다.
+**What it is** — An analysis framework that assumes that rules (Mechanics) create behavior patterns during play (Dynamics), and that those patterns create the player's emotions (Aesthetics). Its purpose is to stop you from jumping straight from rules to emotions, by making you always write the "behavior pattern" in the middle.
 
-**하는 법** — 제안 카드마다 다음 순서로 쓴다.
+**How to do it** — For each proposal card, write in this order.
 
 ```
-규칙 → 예상 플레이 양상 → 목표 감정 → 연결 필러
+rule → expected play pattern → target emotion → linked pillar
 ```
 
-- 행동 양상은 예측이므로 [추정]이다.
-- 양상은 플레이어 유형별로 따로 쓴다: 효율만 따지는 플레이어 / 처음 하는 플레이어 / 숙련자.
-- 프로필 `play_mode` 가 협동·대전·혼합이면 셋을 더한다: 실력 차이가 큰 팀, 한 명이 혼자 다 해결해 버리는 경우, 한 명이 빠지거나 쓰러진 경우.
+- The behavior pattern is a prediction, so it is [estimated].
+- Write the patterns separately for each player type: a player who only cares about efficiency / a first-time player / an expert.
+- If profile `play_mode` is `협동`, `대전`, or `혼합`, add three more: a team with a large skill gap, the case where one player solves everything alone, and the case where one player leaves or goes down.
 
-**결과물** — 검증 방법의 '관찰 신호'는 이 행동 양상에서 뽑는다. 양상이 관찰되지 않으면 사슬의 그 고리가 틀린 것이다.
+**Output** — Take the "observation signal" of the verification method from these behavior patterns. If a pattern is not observed, that link of the chain is wrong.
 
-**흔한 잘못** — 좋은 쪽 양상만 상상한다. 효율만 따지는 플레이어가 만드는 지배 전략과 악용을 먼저 쓴다.
+**Common mistake** — Imagining only good patterns. Write first the dominant strategies and exploits that a player who only cares about efficiency builds.
 
-## 3. 의미 있는 선택
+## 3. Meaningful choice
 
-**무엇인가** — 플레이어가 고르는 것(무기, 스킬, 빌드, 경로, 보상)이 실제로 고민할 만한지 보는 틀이다.
+**What it is** — A framework that checks whether what the player chooses (weapons, skills, builds, routes, rewards) is actually worth thinking about.
 
-**세 가지 확인**
-1. 결과 차이가 플레이어 눈에 보이는가.
-2. 상황에 따라 답이 바뀌는가.
-3. 고르는 데 필요한 정보가 주어지는가.
+**Three checks**
+1. Is the difference in results visible to the player?
+2. Does the answer change with the situation?
+3. Is the information needed to choose given?
 
-**두 번째 확인의 계산** — 그 선택이 실제로 일어나는 상황(상대하는 적 종류, 단계, 인원)마다 선택지의 효율을 표로 만들고 `choice_calc.py dominance` 로 지배 관계를 본다.
-- 모든 상황에서 1등인 선택지 → 지배 선택지 후보. 다른 선택지를 고를 이유가 없다는 가설.
-- 다른 선택지에 지배되는 선택지 → 고를 이유가 없는 선택지 후보.
-- 연습용 표적의 평균값처럼 편한 조건 하나로 판정하지 않는다. 상황 칸은 실제로 그 선택이 일어나는 장면이어야 한다.
-- 데이터가 임시값이면 계산하지 않고 규칙만 보는 판단(grades-and-rubric §5)을 한다.
+**Calculation for the second check** — For each situation in which the choice actually happens (kind of enemy faced, stage, number of players), make a table of the efficiency of the options, and check the dominance relations with `choice_calc.py dominance`.
+- An option that is first in every situation → a dominant option candidate. The hypothesis is that there is no reason to choose the other options.
+- An option dominated by another option → a candidate for an option with no reason to be chosen.
+- Do not judge with one easy condition, such as the average against a practice target. The situation columns must be scenes where the choice actually happens.
+- If the data is placeholder values, do not calculate, and make a judgment that looks only at rules (grades-and-rubric §5).
 
-## 4. 위험-보상
+## 4. Risk-reward
 
-**무엇인가** — 플레이어가 위험을 감수하는 행동(정밀한 타이밍 방어, 근접 거리 유지, 자원을 모으며 기다리기 등)이 감수한 만큼 보상을 받는지 보는 틀이다.
+**What it is** — A framework that checks whether actions in which the player takes a risk (precise timing defense, keeping close range, waiting while gathering resources, and so on) are rewarded as much as the risk taken.
 
-**하는 법** — 위험한 행동의 성공 시 이득, 실패 시 손해, 안전한 행동의 이득을 같은 단위로 맞춰 `choice_calc.py breakeven` 으로 손익분기 성공률을 구한다. 행동마다 걸리는 시간이 다르면 시간도 넣는다.
-- 손익분기 성공률이 100%를 넘음 → 성공해도 안전한 쪽보다 낫지 않다. '플레이어는 안전한 쪽으로 몰린다'는 가설을 세우고 검증 방법으로 넘긴다.
-- 0 이하 → 실패해도 잃는 것이 없다. 위험이 위험이 아니다.
-- 그 사이 → 그 성공률을 플레이테스트에서 실제로 넘기는지가 관찰 항목이 된다.
-- 단위를 맞출 수 없으면(예: 준 피해와 잃은 체력) 계산하지 않고 '단위가 달라 계산 안 함'으로 적는다. 기획서에 둘을 바꾸는 기준이 있으면 그 기준을 인용해 쓴다.
+**How to do it** — Put the gain on success of the risky action, the loss on failure, and the gain of the safe action into the same unit, and get the break-even success rate with `choice_calc.py breakeven`. If the actions take different amounts of time, also put in the time.
+- The break-even success rate is over 100% → even on success, it is not better than the safe side. Make the hypothesis "players drift to the safe side", and pass it to the verification method.
+- 0 or below → failure loses nothing. The risk is not a risk.
+- In between → whether players actually exceed that success rate in a playtest becomes an observation item.
+- If the units cannot be matched (for example, damage dealt and health lost), do not calculate, and write "not calculated: units differ" (단위가 달라 계산 안 함). If the design documents have a rule that converts one to the other, quote that rule and use it.
 
-## 5. 역할 중복
+## 5. Role overlap
 
-**무엇인가** — 두 시스템이 같은 일을 하고 있는지 보는 틀이다.
+**What it is** — A framework that checks whether two systems do the same job.
 
-**하는 법** — 시스템 쌍마다 세 가지를 본다: 같은 고리의 같은 칸에 붙는가, 같은 동기를 채우는가, 플레이어에게 같은 선택을 요구하는가. 셋이 모두 겹치면 통합 또는 보류 후보다. 겹친다고 판정할 때는 두 시스템의 근거를 모두 인용한다.
+**How to do it** — For each pair of systems, check three things: Do they attach to the same cell of the same loop? Do they fill the same motivation? Do they ask the player for the same choice? If all three overlap, it is a merge or on hold candidate. When you judge that they overlap, quote the evidence of both systems.
 
-## 6. 플레이어 동기
+## 6. Player motivation
 
-**무엇인가** — 플레이어가 왜 그 시스템에 신경 쓰는지를 보는 틀이다. 두 모델을 서로 다른 자리에 쓴다.
+**What it is** — A framework that checks why the player cares about a system. Use the two models in different places.
 
-- **자기결정성 이론**: 사람의 기본 욕구를 유능감, 자율성, 관계성 셋으로 본다. 시스템 하나를 두고 '플레이어가 왜 이것에 신경 쓸까'를 물을 때 쓴다.
-- **게이머 동기 모델**(예: Quantic Foundry 가 공개한 12가지 동기 — 파괴·흥분, 경쟁·공동체, 도전·전략, 완수·힘, 판타지·이야기, 꾸미기·발견): 타깃 이용자와 시스템을 비교할 때 쓴다. 공개된 정의만 쓰고, 유료 리포트의 수치는 쓰지 않는다. 동기의 정의를 리포트에 옮길 때는 이번 실행에서 공개 원문을 열어 본 경우만 '출처 확인'으로 쓰고, 그러지 못했으면 [추정]으로 둔다.
+- **Self-determination theory**: It sees basic human needs as three: competence, autonomy, and relatedness. Use it when you ask "why would the player care about this?" about one system.
+- **Gamer motivation model** (for example, the 12 motivations that Quantic Foundry published — destruction·excitement, competition·community, challenge·strategy, completion·power, fantasy·story, design·discovery): Use it when you compare the target player with systems. Use only the published definitions, and do not use numbers from paid reports. When you move the definition of a motivation into the report, write "source checked" only if you opened the public original in this run. If you did not, leave it as [estimated].
 
-**입력** — 타깃 이용자의 주요 동기는 이 고문이 정하지 않는다. 프로필 `market.target_player` 만 쓴다. 시장 고문 리포트가 프로필과 다른 이용자층을 보여 주면 판정에 쓰지 않고 '사용자 확인 질문'으로만 올린다.
+**Input** — This advisor does not decide the main motivations of the target player. Use only profile `market.target_player`. If a market advisor report shows a player base different from the profile, do not use it for verdicts; raise it only as a "question for the user".
 
-**결과물** — 시스템마다 채우는 동기 표시. 타깃의 주요 동기 가운데 어떤 시스템도 채우지 않는 것은 추가 후보, 타깃 밖의 동기만 채우는 시스템은 재미 기여도를 한 단계 낮춘다.
+**Output** — A mark of the motivations that each system fills. A main motivation of the target that no system fills is an add candidate. A system that fills only motivations outside the target has its fun contribution lowered by one grade.
 
-**입력이 없으면** — 타깃이 비어 있으면 이 점검을 빼고 본문 '0. 기준'에 한 줄만 적는다.
+**If there is no input** — If the target is empty, leave this check out and write only one line in body "0. Basis".
 
-## 7. 긴장 곡선
+## 7. Tension curve
 
-**무엇인가** — 플레이 중 긴장과 이완이 오르내리는 모양, 그리고 도전 난이도와 플레이어 실력이 맞물리는 정도를 콘텐츠 배치에서 추정한다.
+**What it is** — Estimate from the content placement the shape of the rise and fall of tension and relief during play, and how well the challenge difficulty matches the player's skill.
 
-**입력** — 콘텐츠 배치 데이터(만남 구성, 적 등장, 미션 구간). 없으면 쓰지 않는다.
+**Input** — Content placement data (encounter composition, enemy appearances, mission sections). If there is none, do not use it.
 
-**하는 법** — 구간마다 압박 지표(동시에 상대하는 적 수, 적 공격 빈도, 회복 수단 유무 등)를 데이터에서 뽑아 강도를 늘어놓는다. 세 가지 구간을 표시한다.
-1. 긴장이 쉬지 않고 이어지는 구간
-2. 새 규칙이 안전한 상황에서 먼저 소개되지 않고 바로 실전에 나오는 구간
-3. 난이도가 갑자기 뛰는 구간
+**How to do it** — For each section, take pressure indicators from the data (number of enemies faced at the same time, enemy attack frequency, whether recovery means exist, and so on), and line up the intensity. Mark three kinds of sections.
+1. Sections where tension continues without a break
+2. Sections where a new rule appears directly in real play without first being introduced in a safe situation
+3. Sections where the difficulty jumps suddenly
 
-**주의** — 이 곡선은 추정이다([추정] 또는 [계산]). 실제 체감은 플레이테스트로 확인한다.
+**Caution** — This curve is an estimate ([estimated] or [calculated]). Check the actual feel with a playtest.
 
-## 8. 학습 순서
+## 8. Learning order
 
-**무엇인가** — 새 규칙이 '소개 → 안전한 연습 → 다른 규칙과 조합 → 압박 속 시험' 순서로 나오는지 본다.
+**What it is** — Check whether a new rule appears in the order "introduction → safe practice → combination with other rules → test under pressure".
 
-**입력** — 콘텐츠 순서, 튜토리얼·온보딩 문서. 없으면 쓰지 않는다.
+**Input** — Content order, tutorial and onboarding documents. If there are none, do not use it.
 
-**하는 법** — 규칙마다 처음 나오는 곳과, 그 규칙을 꼭 써야 하는 첫 장면을 찾는다. 소개 없이 시험부터 나오는 규칙, 두 개 이상의 새 규칙이 같은 장면에서 처음 나오는 곳을 표시한다.
+**How to do it** — For each rule, find where it first appears and the first scene where that rule must be used. Mark the rules that appear as a test without an introduction, and the places where two or more new rules first appear in the same scene.
 
-## 9. 의도와 다른 플레이의 해석
+## 9. Interpreting play that differs from the intent
 
-플레이테스트에서 기획 의도와 다른 플레이가 보이면 다음 순서로 본다.
+If a playtest shows play that differs from the design intent, check it in the following order.
 
-1. 플레이어는 보상이 큰 쪽으로 움직인다는 전제에서 출발해 **보상 구조부터** 의심한다. §3·§4 의 계산을 다시 본다.
-2. '가르치기(튜토리얼, 화면 안내)'와 '규칙이나 보상 바꾸기'를 둘 다 검토하고 각각의 비용을 적는다. 첫 답으로 튜토리얼 추가를 내지 않는다.
-3. 관찰과 해석을 나눈다. '누가 어떤 상황에서 무엇을 했나'는 관찰, '왜 그랬을까'는 해석([추정])이다.
-4. 한 사람의 의견은 한 사람의 의견으로만 다룬다. 같은 말을 한 인원과 표본 종류를 적는다.
+1. Start from the premise that players move toward the larger reward, and suspect **the reward structure first**. Check the calculations of §3 and §4 again.
+2. Review both "teaching (tutorials, on-screen guidance)" and "changing the rules or rewards", and write the cost of each. Do not give adding a tutorial as the first answer.
+3. Separate observation from interpretation. "Who did what in which situation" is observation. "Why they did it" is interpretation ([estimated]).
+4. Treat one person's opinion only as one person's opinion. Write the number of people who said the same thing and the sample kind.

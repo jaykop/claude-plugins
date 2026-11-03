@@ -1,149 +1,151 @@
-# 기술 동향 고문 판정 규칙
+# Technology trend advisor verdict rules
 
-기술 하나를 판정할 때 이 파일의 순서대로 칸을 채운다. 발표 단계 → 우리 상태 → 적용 가능성 → 필요성 → 추천도(상한 규칙 적용) → 비용 → 다시 볼 조건.
+When you rate one technology, fill the columns in the order of this file: announcement stage → our state → applicability → necessity → recommendation level (apply the cap rules) → cost → condition to revisit.
 
-## 1. 발표 단계 7단계
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-| 단계 | 이름 | 이 단계로 보는 원문 |
+## 1. The seven announcement stages
+
+| Stage (단계) | Name (이름) | Original wording that puts a technology at this stage |
 |---|---|---|
-| ① | 논문·연구 | 학회 논문, 프리프린트(학회 심사 전에 공개한 논문), 연구 조직의 블로그 |
-| ② | 발표·데모 | 기조연설(행사 첫 대표 발표), 로드맵, 데모 영상, "예정", "coming", "planned" 같은 문구 |
-| ③ | 소스에만 있음 | 공개 소스 저장소의 개발 브랜치에 들어갔지만 정식 릴리스 노트에는 없음 |
-| ④ | Experimental 출시 | 릴리스 노트·공식 문서·플러그인 파일에 Experimental(실험 단계. API·데이터 형식이 바뀔 수 있음) 표시 |
-| ⑤ | Beta | 같은 자리에 Beta 표시 |
-| ⑥ | 정식(Production Ready) | 같은 자리에 정식 표시 |
-| ⑦ | 출시작 사용 사례 확인 | 출시된 게임이 그 기술을 썼다고 출처가 밝힘. ④~⑥ 과 함께 적는다(예: "⑥ + ⑦") |
+| ① | paper/research (논문·연구) | Conference papers, preprints (papers published before conference review), blogs of research groups |
+| ② | announcement/demo (발표·데모) | Keynotes (the first main presentation of an event), roadmaps, demo videos, wording such as "예정", "coming", "planned" |
+| ③ | in source only (소스에만 있음) | Merged into a development branch of a public source repository, but not in the official release notes |
+| ④ | Experimental release (Experimental 출시) | An Experimental mark (experimental stage: the API and the data format can change) in the release notes, the official documentation, or the plugin file |
+| ⑤ | Beta | A Beta mark in the same places |
+| ⑥ | production ready (정식(Production Ready)) | A production-ready mark in the same places |
+| ⑦ | use in a shipped title confirmed (출시작 사용 사례 확인) | A source states that a shipped game used the technology. Write it together with ④~⑥ (for example "⑥ + ⑦") |
 
-- 단계는 **1차 출처의 원문 문장을 따옴표로 인용**해서 정한다. 인용할 문장이 없으면 단계는 "모름"이고 추천도는 "판단 보류-확인 부족"이다.
-- 범위를 좁히는 문구("특정 플랫폼만", "라이선시(엔진을 쓰는 외부 회사)용", "에디터 전용")는 빼지 않고 함께 옮긴다.
-- 데모와 로드맵은 ②를 넘지 않는다. "다음 버전에서 지원 예정"은 지원이 아니다.
-- 소스 빌드 엔진은 로컬 엔진 트리의 플러그인 파일 표시(`IsExperimentalVersion`, `IsBetaVersion`)와 릴리스 노트 표기를 둘 다 적는다. 플러그인이 아닌 기능은 로컬 소스의 콘솔 변수 설명·헤더 주석에 적힌 성숙도 글을 그 자리에 적는다(sources.md §1). 둘이 다르면 다르다고 적고, 적용 가능성은 로컬 트리 쪽으로 판단한다.
-- 2차 보도가 쓴 성숙도 표현은 쓰지 않는다. 보도는 표시를 빼먹거나 범위 한정을 지우는 일이 잦다. 커뮤니티 글(sources.md §10)도 같다.
+- Decide the stage by **quoting an original sentence of a primary source in quotation marks**. If there is no sentence to quote, the stage is "unknown" and the recommendation level is "verdict withheld — not confirmed".
+- Do not drop wording that narrows the scope ("only certain platforms", "for licensees (outside companies that use the engine)", "editor only"). Copy it together with the quote.
+- Demos and roadmaps do not go above ②. "Support planned in the next version" is not support.
+- For a source-build engine, write both the plugin file mark in the local engine tree (`IsExperimentalVersion`, `IsBetaVersion`) and the mark in the release notes. For a feature that is not a plugin, write in that place the maturity text in the console variable description or the header comment of the local source (sources.md §1). If the two differ, write that they differ, and judge applicability by the local tree.
+- Do not use the maturity wording of secondary reports. Reports often leave out the mark or remove the scope limit. The same applies to community posts (sources.md §10).
 
-## 2. 우리 상태를 먼저 본다
+## 2. Look at our state first
 
-`_state/radar-inventory.md` 의 상태 다섯 가지에 따라 처리가 갈린다. 상태는 스크립트(`tech_inventory.py`)가 아래 기준으로 가린다.
+The handling depends on the five states in `_state/radar-inventory.md`. The script (`tech_inventory.py`) decides the state by the criteria below.
 
-| 기술 목록의 상태 | 뜻 (스크립트가 가린 기준) | 처리 |
+| State in the technology inventory (기술 목록의 상태) | Meaning (the criterion the script used) | Handling |
 |---|---|---|
-| 사용 중 | 켜져 있고, 게임 코드의 빌드 설정(`*.Build.cs`)이나 프로젝트 파일의 의존 목록이 그 플러그인의 모듈을 쓰거나, 설정 파일에 그 플러그인의 섹션이 있다 | 새 기술로 보고하지 않는다. 추천도 칸에 "이미 사용 중"을 쓰고 우리 버전 이후 바뀐 점(폐기 예정, API 변경, 성숙도 변화)과 대응 기한만 적는다 |
-| 켜짐·사용 흔적 없음 | 켜져 있지만 위의 흔적을 못 찾았다. 에셋이나 에디터에서만 쓰는 경우는 텍스트로 확인할 수 없으므로 "안 쓴다"는 뜻이 아니다 | 위와 같다 |
-| 엔진을 고쳐서 씀 | 켜져 있고, 그 플러그인 폴더 안에 엔진 수정 블록이 있다. 수정 블록을 세지 않았거나 검색이 실패했으면 이 상태가 없다고 "고치지 않음"으로 읽지 않는다 | 위와 같다. 비용 칸에 겹치는 수정 블록 수를 적는다 |
-| 엔진에 있으나 꺼짐 | 플러그인 파일(엔진 폴더나 프로젝트 Plugins 폴더)은 있는데 꺼져 있다. 엔진 폴더를 못 찾았을 때 프로젝트 파일에 꺼짐으로 적힌 것도 이 상태로 두고 근거 칸에 그렇게 적는다. 근거 칸에 "엔진 기본은 켜짐인데 프로젝트가 끔"이 있으면 일부러 끈 것이다 | 끈 이유를 먼저 찾는다. radar-watchlist "우리 상태" 칸에 적어 둔 이유가 있으면 그것을 쓴다. 찾으면 항목 첫 줄에 적고 판정한다. 못 찾으면 "판단 보류-확인 부족" |
-| 없음 | 프로젝트 파일에 꺼짐으로 적혀 있지만 플러그인 파일을 못 찾았거나, 직전 목록에 있었는데 이번에 사라졌다 | 판정 대상 |
-| 기술 목록에 없는 기능(설정으로 켜는 엔진 기능, 에셋에서만 쓰는 엔진 기본 플러그인 등) | 스크립트는 프로젝트 파일에 없는 엔진 플러그인 가운데 게임 코드가 의존하거나 수정 블록이 있는 것만 넣는다. 목록에 없다는 것만으로 "없음"이 아니다 | 설정으로 켜는 기능은 프로젝트 설정 값(Config 의 ini 경로:줄)과 엔진 기본값(로컬 소스의 콘솔 변수 정의 경로:줄)을 함께 적는다. 설정 표에 그 키가 없으면 Grep 으로 찾거나 Step 1 을 `--extra-key` 로 다시 돌린다. 둘 다 꺼짐이면 끈 이유를 찾지 않고 "없음"처럼 판정한다. 엔진 기본은 켜짐인데 프로젝트가 껐으면 "엔진에 있으나 꺼짐"처럼 끈 이유를 찾고, 이때는 그 설정 파일의 이력을 본다. 켜져 있으면 "사용 중"처럼 처리한다. 에셋에서만 쓰는 플러그인은 엔진 트리와 프로젝트 설정에서 다시 확인한다 |
+| in use (사용 중) | It is on, and the build settings of the game code (`*.Build.cs`) or the dependency list of the project file use a module of that plugin, or a settings file has a section of that plugin | Do not report it as a new technology. Write "already in use" in the recommendation level column, and write only what changed since our version (planned deprecation, API changes, maturity changes) and the response deadline |
+| on, no sign of use (켜짐·사용 흔적 없음) | It is on, but none of the signs above were found. Use only in assets or in the editor cannot be checked as text, so this does not mean "not used" | Same as above |
+| used with engine modifications (엔진을 고쳐서 씀) | It is on, and there are engine modification blocks inside that plugin folder. If the modification blocks were not counted or the search failed, do not read the absence of this state as "not modified" | Same as above. Write the number of overlapping modification blocks in the cost column |
+| in the engine but off (엔진에 있으나 꺼짐) | The plugin file exists (in the engine folder or the project Plugins folder), but it is off. If the engine folder was not found, a plugin that the project file marks as off is also put in this state, and the evidence column says so. If the evidence column has "on by engine default, but the project turned it off" (`엔진 기본은 켜짐인데 프로젝트가 끔` in the script output), it was turned off on purpose | First find the reason it was turned off. If a reason is written in the "Our state" column of radar-watchlist, use it. If you find it, write it on the first line of the item and rate the technology. If you do not find it, the result is "verdict withheld — not confirmed" |
+| none (없음) | The project file marks it as off but the plugin file was not found, or it was in the previous inventory and is gone this time | Rate it |
+| A feature not in the technology inventory (an engine feature turned on by a setting, an engine default plugin used only in assets, and so on) | The script adds, among the engine plugins not in the project file, only the ones that the game code depends on or that have modification blocks. Being absent from the inventory does not by itself mean "none" | For a feature turned on by a setting, write both the project setting value (ini path:line in Config) and the engine default (path:line of the console variable definition in the local source). If the settings table does not have that key, find it with Grep or run Step 1 again with `--extra-key`. If both are off, do not look for the reason it was turned off, and rate it like "none". If the engine default is on but the project turned it off, look for the reason like "in the engine but off", and in this case look at the history of that settings file. If it is on, handle it like "in use". For a plugin used only in assets, check again in the engine tree and the project settings |
 
-기술 목록을 확인하지 못했으면 어떤 기술에도 추천도를 매기지 않는다. 모두 "판단 보류-확인 부족"이다.
+If the technology inventory could not be checked, do not give a recommendation level to any technology. All of them are "verdict withheld — not confirmed".
 
-이미 쓰는 기술(위 표의 앞 세 상태)을 우리 코드에서 어떻게 쓸지, 우리 자체 구현을 그 기술로 바꿀지는 이 규칙으로 판정하지 않는다. td 설계 검토가 맡는다(`shared/routing.md`). 기술 동향 고문은 그 기술의 바깥 변화와 대응 기한만 적는다.
+Do not use these rules to judge how to use a technology we already use (the first three states in the table above) in our code, or whether to replace our own implementation with that technology. The td design review handles it (`shared/routing.md`). The technology trend advisor writes only the outside changes of that technology and the response deadline.
 
-## 3. 판정 3칸
+## 3. The three verdict columns
 
-### 3-1. 적용 가능성 — 가능 / 조건부 / 불가
+### 3-1. Applicability — possible / conditional / not possible
 
-| 값 | 조건 |
+| Value (값) | Condition |
 |---|---|
-| 가능 | 우리 엔진 트리에 실제로 있다(경로를 적는다). 프로필 `platforms` 의 모든 대상 플랫폼 지원이 1차 출처로 확인됐다. 회사 정책에 걸리지 않는다 |
-| 조건부 | 무엇이 필요한지 적는다: 엔진 버전 올리기 / 백포트(새 버전의 수정을 우리 엔진에 옮겨 붙이는 일) / 커스텀 엔진 병합 / 플랫폼 지원 확인 / 회사 정책 확인 |
-| 불가 | 라이선스, 플랫폼, 정책 중 하나로 막혔고 그 근거가 있다 |
+| possible (가능) | It actually exists in our engine tree (write the path). Support for every target platform in profile `platforms` was confirmed with a primary source. It does not conflict with company policy |
+| conditional (조건부) | Write what is needed: engine upgrade / backport (moving a fix from a new version onto our engine) / custom engine merge / platform support check / company policy check |
+| not possible (불가) | It is blocked by one of license, platform, or policy, and there is evidence for it |
 
-- 소스 빌드는 버전 번호가 같아도 플러그인·모듈 폴더가 로컬 트리에 있는지 확인한 뒤에만 "가능"이다.
-- 런처판(설치형 엔진)에는 백포트 선택지가 없다. 버전 올리기만 적는다.
-- 라이선스 조항은 해석하지 않는다. 확인할 조항과 출처만 짚고 "조건부 — 라이선스 확인 필요"로 둔다.
+- For a source build, write "possible" only after you confirm that the plugin or module folder exists in the local tree, even if the version number is the same.
+- A launcher install (installed engine) has no backport option. Write only the upgrade.
+- Do not interpret license clauses. Point out only the clauses to check and their sources, and leave it as "conditional — license check needed" (조건부 — 라이선스 확인 필요).
 
-### 3-2. 필요성 — 문제 확인됨 / 문제 예상 / 문제 없음
+### 3-2. Necessity — problem confirmed / problem expected / no problem
 
-| 값 | 조건 |
+| Value (값) | Condition |
 |---|---|
-| 문제 확인됨 | 링크할 수 있는 근거가 있다: 티켓, 기획서의 요구(경로:줄), perf 측정값(리포트 경로와 시나리오 ID) |
-| 문제 예상 | 근거가 사용자의 말이나 추정뿐이다 |
-| 문제 없음 | 그 밖의 모든 경우 |
+| problem confirmed (문제 확인됨) | There is evidence that can be linked: a ticket, a requirement in a design document (path:line), a perf measured value (report path and scenario ID) |
+| problem expected (문제 예상) | The only evidence is what the user said or an estimate |
+| no problem (문제 없음) | All other cases |
 
-- "좋아 보인다", "업계가 다 쓴다", "경쟁작이 썼다"는 필요성 근거가 아니다.
-- 게임 기능에 닿는 기술(새 움직임, 표현, 시스템)의 필요성은 기획서나 design 의 판단에서만 가져온다. 근거가 없으면 design 에 질문을 넘기고 "문제 예상"으로 둔다.
-- 프로필 `radar.interests` 는 관심 분야일 뿐 문제가 아니다. 여기서 나온 후보는 "문제 없음"에서 시작한다.
+- "It looks good", "the whole industry uses it", and "a competitor used it" are not evidence of necessity.
+- For a technology that touches game features (new movement, presentation, systems), take necessity only from design documents or from design's judgment. If there is no evidence, pass a question to design and leave it as "problem expected".
+- Profile `radar.interests` is only areas of interest, not problems. Candidates that come from it start at "no problem".
 
-### 3-3. 추천도
+### 3-3. Recommendation level
 
-| 값 | 뜻 | 모두 채워야 할 조건 |
+| Value (값) | Meaning | Conditions that must all be met |
 |---|---|---|
-| 도입 | 지금 일정에 넣어 쓴다 | 발표 단계 ⑥ 이상. 적용 가능성 "가능". 필요성 "문제 확인됨". 우리 시험 결과나 팀 규모를 밝힌 비슷한 규모의 출시 사례가 있다. 유지할 담당자가 확인됐다. 되돌리는 방법이 적혀 있다. 아래 상한 규칙에 걸리지 않는다 |
-| 시험 | 범위를 정해 짧게 써 본다 | 발표 단계 ④ 이상이고 끌 수 있는 범위에서 시험할 수 있다. 필요성이 "문제 확인됨" 또는 "문제 예상"(후자면 시험 목표에 "문제가 실제로 있는지 확인"을 넣는다). §8 의 시험 계획 칸을 모두 적을 수 있다 |
-| 검토 | 지금은 손대지 않고 지켜본다 | 다시 볼 조건을 반드시 적는다 |
-| 보류 | 하지 않기로 한다 | 적용 가능성 "불가", 셀 수 있는 근거로 비용이 얻는 것보다 큼, 개발 단계와 충돌, 정책 위반, 같은 문제를 이미 다른 기술로 풀고 있음 중 하나. 이유와 다시 볼 조건을 적는다 |
+| adopt (도입) | Put it into the current schedule and use it | Announcement stage ⑥ or higher. Applicability "possible". Necessity "problem confirmed". There is our trial result or a shipped case of similar scale that discloses its team size. The owner who will maintain it is confirmed. The way to roll back is written. None of the cap rules below apply |
+| trial (시험) | Try it briefly within a set scope | Announcement stage ④ or higher, and it can be tried within a scope that can be turned off. Necessity is "problem confirmed" or "problem expected" (if the latter, put "check whether the problem actually exists" in the trial goal). All the trial plan columns of §8 can be filled |
+| assess (검토) | Do not touch it now, and watch it | A condition to revisit must be written |
+| hold (보류) | Decide not to do it | One of: applicability "not possible", the cost is larger than the gain by countable evidence, a conflict with the development stage, a policy violation, or the same problem is already being solved with another technology. Write the reason and the condition to revisit |
 
-추천도가 아닌 표시 두 가지:
-- **이미 사용 중**: §2 의 첫 줄에 해당한다.
-- **판단 보류-확인 부족**: 기술 목록, 1차 출처, 꺼진 이유 중 하나를 확인하지 못했다. 무엇을 확인하면 판정할 수 있는지와 누구에게 물을지를 적는다.
+Two marks that are not recommendation levels:
+- **already in use (이미 사용 중)**: the first row of §2 applies.
+- **verdict withheld — not confirmed (판단 보류-확인 부족)**: one of the technology inventory, the primary source, or the reason it was turned off could not be checked. Write what must be checked to rate it and whom to ask.
 
-## 4. 상한 규칙
+## 4. Cap rules
 
-추천도의 높낮이는 도입 > 시험 > 검토 > 보류 이다. 걸리는 규칙이 여럿이면 **가장 낮은 것**을 쓰고, 걸린 규칙 번호를 **모두** 적는다.
+The order of recommendation levels from high to low is adopt > trial > assess > hold. If several rules apply, use **the lowest one**, and write **all** the numbers of the rules that apply.
 
-| 번호 | 조건 | 최대 추천도 |
+| Number (번호) | Condition | Maximum recommendation level |
 |---|---|---|
-| L1 | 필요성 "문제 없음" | 검토 |
-| L2 | 적용 가능성 "불가" | 보류 |
-| L3 | 발표 단계 ①~③ | 검토 |
-| L4 | 발표 단계 ④ | 끌 수 있는 범위(플러그인 단위, 에디터 전용, 별도 맵이나 브랜치)면 시험, 아니면 검토 |
-| L5 | 출시 사례가 팀 규모를 밝히지 않음(규모 미상), 또는 우리 팀 규모를 몰라 비교할 수 없음 | 시험. 그 사례를 "도입" 근거로 쓰지 않는다 |
-| L6 | 우리 엔진 버전에 없음 | 버전 올리기가 결정되기 전까지 검토. 백포트할 범위(커밋, 파일)가 확인되면 시험 |
-| L7 | 1차 출처가 없고 근거가 2차뿐 | 검토 |
-| L8 | 대상 플랫폼 중 지원 미확인이 하나라도 있음 | 게임 실행 중에 도는 기술은 검토. 에디터 전용 도구는 해당 없음 |
-| L9 | 유지할 담당자 미확인 | 시험 |
-| L10 | 개발 단계 기본값(§5) | §5 의 값 |
-| L11 | 개발 도구용 AI 이고 프로필 `radar.ai_tool_policy` 가 미확인이거나 빈 칸 | 판정하지 않는다. 해당 항목 전체를 "정책 확인 필요" 한 줄로 묶는다 |
-| L12 | 필요성, 출시 사례, 문제를 푼다는 근거가 커뮤니티 글(sources.md §10)뿐이다 | 검토 |
+| L1 | Necessity "no problem" | assess |
+| L2 | Applicability "not possible" | hold |
+| L3 | Announcement stage ①~③ | assess |
+| L4 | Announcement stage ④ | trial if within a scope that can be turned off (per plugin, editor only, a separate map or branch), otherwise assess |
+| L5 | The shipped case does not disclose its team size (scale unknown), or our team size is unknown so a comparison is not possible | trial. Do not use that case as evidence for "adopt" |
+| L6 | Not in our engine version | assess until an upgrade is decided. trial once the scope to backport (commits, files) is confirmed |
+| L7 | There is no primary source, and the only evidence is secondary | assess |
+| L8 | Support is unconfirmed for at least one target platform | assess for a technology that runs during gameplay. Not applicable to editor-only tools |
+| L9 | The owner who will maintain it is unconfirmed | trial |
+| L10 | Default by development stage (§5) | the value in §5 |
+| L11 | AI for development tools, and profile `radar.ai_tool_policy` is unconfirmed or empty | Do not rate it. Group the whole area into one line, "policy check needed" (정책 확인 필요) |
+| L12 | The only evidence for necessity, for shipped cases, or that it solves the problem is community posts (sources.md §10) | assess |
 
-"비슷한 규모"를 판단하려면 우리 팀 규모가 있어야 한다. 프로필 `team_size` 에서 읽는다. 비어 있으면(Step 0 에서 답을 받지 못했거나 무인 실행) 비교하지 않고 L5 를 건다. 규모가 얼마나 달라야 "비슷하지 않다"인지는 고문이 정하지 않는다. 사례의 규모와 우리 규모를 나란히 적고, 우리 시험 결과 없이 출시 사례만으로 "도입"을 주려면 그 비교를 "결정이 필요한 것"에 올려 사람이 보게 한다.
+To judge "similar scale", our team size is needed. Read it from profile `team_size`. If it is empty (no answer was given in Step 0, or it is an unattended run), do not compare, and apply L5. The advisor does not decide how different the scale must be to count as "not similar". Write the scale of the case and our scale side by side. To give "adopt" only from a shipped case without our trial result, put that comparison in "Decisions needed" so that a person looks at it.
 
-## 5. 개발 단계별 기본값
+## 5. Defaults by development stage
 
-프로필 `dev_stage` 로 정한다. 프로필 메모에 팀이 다른 기준을 적었으면 그것을 따르고 리포트에 그렇게 적는다.
+Decide by profile `dev_stage`. If the team wrote a different criterion in the profile notes, follow it and write that in the report.
 
-| 개발 단계 | 기본값 |
+| Development stage (`dev_stage`) | Default |
 |---|---|
-| 프리프로덕션 | 상한 규칙만 쓴다 |
-| 본 제작 | 콘텐츠 전반에 퍼지는 기술 교체(전역 조명 방식, 그림자 방식, 네트워크 복제 방식, 애니메이션 시스템, 머티리얼 체계 등)는 최대 시험이고 "리드 합의 필요"를 붙인다 |
-| 알파·베타 | 새 기술은 기본 보류. 예외는 출시를 막는 문제(크래시, 플랫폼 인증, 성능 목표 미달)를 측정 근거와 함께 푸는 경우뿐이고, 그때도 최대 시험 |
-| 라이브 | 엔진 버전 올리기와 게임 실행 중에 도는 시스템 교체는 최대 시험. 비용 칸에 패치 일정과 플랫폼 재인증을 확인할 항목으로 적는다 |
-| 빈 칸 | "도입" 판정을 내지 않는다(최대 시험). 리포트 "확인 못 한 것"에 적는다 |
+| `프리프로덕션` (preproduction) | Use only the cap rules |
+| `본 제작` (production) | A technology replacement that spreads across the content (global illumination method, shadow method, network replication method, animation system, material system, and so on) has a maximum of trial, with "lead agreement needed" (리드 합의 필요) attached |
+| `알파`·`베타` (alpha, beta) | A new technology is hold by default. The only exception is when it solves a problem that blocks release (crashes, platform certification, missing the performance target) with measurement evidence, and even then the maximum is trial |
+| `라이브` (live) | Engine upgrades and replacement of systems that run during gameplay have a maximum of trial. In the cost column, write the patch schedule and platform recertification as items to check |
+| Empty | Do not give an "adopt" verdict (the maximum is trial). Write it in "Not checked" of the report |
 
-## 6. 비용은 셀 수 있는 단위로
+## 6. Write cost in countable units
 
-- 버전 차이: 우리 버전 → 기능이 있는 버전
-- 기능이 건드리는 엔진 폴더와 그 안의 엔진 수정 블록 수: `tech_inventory.py --mod-only --mod-dirs <폴더>` 결과
-- 영향받는 프로젝트 파일 수: 검색식과 결과 개수를 같이 적는다
-- 다시 저장해야 할 에셋 범위: 종류와 폴더. 개수는 셀 수 있을 때만
-- 영향받는 직군
-- 되돌리는 방법: 끄는 설정, 플러그인 단위 끄기, 브랜치
-- 기간(사람·일)은 근거가 있을 때만 "추정"을 붙여 적고, 근거가 없으면 "모름"이다. 지어내지 않는다.
+- Version difference: our version → the version that has the feature
+- The engine folders that the feature touches and the number of engine modification blocks in them: the result of `tech_inventory.py --mod-only --mod-dirs <폴더>`
+- Number of affected project files: write the search expression and the result count together
+- Scope of assets that must be saved again: kind and folder. Write the count only when it can be counted
+- Affected job roles
+- Way to roll back: a setting that turns it off, turning off per plugin, a branch
+- Write the duration (person-days) with "estimated" attached only when there is evidence. If there is no evidence, it is "unknown". Do not make it up.
 
-## 7. 개발 도구용 AI 와 게임 안 AI
+## 7. AI for development tools and in-game AI
 
-둘은 판단 기준이 달라서 섞지 않는다.
+The two have different criteria, so do not mix them.
 
-**개발 도구용 AI**(코딩 도우미, 에셋 생성 도구, 에디터 연동 도구)
-- 프로필 `radar.ai_tool_policy` 가 미확인이거나 빈 칸이면 이 분야 항목 전체를 리포트에 "개발 도구용 AI — 정책 확인 필요(N건 보류)" 한 줄로 묶는다. 개별 판정을 쓰지 않는다.
-- 정책이 "허용" 또는 "제한"이면 확인할 것: 외부로 보내는 자료의 범위가 정책 안인가, 상업 라이선스, 지금 쓰는 도구와 겹치는가(기술 목록의 관련 플러그인과 프로젝트의 AI 도구 설정 파일).
-- 가격은 "확인일 기준 공개 가격"으로만 적고 추천도 판단에 넣지 않는다. 구매 결정은 하지 않는다.
+**AI for development tools** (coding assistants, asset generation tools, tools that connect to the editor)
+- If profile `radar.ai_tool_policy` is `미확인` (unchecked) or empty, group every item of this area into one line in the report: "AI for development tools — policy check needed (N items held)" (개발 도구용 AI — 정책 확인 필요(N건 보류)). Do not write individual verdicts.
+- If the policy is `허용` (allowed) or `제한` (restricted), check: whether the scope of material sent outside is within the policy, the commercial license, and whether it overlaps with the tools we use now (related plugins in the technology inventory and the project's AI tool settings files).
+- Write prices only as "public price as of the check date" (확인일 기준 공개 가격), and do not use them in the recommendation level. Do not make purchase decisions.
 
-**게임 안 AI**(게임 실행 중에 도는 모델. 대화, 행동, 애니메이션 생성 등)
-- 기능에 닿으므로 재미 판단은 design 에 넘긴다.
-- 기술 칸에서 확인할 것: 플레이어 한 명당 추론 비용(공개 가격과 확인일, 계산은 Bash 로), 응답 지연, 오프라인 동작, 플랫폼 인증, 부적절한 출력을 거르는 방법, 스토어의 고지 의무(지켜야 할 조건으로만). 하나라도 미확인이면 최대 검토.
-- 특정 모델 이름에 묶인 추천은 그 모델의 은퇴 일정을 확인해 "다시 볼 조건"에 적는다.
+**In-game AI** (models that run during gameplay: dialogue, behavior, animation generation, and so on)
+- It touches features, so pass the fun judgment to design.
+- In the technology columns, check: inference cost per player (public price and check date; calculate with Bash), response latency, offline behavior, platform certification, the way to filter inappropriate output, and the store's disclosure duty (only as a condition to meet). If even one of them is unconfirmed, the maximum is assess.
+- For a recommendation tied to a specific model name, check the retirement schedule of that model and write it in "condition to revisit".
 
-## 8. 시험 계획 (추천도가 "시험"일 때만)
+## 8. Trial plan (only when the recommendation level is "trial")
 
-| 칸 | 쓰는 법 |
+| Column (칸) | How to write it |
 |---|---|
-| 범위 | 끌 수 있는 단위(플러그인, 에디터 전용, 별도 맵, 브랜치) |
-| 기간 | 사용자나 리드가 정할 값. 고문은 "정할 것"으로 둔다 |
-| 성공 기준 | 지표와 목표. 성능 지표는 perf 측정 요청으로 넘긴다(시나리오 ID, 플랫폼, 지표, 켜기 전후 비교) |
-| 끄고 되돌리는 방법 | 설정 이름이나 플러그인 이름. 확인한 이름만 |
-| 확인할 문제 | 필요성이 "문제 예상"이면 "문제가 실제로 있는지 확인"을 넣는다 |
+| Scope (범위) | A unit that can be turned off (plugin, editor only, separate map, branch) |
+| Duration (기간) | A value that the user or the lead decides. The advisor leaves it as "to be decided" (정할 것) |
+| Success criteria (성공 기준) | Metric and target. Hand performance metrics over as a perf measurement request (scenario ID, platform, metric, comparison before and after turning it on) |
+| How to turn it off and roll back (끄고 되돌리는 방법) | The setting name or plugin name. Only confirmed names |
+| Problem to check (확인할 문제) | If necessity is "problem expected", put in "check whether the problem actually exists" |
 
-## 9. 다시 볼 조건과 추천도 변경
+## 9. Conditions to revisit and changes to the recommendation level
 
-- 검토·보류 항목마다 다시 볼 조건을 적는다. 날짜보다 사건으로 적는다. 예: "다음 엔진 버전 릴리스 노트에서 Beta 이상으로 표기될 때", "perf 측정에서 그림자 패스 시간이 예산을 넘는 것으로 확인될 때". 적을 사건이 없을 때만 날짜를 쓴다.
-- 새 출처나 우리 쪽 새 사실 없이 추천도만 바꾸지 않는다. 같은 사실을 두고 판정이 오락가락하는 것을 막기 위해서다. 바꿨으면 바꾼 근거를 `radar-watchlist.md` 의 "바뀐 기록"에 남긴다.
+- For each assess or hold item, write a condition to revisit. Write it as an event rather than a date. Examples: "when the release notes of the next engine version mark it Beta or higher", "when a perf measurement confirms that the shadow pass time exceeds the budget". Use a date only when there is no event to write.
+- Do not change only the recommendation level without a new source or a new fact on our side. This prevents the verdict from going back and forth on the same facts. If you changed it, record the evidence for the change in "Change log" of `radar-watchlist.md`.

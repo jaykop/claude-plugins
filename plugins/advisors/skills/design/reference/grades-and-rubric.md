@@ -1,169 +1,171 @@
-# 근거 등급과 판정 기준
+# Evidence grades and verdict criteria
 
-기획 고문이 판정할 때 쓰는 기준이다. 영역 진단 Step A3, 단건 심사 Step B3 에서 읽는다. 자료를 모으는 analyst 도 이 파일의 §1·§2 를 먼저 읽는다.
-공통 규칙(`shared/rules.md`)과 부딪히면 공통 규칙이 우선한다.
+These are the criteria that the design advisor uses for verdicts. Read this file in area diagnosis Step A3 and in single review Step B3. The analyst that collects material also reads §1 and §2 of this file first.
+If this file conflicts with the common rules (`shared/rules.md`), the common rules win.
 
-## 1. 근거 등급
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-모든 주장에 아래 등급 하나를 붙인다. 등급은 그 주장의 **가장 약한 고리**를 따른다.
+## 1. Evidence grades
 
-| 등급 | 뜻 | 쓸 수 있는 곳 | 공통 단계 |
+Attach one of the grades below to every claim. The grade follows the **weakest link** of that claim.
+
+| Grade (등급) | Meaning | Where it can be used | Common level (공통 단계) |
 |---|---|---|---|
-| [관찰-행동] | 로그·영상 캡처·관찰 메모로 확인한 플레이어의 행동. 누가, 어떤 상황에서, 무엇을 했는지가 있어야 한다 | 재미 판단을 '확인함'으로 쓸 수 있는 유일한 등급. 제거 권고의 근거 | 확인함 |
-| [관찰-의견] | 테스터가 한 말. 표본 종류(내부 개발자 / 외부 테스터)와 같은 말을 한 인원을 항상 함께 적는다 | 그런 의견이 있었다는 사실은 확인함. 재미가 있다·없다의 근거로는 추정 | 확인함(발언 사실) / 추정(재미 결론) |
-| [계산] | 데이터나 코드 값으로 계산한 결과. 식, 입력 위치, 실행한 명령을 공개한다 | 지배 선택지, 손익분기 같은 구조 판단 | 확인함 |
-| [문서] | 기획서에만 있고 구현이나 관찰로 확인하지 않은 내용 | 기획이 그렇게 정했다는 사실. 게임이 실제로 그렇다는 근거로는 쓰지 않는다 | 확인함(문서 내용) / 추정(게임 상태) |
-| [문서-의도] | 기획서의 '플레이어는 ~를 느낀다' 같은 의도 문장 | 목표로만 쓴다. 재미가 있다는 근거가 아니다 | 확인함(의도가 적혀 있음) |
-| [추정] | 이론, 다른 게임 선례, 유추로 세운 가설 | 추가 제안의 보조 근거. 이것만으로는 보류·제거를 낼 수 없다 | 추정 |
+| [observed-behavior] ([관찰-행동]) | Player behavior confirmed in logs, video captures, or observation notes. It must say who did what in which situation | The only grade with which a fun judgment can be written as "confirmed". Evidence for recommend removal | confirmed (확인함) |
+| [observed-opinion] ([관찰-의견]) | What a tester said. Always write with it the sample kind (internal developer / external tester) and the number of people who said the same thing | The fact that such an opinion existed is confirmed. As evidence that something is fun or not fun, it is estimated | confirmed (확인함) (the fact that it was said) / estimated (추정) (the fun conclusion) |
+| [calculated] ([계산]) | A result calculated from data or code values. Show the formula, the input location, and the command that was run | Structure judgments such as a dominant option or a break-even point | confirmed (확인함) |
+| [document] ([문서]) | Content that is only in the design documents and was not confirmed by the implementation or by observation | The fact that the design decided so. Do not use it as evidence that the game actually is so | confirmed (확인함) (document content) / estimated (추정) (game state) |
+| [document-intent] ([문서-의도]) | An intent sentence in a design document, such as "the player feels ~" | Use it only as a goal. It is not evidence that something is fun | confirmed (확인함) (the intent is written) |
+| [estimated] ([추정]) | A hypothesis built from theory, precedents from other games, or analogy | Supporting evidence for additional proposals. It alone cannot produce on hold or removal | estimated (추정) |
 
-자료가 없어 등급을 붙일 수 없으면 주장하지 않고 '판단 보류'로 둔다(공통 단계 '모름').
+If there is no material and you cannot attach a grade, do not make the claim, and leave it as "judgment withheld" (common level "unknown").
 
-## 2. 근거에 붙이는 표시
+## 2. Marks attached to evidence
 
-| 표시 | 언제 |
+| Mark (표시) | When |
 |---|---|
-| 출처 문서의 추정 | 다른 사람이나 AI 가 정리한 문서(피드백 정리, 회의 요약 등)에 들어 있는 원인 분석, 공수 추정, 효과 추정. 등급은 [추정]이고, 재미 기여도·비용·우선순위 계산에 쓰지 않는다. 그 안의 수치는 리포트에 옮기지 않는다 |
-| 원문 미확인 | 정리 문서 속 발언 가운데 원문(원본 메모, 녹취, 설문 원자료, 공개 게시글)을 열어 확인하지 못한 것. [관찰-의견]으로 올리지 않고 [추정]으로 둔다. 원문이 프로젝트 파일이면 analyst 가, 공개 웹 페이지면 web-scout 가 연다. 사내 메신저처럼 열 수 없는 곳에 있으면 웹 수집에 넘기지 않고 '원문 미확인'으로 둔다 |
-| 구현 N단계 | 구현 확인 결과(0~3). 1단계 = 이름이 코드에 있음, 2단계 = 호출 경로가 게임 흐름에 이어짐, 3단계 = 데이터·에셋 연결까지 확인. 2단계 미만인 시스템에 대한 주장은 [문서] 등급이다 |
-| 원칙 개정 이전 작성 | 원칙 문서의 마지막 개정일보다 앞선 날짜의 기획서. 날짜는 버전 관리 이력이나 문서 머리의 개정일로만 읽는다 |
-| 파일 이름 날짜 | 문서 머리에 날짜가 없어 파일 이름의 날짜를 읽음. 작성일로만 보고 개정일로 쓰지 않는다. 그래서 '원칙 개정 이전 작성'을 붙이는 근거가 되지 않는다 |
-| 날짜 미상 | 문서 머리와 파일 이름에 날짜가 없고 버전 관리 이력도 확인하지 못함 |
-| 선례: 출처 확인 / 선례: 기억 | 다른 게임 사례. 출처(개발사 공식 자료, 패치 노트, 개발자 발표)를 이번에 열어 본 것만 '출처 확인'. '기억'은 단독 근거로 쓰지 않는다. 제목과 초록만 본 발표는 '초록 기준'을 덧붙인다 |
-| 선례 전용 | 시장 고문의 경쟁작 목록(`_state/market-competitors.md`) 밖의 게임 |
-| 오래된 리포트 | 다른 고문 리포트가 프로필 `stale_after_days` 보다 오래됨 |
+| source document's estimate (출처 문서의 추정) | Cause analysis, effort estimates, and effect estimates contained in a document that another person or an AI summarized (a feedback summary, meeting minutes, and so on). The grade is [estimated], and do not use it to calculate fun contribution, cost, or priority. Do not move the numbers in it into the report |
+| original not checked (원문 미확인) | A statement in a summary document whose original (original note, recording, raw survey data, public post) you could not open and check. Do not raise it to [observed-opinion]; leave it as [estimated]. If the original is a project file, the analyst opens it. If it is a public web page, the web-scout opens it. If it is in a place that cannot be opened, such as an internal messenger, do not pass it to web collection; leave it as "original not checked" |
+| implementation stage N (구현 N단계) | The result of the implementation check (0–3). Stage 1 = the name is in the code, stage 2 = the call path connects to the game flow, stage 3 = the data and asset connections were also confirmed. Claims about a system below stage 2 have the [document] grade |
+| written before principle revision (원칙 개정 이전 작성) | A design document dated before the last revision date of the principle document. Read the date only from the version control history or the revision date in the document head |
+| file name date (파일 이름 날짜) | The document head has no date, so the date in the file name was read. Treat it only as the writing date and do not use it as a revision date. So it is not a reason to attach "written before principle revision" |
+| date unknown (날짜 미상) | The document head and the file name have no date, and the version control history could not be checked either |
+| precedent: source checked (선례: 출처 확인) / precedent: memory (선례: 기억) | An example from another game. Only a source (official developer material, patch notes, developer talk) that you opened this time is "source checked". Do not use "memory" as sole evidence. For a talk where you saw only the title and the abstract, add "abstract only" (초록 기준) |
+| precedent only (선례 전용) | A game outside the market advisor's competitor list (`_state/market-competitors.md`) |
+| outdated report (오래된 리포트) | Another advisor's report is older than profile `stale_after_days` |
 
-## 3. 재미에 관한 문장
+## 3. Sentences about fun
 
-- 재미·감정에 관한 결론('지루하다', '답답하다', '쾌감이 있다', '긴장된다' 등)은 [관찰-행동] 근거가 없으면 `가설:` 로 시작하고, 같은 줄에 그 가설을 확인할 검증 방법이 있는 제안 ID 를 적는다.
-- 손맛, 타격감, 조작감은 판정하지 않는다. 그런 감각을 내는 장치(히트스톱 — 맞는 순간 화면을 잠깐 멈추는 연출, 타격음, 화면 흔들림 등)가 데이터에 있는지와, 기술끼리 그 장치를 어떻게 다르게 쓰는지까지만 적는다.
-- 영상은 직접 재생할 수 없다. 사용자가 준 캡처나 시각 메모에 있는 것만 근거로 쓰고, 영상 내용을 추측하지 않는다.
+- If a conclusion about fun or emotion ("boring", "frustrating", "thrilling", "tense", and so on) has no [observed-behavior] evidence, start it with `Hypothesis:` (`가설:` when `report_language` is `ko`), and on the same line write the ID of the proposal that has the verification method to check that hypothesis.
+- Do not judge hand feel, hit impact, or control feel. Write only whether the data contains the mechanisms that produce such feel (hit stop — an effect that briefly freezes the screen at the moment of a hit, hit sounds, screen shake, and so on), and how skills use those mechanisms differently.
+- You cannot play videos directly. Use as evidence only what is in the captures or visual notes that the user gave, and do not guess the content of a video.
 
-## 4. 판정 종류
+## 4. Verdict kinds
 
-### 기존 시스템
+### Existing systems
 
-| 판정 | 뜻 |
+| Verdict (판정) | Meaning |
 |---|---|
-| 유지 | 원칙에 기여하고 반복 고리에 붙어 있으며 구조 문제가 나오지 않았다. 유지에도 이유를 적는다 |
-| 수정(수치) | 수치만 바꾸면 사라지는 문제. `[PLACEHOLDER]` 시작값과 이유까지만 낸다. 수치 근거 없음 단계에서는 내지 않는다 |
-| 수정(구조) | 어떤 수치를 넣어도 남는 규칙의 문제. 규칙을 바꿔 남기는 안을 낸다 |
-| 보류 | 진행을 멈추고 되살릴 조건을 붙여 둔다. 6-2 의 최소 조건을 채워야 한다 |
-| 제거 권고 | 6-3 의 최소 조건을 모두 채운 경우에만 |
-| 통합 | 역할이 겹치는 두 시스템을 하나로 합치자는 안. 제거 권고와 같은 최소 조건을 쓴다(사라지는 쪽 기준) |
-| 판단 보류 | 자료가 없거나 원칙이 확정되지 않아 판정하지 못함. 필요한 자료를 적는다 |
+| keep (유지) | It contributes to the principles, it is attached to a loop, and no structure problem was found. Write a reason for keep too |
+| modify numbers (수정(수치)) | A problem that goes away if only the numbers change. Give only a `[PLACEHOLDER]` starting value and the reason. Do not give it in the no-numeric-evidence stage |
+| modify structure (수정(구조)) | A rule problem that remains whatever numbers you put in. Propose changing the rule and keeping the system |
+| on hold (보류) | Stop progress and attach a revival condition. It must meet the minimum conditions of 6-2 |
+| recommend removal (제거 권고) | Only when all minimum conditions of 6-3 are met |
+| merge (통합) | A proposal to combine two systems whose roles overlap into one. It uses the same minimum conditions as recommend removal (judged for the side that disappears) |
+| judgment withheld (판단 보류) | No verdict could be made because there is no material or the principles are not confirmed. Write the material needed |
 
-### 새 아이디어
+### New ideas
 
-| 판정 | 뜻 |
+| Verdict (판정) | Meaning |
 |---|---|
-| 추천 | 6-1 의 최소 조건을 모두 채웠다 |
-| 조건부 추천 | 최소 조건은 채웠으나 성립 조건이 있다(예: 구현 확인, 성능 측정, 다른 시스템 수정). 조건을 적는다 |
-| 보관 | 지금은 진행하지 않는다. 되살릴 조건을 적고 제안 기록에만 남긴다 |
-| 비추천 | 원칙·금지 원칙과 충돌하거나, 실패 시나리오를 반박하지 못했다. 이유를 적는다 |
+| recommend (추천) | All minimum conditions of 6-1 are met |
+| conditional recommend (조건부 추천) | The minimum conditions are met, but there are conditions for it to hold (for example: an implementation check, a performance measurement, a change to another system). Write the conditions |
+| shelve (보관) | Do not proceed now. Write the revival condition and keep it only in the proposal record |
+| do not recommend (비추천) | It conflicts with the principles or the prohibition principles, or the failure scenarios could not be rebutted. Write the reason |
 
-### 판정을 낮추는 경우
+### When to lower a verdict
 
-- 원칙이 '가안'이면 리포트 머리에 '가안 기준'을 적고 판정을 그대로 낸다.
-- 원칙이 확정되지 않았으면(없음, 사용자 거절) 판정을 내지 않고 모두 '판단 보류(원칙 미확정)'로 둔다.
-- 사용자가 기획 결정권자가 아니면 모든 제안을 '참고 선택지'로 쓰고, 결정권자에게 전달할 형태로 정리한다.
+- If the principles are "draft" (가안), write "based on draft principles" in the report head and give the verdicts as they are.
+- If the principles are not confirmed (none, or the user refused), do not give verdicts, and leave all of them as "judgment withheld (principles not confirmed)" (판단 보류(원칙 미확정)).
+- If the user is not the design decision owner, write every proposal as "reference option", and organize it in a form to pass to the decision owner.
 
-## 5. 구조 문제와 수치 문제
+## 5. Structure problems and numeric problems
 
-- 가르는 질문은 하나다: **어떤 수치를 넣어도 이 문제가 남는가.**
-  - 남으면 구조 문제다. 수정(구조), 보류, 제거의 대상이 된다.
-  - 수치를 바꿔서 사라지면 수치 문제다. 수정(수치)으로만 낸다. 수치 문제만으로 보류나 제거를 제안하지 않는다.
-- **규칙만 보는 판단** — 데이터가 임시값(`design.data_status: 임시값`)이면 수치 계산을 하지 않고 규칙만 본다. 예:
-  - 선택지 A 의 규칙이 B 의 효과를 모두 포함하고 더 얹는가 → 수치와 상관없이 A 가 B 보다 항상 같거나 낫다(지배).
-  - 위험한 행동이 실패해도 규칙상 잃는 것이 없는가 → 위험이 위험이 아니다.
-  - 두 시스템이 같은 입력에 같은 결과를 주는가 → 역할 중복.
-  이 판단은 [문서] 등급의 규칙을 근거로 하므로 등급은 [문서]다. 리포트 머리에 '수치 근거 없음 단계'를 적는다.
+- There is one question that separates them: **Does this problem remain whatever numbers you put in?**
+  - If it remains, it is a structure problem. It becomes a target of modify structure, on hold, or removal.
+  - If it goes away when the numbers change, it is a numeric problem. Give only modify numbers. Do not propose on hold or removal for a numeric problem alone.
+- **Judgment that looks only at rules** — If the data is placeholder values (`design.data_status: 임시값`), do not do numeric calculations, and look only at the rules. Examples:
+  - Does the rule of option A include all effects of B and add more? → Whatever the numbers, A is always equal to or better than B (dominance).
+  - Does a risky action lose nothing by the rules even when it fails? → The risk is not a risk.
+  - Do two systems give the same result for the same input? → Role overlap.
+  This judgment rests on rules of the [document] grade, so its grade is [document]. Write "no-numeric-evidence stage" in the report head.
 
-## 6. 최소 조건
+## 6. Minimum conditions
 
-판정마다 아래 표를 채워 리포트에 붙인다. 하나라도 못 채우면 그 판정을 낼 수 없다.
+For each verdict, fill in the table below and attach it to the report. If even one condition is not met, you cannot give that verdict.
 
 ```markdown
-| 조건 | 충족 | 근거 위치 |
+| Condition (조건) | Met (충족) | Evidence location (근거 위치) |
 |---|---|---|
 ```
 
-### 6-1. 추가(추천·조건부 추천)
+### 6-1. Add (recommend, conditional recommend)
 
-1. 강화하는 필러와, 그 필러의 정의 문장이나 경험 목표 문장 인용. 최상위 원칙과 금지 원칙을 점검한 결과.
-2. 지금 기획에 빠져 있다는 근거: 이 프로젝트 자료에서 확인한 사실 하나 이상([문서] 등급 이상, 위치 포함). '장르에 흔하다', '경쟁작에 있다'는 근거가 아니다.
-3. 붙을 반복 고리. 붙을 곳이 없으면 새 고리가 왜 필요한지.
-4. MDA 사슬과 효율만 따지는 플레이어 시나리오(협동·대전이면 팀 시나리오까지).
-5. 이력 확인: 제안 기록과 미채택안 폴더에서 같은 아이디어의 기각 기록을 찾은 결과. 기각된 적이 있으면 그때와 달라진 점.
-6. 기회비용(이것을 하면 무엇을 미루는지), 재미 기여도와 비용 등급, 각각의 근거.
-7. 검증 방법: 관찰 장면과, 성공·실패를 가르는 방향.
+1. The pillar it strengthens, and a quote of that pillar's definition sentence or experience goal sentence. The result of checking the top-level principle and the prohibition principles.
+2. Evidence that it is missing from the current design: at least one fact confirmed in this project's material ([document] grade or higher, with the location). "It is common in the genre" and "a competitor has it" are not evidence.
+3. The loop it attaches to. If there is no place to attach it, why a new loop is needed.
+4. The MDA chain and the scenario of a player who only cares about efficiency (for co-op or versus, also team scenarios).
+5. History check: the result of looking for rejection records of the same idea in the proposal record and in the unadopted drafts folder. If it was rejected before, what changed since then.
+6. Opportunity cost (what doing this postpones), the fun contribution and cost grades, and the evidence for each.
+7. Verification method: the observation scene, and the direction that separates success from failure.
 
-못 채우면 리포트 제안에 올리지 않고 제안 기록의 '아이디어 메모'에 남긴다.
+If they are not met, do not put it in the report proposals. Leave it in "Idea notes" of the proposal record.
 
-### 6-2. 보류
+### 6-2. On hold
 
-1. 현재 상태: 기획서 위치와 구현 확인 단계.
-2. 문제 근거 하나 이상: [계산], [관찰-행동], [관찰-의견] 가운데 하나. [문서] 등급이면 최상위 원칙·필러·금지 원칙과 명시적으로 부딪힌다는 인용이 있어야 한다. [추정]만으로는 안 된다.
-3. 되살릴 조건: 무엇이 확인되면 다시 진행하는지, 확인할 수 있는 형태로.
-4. 보류하는 동안 영향을 받는 다른 시스템.
-5. 기획 의도 확인 질문을 판정보다 먼저 붙였다.
+1. Current state: the design document location and the implementation check stage.
+2. At least one piece of problem evidence: one of [calculated], [observed-behavior], or [observed-opinion]. If it is the [document] grade, there must be a quote showing that it explicitly conflicts with the top-level principle, a pillar, or a prohibition principle. [estimated] alone is not enough.
+3. Revival condition: what must be confirmed to proceed again, in a form that can be checked.
+4. The other systems affected while it is on hold.
+5. The design intent confirmation question was attached before the verdict.
 
-### 6-3. 제거 권고 (통합에서 사라지는 쪽도 같음)
+### 6-3. Recommend removal (also the side that disappears in a merge)
 
-되돌리기 어려우므로 보류보다 기준이 높다.
+It is hard to undo, so the bar is higher than on hold.
 
-1. 6-2 의 다섯 조건을 모두 채웠다.
-2. 관찰 근거: [관찰-행동] 하나 이상, 또는 **서로 다른 빌드 두 개 이상**에서 되풀이된 [관찰-의견]. 표본 종류와 인원을 함께 적는다. 둘 다 없으면 판정은 '보류'까지만 내고, 확인에 쓸 관찰 항목을 함께 낸다.
-3. 필러 기여 없음 또는 충돌 근거. 아래 셋 가운데 하나 이상을 근거와 함께 보인다.
-   - 필러 기여 없음: Step 1 의 원칙 표와 대조해 어느 필러의 정의·경험 목표 문장에도 닿지 않음을 보인다. 다른 선택지에 지배돼 고를 이유가 없는 선택지([계산] 또는 규칙만 보는 판단)도 여기에 든다.
-   - 원칙·금지 원칙과 충돌: 부딪히는 원칙 문장과 시스템 문장을 함께 인용한다.
-   - (통합에서 사라지는 쪽) 그 기여를 남는 쪽이 이미 맡고 있음: 두 시스템의 근거를 모두 인용한다.
-   '유지 비용에 비해 기여가 낮다'는 이 조건을 채우지 못한다. 비용만 문제면 보류까지만 낸다.
-4. 구조 문제임을 보였다(§5). 수치로 풀리면 제거가 아니라 수정이다.
-5. 빈자리 설명: 그 시스템이 붙어 있던 고리와 채우던 동기를 무엇이 맡는지, 또는 비어도 되는 이유. 그리고 의존 범위 — 이 시스템을 참조하는 코드·데이터·콘텐츠 목록. 다 세지 못했으면 보류까지만 낸다.
-6. 남겨야 하는 이유를 먼저 가장 강하게 써 본 결과.
+1. All five conditions of 6-2 are met.
+2. Observation evidence: at least one [observed-behavior], or [observed-opinion] repeated in **at least two different builds**. Write the sample kind and the number of people with it. If neither exists, give at most "on hold" as the verdict, and give with it the observation items to use for checking.
+3. Evidence of no pillar contribution or of a conflict. Show at least one of the three below, with evidence.
+   - No pillar contribution: compare with the principle table of Step 1 and show that it does not reach any pillar's definition or experience goal sentence. An option that is dominated by another option and has no reason to be chosen ([calculated] or judgment that looks only at rules) also belongs here.
+   - Conflict with the principles or the prohibition principles: quote the conflicting principle sentence and the system sentence together.
+   - (The side that disappears in a merge) The remaining side already takes over that contribution: quote the evidence of both systems.
+   "Its contribution is low compared to the maintenance cost" does not meet this condition. If only the cost is the problem, give at most on hold.
+4. It was shown to be a structure problem (§5). If numbers solve it, it is not removal but modify.
+5. Explanation of the gap: what takes over the loop that the system was attached to and the motivation it filled, or why it can stay empty. And the dependency scope — the list of code, data, and content that refers to this system. If you could not count all of them, give at most on hold.
+6. The result of first writing the reasons to keep it as strongly as possible.
 
-## 7. 재미 기여도
+## 7. Fun contribution
 
-| 등급 | 조건 |
+| Grade (등급) | Condition |
 |---|---|
-| 상 | 어느 필러의 어느 정의·경험 목표 문장에 답하는지 인용하고, 그 목표가 걸린 장면에서 플레이어의 행동을 바꾸거나, 그 목표를 막고 있는 구조 문제를 푼다. 근거에 [추정]이 아닌 등급이 하나 이상 있어야 한다 |
-| 중 | 필러에 이어지지만 인용할 문장이 간접적이다. 또는 '상'의 조건을 채웠으나 근거가 [추정]뿐이다 |
-| 하 | 필러와 간접으로만 이어진다(편의 기능, 장기 수집 등). 또는 프로필 타깃 이용자의 주요 동기 밖이다(타깃이 있을 때만) |
+| high (상) | It quotes which definition or experience goal sentence of which pillar it answers, and it changes the player's behavior in the scene where that goal applies, or it solves a structure problem that blocks that goal. The evidence must have at least one grade that is not [estimated] |
+| medium (중) | It connects to a pillar, but the sentence to quote is indirect. Or it meets the conditions of "high", but its only evidence is [estimated] |
+| low (하) | It connects to a pillar only indirectly (convenience features, long-term collection, and so on). Or it is outside the main motivations of the target player in the profile (only when there is a target) |
 
-- 필러 우선순위는 같은 등급 안에서 순서를 가르는 데만 쓴다. 우선순위가 높은 필러에 닿는다는 이유만으로 '상'을 주지 않는다.
-- 효과 크기('이탈 20% 감소' 같은 예측)는 쓰지 않는다. 효과는 검증 방법의 성공 기준으로만 표현한다.
+- Use the pillar priority only to decide the order within the same grade. Do not give "high" only because it reaches a pillar with high priority.
+- Do not write effect sizes (predictions such as "churn down 20%"). Express the effect only as the success criterion of the verification method.
 
-## 8. 비용
+## 8. Cost
 
-| 등급 | 조건 |
+| Grade (등급) | Condition |
 |---|---|
-| S | 기존 데이터나 설정 값만 바뀐다. 새 코드도 새 에셋도 없다 |
-| M | 기존 시스템을 일부 코드로 넓히거나, 한 직군의 새 에셋이 조금 필요하다 |
-| L | 새 시스템 코드가 필요하거나, 여러 직군의 새 에셋이 필요하거나, 다른 핵심 시스템 수정이 따른다 |
+| S | Only existing data or settings values change. No new code and no new assets |
+| M | An existing system is extended with some code, or a small amount of new assets from one discipline is needed |
+| L | New system code is needed, or new assets from several disciplines are needed, or a change to another core system follows |
 
-- **한 단계 올림**: 네트워크 동기화가 새로 필요하거나(프로필 `play_mode` 가 협동·대전·혼합일 때 확인), 기존 콘텐츠를 다시 만들어야 하면 한 단계 올린다. L 에서 올리면 'L+'로 적고 작게 나눌 수 있는지 함께 낸다.
-- 근거 네 가지를 적는다: 바뀌는 시스템과 그 코드 위치(구현 단계), 새로 필요한 에셋 종류와 직군, 네트워크 동기화 필요 여부, 기존 콘텐츠 재작업 여부. 비용은 거친 추정이므로 '담당 프로그래머 확인 필요'를 붙인다. 구현 범위나 구조가 등급을 가르면 td 에 질문으로 넘긴다. td 설계 검토 리포트(`td/<날짜>-decision.md`)의 "4. 선택지 비교" 표에 "바뀌는 범위" 칸이 있으면 그 값과 근거 표시, "일부만 셈" 같은 단서를 그대로 인용한다.
-- 작업 일수와 인원은 쓰지 않는다.
-- **성능 부담**: 화면 안 적 수, 동시에 터지는 이펙트 수, 네트워크로 동기화할 대상이 늘어나는 제안은 비용에 '성능 미확인'을 붙이고 perf 에 측정을 요청한다. 답이 오기 전까지 이 표시를 지우지 않는다.
+- **Raise one grade**: If new network synchronization is needed (check when profile `play_mode` is `협동`, `대전`, or `혼합`), or if existing content must be made again, raise it one grade. If you raise it from L, write "L+", and also give whether it can be split into smaller pieces.
+- Write four pieces of evidence: the systems that change and their code locations (implementation stage), the kinds of new assets needed and the disciplines, whether network synchronization is needed, and whether existing content must be reworked. Cost is a rough estimate, so attach "responsible programmer must confirm". If the implementation scope or structure decides the grade, pass a question to td. If the "4. Option comparison" table of the td design review report (`td/<날짜>-decision.md`) has a "Changed scope" column, quote that value, its evidence mark, and qualifiers such as "partly counted" as they are.
+- Do not write work days or headcount.
+- **Performance cost**: For a proposal that increases the number of enemies on screen, the number of effects that go off at the same time, or the number of objects to synchronize over the network, attach "performance not checked" (성능 미확인) to the cost and request a measurement from perf. Do not remove this mark until the answer comes.
 
-## 9. 우선순위
+## 9. Priority
 
-| 재미 기여도 \ 비용 | S | M | L | L+ |
+| Fun contribution \ Cost | S | M | L | L+ |
 |---|---|---|---|---|
-| 상 | 1 | 1 | 2 (나눌 방법 함께) | 3 (나눌 방법 필수) |
-| 중 | 2 | 3 | 보관 | 보관 |
-| 하 | 3 | 보관 | 보관 | 보관 |
+| high (상) | 1 | 1 | 2 (with a way to split) | 3 (a way to split is required) |
+| medium (중) | 2 | 3 | shelve (보관) | shelve (보관) |
+| low (하) | 3 | shelve (보관) | shelve (보관) | shelve (보관) |
 
-- 1 = 다음 플레이테스트에서 바로 확인할 후보. 보관 = 제안 기록에만 남기고 리포트 요약에 올리지 않는다.
-- 프로필 `dev_stage` 가 알파·베타·라이브이거나 프로필 `feature_cutoff` 날짜가 오늘보다 앞이면, 비용 L 이상인 **추가** 제안은 '다음 단계 후보'(보관)로 내린다.
-- **자기 반박**: 우선순위 1·2 제안마다 '이 제안이 틀렸다면 그 이유'를 두 개 이상 쓴다. 근거로 반박하지 못하면 재미 기여도를 한 단계 내리고 우선순위를 다시 매긴다.
+- 1 = a candidate to check right away in the next playtest. Shelve = keep it only in the proposal record and do not put it in the report summary.
+- If profile `dev_stage` is `알파`, `베타`, or `라이브`, or if the profile `feature_cutoff` date is before today, lower an **add** proposal with cost L or higher to "next-stage candidate" (다음 단계 후보) (shelve).
+- **Self-rebuttal**: For each priority 1 or 2 proposal, write at least two "reasons this proposal could be wrong". If you cannot rebut them with evidence, lower the fun contribution by one grade and set the priority again.
 
-## 10. 리포트에 쓸 수 있는 수치
+## 10. Numbers that can be used in a report
 
-세 종류뿐이다.
+There are only three kinds.
 
-1. 위치를 붙인 프로젝트 값(데이터 파일:행, 기획서:줄)
-2. 식과 입력과 명령을 공개한 계산값
-3. 이유를 붙인 `[PLACEHOLDER]` 제안값
+1. Project values with a location (data file:row, design document:line)
+2. Calculated values whose formula, inputs, and command are shown
+3. `[PLACEHOLDER]` proposed values with a reason
 
-설명서·기획서의 예시 수치, 시험용 데이터, 출처 문서의 추정 수치, 업계 통계, 작업 일수는 쓰지 않는다.
+Do not use example numbers in manuals or design documents, test data, estimated numbers from source documents, industry statistics, or work days.

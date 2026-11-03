@@ -1,91 +1,93 @@
-# 평가 축과 등급
+# Evaluation axes and grades
 
-전면 평가 Step 1-7 과 변화 점검 Step 2-7 에서 읽는다.
+Read this in Full review Step 1-7 and Change check Step 2-7.
 
-## 1. 축 목록
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-기본 여섯 축에, 프로필 `ip_based` 가 원작 이름이면 일곱째 축(원작 일치)을 더한다.
+## 1. Axis list
 
-| 축 | 묻는 것 | 주로 쓰는 근거 | 판단 보류가 되는 조건 |
+Use the six basic axes. If profile `ip_based` is a source IP name, add a seventh axis (Source IP match).
+
+| Axis | What it asks | Main evidence | Condition for judgment withheld |
 |---|---|---|---|
-| 장르 수요 | 이 조건의 게임이 최근에 얼마나 팔리고 쓰이는가 | 비교군의 성과 분포(중앙값·사분위), 기준작의 최근 지표, 흐름 판정 결과 | 성과 지표가 비교군의 절반 미만 게임에만 있다 |
-| 경쟁 밀도 | 같은 조건의 게임이 얼마나 많고, 우리 차별점이 이미 있는가 | '최근' 범위의 같은 조건 출시작·발표작 수, 특징 비교표에서 우리 차별점을 가진 경쟁작 수, 이용자 시간 경쟁 게임 | 비교군을 만들지 못했다. 특징 목록이 없으면 출시작 수만으로 중립까지만 매긴다 |
-| 플랫폼 | 고른 플랫폼이 고른 지역에서 이 장르 이용자에게 닿는가 | 지역 표의 플랫폼 비중(자료 단위 표시), 직접 경쟁작의 플랫폼 구성과 플랫폼별 공개 실적 | `platforms` 또는 `regions` 가 비어 있다 |
-| 가격·수익 모델 | 우리 가격·수익 모델이 경쟁작 분포의 어디에 놓이는가 | 경쟁작 정가 분포 안의 우리 예상 가격(`market.price_band`) 위치(`market_calc.py position`), 같은 수익 모델 경쟁작의 성과, 리뷰의 가격·과금 불만 개수 | `business_model` 이 비어 있다. `market.price_band` 가 비어 있으면 분포만 보여 주고 위치는 판단 보류 |
-| 출시 시점 | 출시 예정 앞뒤에 같은 이용자를 노리는 큰 출시가 몰려 있는가 | 출시 예정 앞뒤 3개월 안의 발표작, 직접 경쟁작 출시 예정, 이용자 시간 경쟁 게임의 대형 갱신 발표, 흐름의 유효 기간 | `release_window` 가 미정이다 |
-| 이용자층 적합 | 팀이 정한 타깃(`market.target_player`)과 확인된 이용자층이 맞는가 | 확인된 단위의 값, 간접 신호 (`audience-regions.md`) | `market.target_player` 가 비어 있다 |
-| 원작 일치 (IP 기반일 때만) | 원작 이용자층과 새 게임의 타깃이 겹치는가 | §5 | 셀 수 있는 항목이 두 개 미만이다 |
+| Genre demand (장르 수요) | How much games under these conditions sell and are used recently | The performance distribution of the comparison set (median, quartiles), recent metrics of benchmark titles, trend judgment results | The performance metric exists for fewer than half of the games in the comparison set |
+| Competition density (경쟁 밀도) | How many games share the same conditions, and whether our differentiators already exist | The number of released and announced games with the same conditions in the 'recent' window, the number of competitors in the feature comparison table that have our differentiators, competitor-for-player-time games | The comparison set could not be made. If there is no feature list, grade only up to Neutral from the number of released games |
+| Platform (플랫폼) | Whether the chosen platforms reach players of this genre in the chosen regions | The platform share in the region table (mark the data unit), the platform mix of direct competitors and their public results per platform | `platforms` or `regions` is empty |
+| Price and business model (가격·수익 모델) | Where our price and business model sit in the competitor distribution | The position of our expected price (`market.price_band`) in the competitor list price distribution (`market_calc.py position`), the performance of competitors with the same business model, the count of price and monetization complaints in reviews | `business_model` is empty. If `market.price_band` is empty, show only the distribution, and the position is judgment withheld |
+| Release timing (출시 시점) | Whether big releases aiming at the same players cluster before and after the planned release | Announced games within 3 months before and after the planned release, planned releases of direct competitors, large update announcements of competitor-for-player-time games, how long trends stay valid | `release_window` is undecided |
+| Audience fit (이용자층 적합) | Whether the target that the team set (`market.target_player`) matches the confirmed audience | Values at a confirmed unit, indirect signals (`audience-regions.md`) | `market.target_player` is empty |
+| Source IP match (원작 일치) (only when IP-based) | Whether the source IP's audience overlaps with the new game's target | §5 | Fewer than two countable items |
 
-## 2. 유리 쪽 신호와 불리 쪽 신호
+## 2. Favorable-side signals and unfavorable-side signals
 
-| 축 | 유리 쪽 신호 | 불리 쪽 신호 |
+| Axis | Favorable-side signals | Unfavorable-side signals |
 |---|---|---|
-| 장르 수요 | 오르는 흐름으로 판정된 특징이 우리 조건과 겹친다. '최근' 출시작 가운데 중앙값 이상 게임이 꾸준히 나온다. 기준작의 최근 지표가 유지된다 | 내려가는 흐름으로 판정됐다. '최근' 출시작 대부분이 중앙값 미만이다 |
-| 경쟁 밀도 | 같은 조건 출시작·발표작이 적다. 우리 차별점을 가진 직접 경쟁작이 없거나 적다 | 같은 조건 출시작이 많고 그 다수가 우리 차별점을 이미 가졌다. 같은 이용자를 붙잡는 이용자 시간 경쟁 게임이 있다 |
-| 플랫폼 | 고른 지역에서 고른 플랫폼의 비중이 크다고 확인됐다. 직접 경쟁작이 같은 플랫폼에서 공개 실적을 냈다 | 고른 지역에서 그 플랫폼 비중이 작다고 확인됐다. 직접 경쟁작 다수가 다른 플랫폼 중심이다 |
-| 가격·수익 모델 | 같은 가격 구간·같은 수익 모델 경쟁작이 중앙값 이상 성과를 냈다. 그 게임들의 리뷰에 가격 불만이 적다 | 예상 가격이 분포의 위쪽 끝이고 같은 구간 게임 리뷰에 가격 불만이 많다. 같은 수익 모델 게임 다수가 부진 사례다 |
-| 출시 시점 | 앞뒤 3개월 안에 같은 이용자를 노리는 대형 발표작이 없다 | 앞뒤 3개월 안에 기준작급 발표작이나 직접 경쟁작이 몰려 있다. 기대는 흐름이 "출시 때 지나갔을 수 있음"이다 |
-| 이용자층 적합 | 타깃과 확인된 값·간접 신호가 같은 방향이다 | 서로 어긋난다 |
-| 원작 일치 | 원작 리뷰에서 새 게임 요소를 요청한 리뷰가 표본에서 나온다. 원작의 주요 리뷰 언어가 `regions` 와 겹친다. 원작이 새 게임의 주 플랫폼에서 실적을 냈다 | 원작과 새 게임의 플레이 구성이 다르고 요청 리뷰가 거의 없다. 원작의 이용 언어·플랫폼이 우리 `regions`·`platforms` 와 겹치지 않는다 |
+| Genre demand | A feature judged as a rising trend overlaps with our conditions. Games at or above the median keep coming out among the 'recent' releases. Recent metrics of benchmark titles hold | It was judged a declining trend. Most 'recent' releases are below the median |
+| Competition density | Few released and announced games share the same conditions. No or few direct competitors have our differentiators | Many released games share the same conditions, and most of them already have our differentiators. There are competitor-for-player-time games that hold the same players |
+| Platform | It is confirmed that the chosen platform has a large share in the chosen regions. Direct competitors produced public results on the same platform | It is confirmed that the platform has a small share in the chosen regions. Most direct competitors center on other platforms |
+| Price and business model | Competitors in the same price band with the same business model performed at or above the median. Their reviews have few price complaints | The expected price is at the upper end of the distribution, and the reviews of games in the same band have many price complaints. Most games with the same business model are underperforming cases |
+| Release timing | No large announced game aiming at the same players within 3 months before and after | Benchmark-title-level announced games or direct competitors cluster within 3 months before and after. The trend that we rely on is "may have passed by release" |
+| Audience fit | The target and the confirmed values and indirect signals point the same way | They do not match |
+| Source IP match | Reviews of the source IP that request elements of the new game appear in the sample. The main review languages of the source IP overlap with `regions`. The source IP produced results on the main platform of the new game | The play modes of the source IP and the new game differ, and there are almost no requesting reviews. The languages and platforms used for the source IP do not overlap with our `regions` and `platforms` |
 
-신호는 근거를 고르는 방향일 뿐이다. 등급은 §3 의 규칙으로만 매긴다.
+Signals only give a direction for choosing evidence. Grade only by the rules in §3.
 
-## 3. 축 등급
+## 3. Axis grades
 
-| 등급 | 조건 |
+| Grade | Condition |
 |---|---|
-| 유리 | 유리한 쪽을 가리키는 근거가 두 개 이상이고, 그중 하나 이상이 확신도 '확인'이다. 반대 근거를 적었고 그쪽이 더 약하다 |
-| 불리 | 불리한 쪽 근거가 두 개 이상이고 하나 이상이 '확인'이다. 무엇이 바뀌면 나아지는지 같이 적는다 |
-| 중립 | 근거가 두 개 이상 있으나 방향이 엇갈리거나, 같은 방향이어도 영향이 작다(예: 예상 가격이 경쟁작 분포의 가운데) |
-| 판단 보류 | 근거가 하나 이하이거나, 전부 '가설'이거나, 필요한 프로필 칸이 비었거나, 유리·불리 쪽으로 기울었지만 '확인' 근거가 하나도 없다(§4 의 제한 때문이든 자료가 '추정'뿐이든). 기운 쪽이 있으면 "판단 보류(유리 쪽)"처럼 함께 적고, 무엇이 있으면 판단할 수 있는지 적는다 |
+| Favorable (유리) | There are two or more pieces of evidence that point to the favorable side, and at least one of them has confidence "confirmed". You wrote the counter-evidence, and it is weaker |
+| Unfavorable (불리) | There are two or more pieces of unfavorable-side evidence, and at least one is "confirmed". Also write what would make it better if it changed |
+| Neutral (중립) | There are two or more pieces of evidence, but the directions are mixed, or they point the same way but the effect is small (for example: the expected price is in the middle of the competitor distribution) |
+| Judgment withheld (판단 보류) | There is one piece of evidence or none, or all are "hypothesis", or a needed profile field is empty, or it leans to the favorable or unfavorable side but has no "confirmed" evidence at all (whether because of the restrictions in §4 or because the material is only "estimated"). If it leans to a side, write it together, as in "judgment withheld (favorable side)" (판단 보류(유리 쪽)), and write what would make a judgment possible |
 
-- 규칙을 기계적으로 적용한다. 프로젝트를 좋게 보려는 쪽으로도, 근거 없이 비관하는 쪽으로도 기울지 않게 하기 위해서다.
-- 근거 개수는 서로 다른 지표나 서로 다른 1차 출처만 따로 센다. 같은 원출처를 인용한 기사 두 개는 하나다.
-- 변화 점검에서는 근거가 바뀐 축만 등급을 다시 매긴다. 바꾸면 이전 등급, 새 등급, 바뀐 근거를 나란히 적는다.
+- Apply the rules mechanically. This keeps the grade from leaning toward seeing the project favorably, and from pessimism without evidence.
+- Count evidence separately only for different metrics or different primary sources. Two articles that cite the same original source count as one.
+- In a change check, re-grade only the axes whose evidence changed. If you change a grade, write the previous grade, the new grade, and the changed evidence side by side.
 
-## 4. 확신도와 제한
+## 4. Confidence and restrictions
 
-### 4-1. 확신도
+### 4-1. Confidence
 
-| 확신도 | 뜻 | 공통 단계 (rules.md §1) |
+| Confidence | Meaning | Common level (rules.md §1) |
 |---|---|---|
-| 확인 | 이번 실행에서 1차 자료(플랫폼 공식 자료, 퍼블리셔 공식 발표, 공식 설문 원문, 이번에 스크립트로 받은 원문)를 직접 보았고, 수치를 원문 문장이나 스크립트 출력으로 확인했다 | 확인함 |
-| 추정 | 추정 도구 값, 원문을 못 본 유료 자료의 보도 인용, 원출처를 못 찾은 2차 기사 수치, 간접 신호, 원문 문장을 인용하지 못한 요약 수치 | 추정 |
-| 가설 | 근거가 한 건뿐이거나 간접 신호 하나에 기댄 해석이다. 확인하려면 무엇을 봐야 하는지 같이 적는다 | 추정 (가장 약함) |
-| 확인 못 함 / 조회 실패 | 자료가 없거나 열리지 않았다 | 모름 |
+| confirmed (확인) | In this run you saw primary material directly (official platform material, official publisher announcements, the original text of an official survey, original data received with a script this time), and you confirmed the number from an original sentence or script output | confirmed (확인함) |
+| estimated (추정) | Estimation tool values, press citations of paid material whose original you did not see, numbers from secondary articles whose original source you did not find, indirect signals, summary numbers for which you could not quote the original sentence | estimated (추정) |
+| hypothesis (가설) | An interpretation that rests on only one piece of evidence or on one indirect signal. Also write what to look at to confirm it | estimated (추정) (the weakest) |
+| not checked (확인 못 함) / query failed (조회 실패) | There is no material, or it did not open | unknown (모름) |
 
-- 판단 문장 끝에는 확인 / 추정 / 가설 중 하나를 붙인다.
-- 축의 확신도는 등급을 받치는 근거 가운데 가장 강한 것으로 적되, 아래 제한이 걸리면 그 상한을 넘지 않는다.
+- At the end of each judgment sentence, attach one of confirmed / estimated / hypothesis.
+- Write the confidence of an axis as the strongest of the evidence that supports the grade, but if a restriction below applies, do not go over its upper limit.
 
-### 4-2. 제한
+### 4-2. Restrictions
 
-| 제한 | 거는 조건 | 효과 |
+| Restriction | Condition to apply it | Effect |
 |---|---|---|
-| 주 플랫폼 수치 없음 | `platforms` 첫 항목이 Steam 이 아니다(콘솔, 모바일, 다른 PC 스토어) | Steam 지표는 "보조 신호"로 표시하고 '확인' 근거로 세지 않는다. 주 플랫폼의 1차 수치가 따로 없으면 그 축의 확신도 상한은 '추정'이다 |
-| 간접 신호 | 근거가 [간접] 표시 지표다 | 그 근거는 '추정' 이하다 |
-| 장르 단위 아님 | 이용자층 근거가 국가 전체·플랫폼 전체 단위다 | 이용자층 적합 축의 확신도 상한은 '추정'이다 |
-| 오래된 자료 | 시장 지표(판매, 리뷰, 동시 접속, 순위, 관심 지표)의 기준 기간이 조회일 기준 12개월보다 오래됐다. 해마다 나오는 이용자 설문·산업 보고서는 가장 최신 판이면 이 제한을 걸지 않고 판 연도만 적는다(`metrics.md` §4) | "YYYY년 자료" 경고를 붙이고, 등급을 바꾸는 근거로 쓰지 않는다 |
-| 가정값 | 프로필의 '미정' 칸에 가정값을 넣고 평가했다 | 축마다 어느 가정 기준인지 적는다 |
-| 다른 고문 리포트 인용 | rules.md §1 | 원래 등급 그대로 쓰고, 기준 기간보다 오래됐으면 "오래된 리포트"로 표시한다 |
+| No main-platform numbers (주 플랫폼 수치 없음) | The first item of `platforms` is not Steam (console, mobile, another PC store) | Mark Steam metrics as "supporting signal" (보조 신호), and do not count them as "confirmed" evidence. If there are no separate primary numbers for the main platform, the upper limit of that axis's confidence is "estimated" |
+| Indirect signal (간접 신호) | The evidence is a metric marked `[indirect]` | That evidence is "estimated" or lower |
+| Not genre-level (장르 단위 아님) | The audience evidence is at the whole-country or whole-platform unit | The upper limit of the Audience fit axis's confidence is "estimated" |
+| Old data (오래된 자료) | The base period of a market metric (sales, reviews, concurrent players, rankings, interest metrics) is older than 12 months before the access date. For player surveys and industry reports that come out every year, do not apply this restriction if it is the latest edition; write only the edition year (`metrics.md` §4) | Attach the "data from YYYY" (YYYY년 자료) warning, and do not use it as evidence that changes a grade |
+| Assumed values (가정값) | You put assumed values in the profile's "undecided" fields and evaluated | For each axis, write which assumption it is based on |
+| Citing another advisor's report (다른 고문 리포트 인용) | rules.md §1 | Use the original grade as it is. If it is older than the reference period, mark it "outdated report" |
 
-## 5. 원작 일치 축
+## 5. Source IP match axis
 
-프로필 `ip_based` 가 원작 이름일 때만 쓴다.
+Use it only when profile `ip_based` is a source IP name.
 
-- 공개 자료로 셀 수 있는 항목으로만 채운다.
-  - 원작의 공개 실적: 퍼블리셔 발표 수치. 지표 종류는 원문 표현 그대로(`metrics.md` §3).
-  - 원작의 플랫폼별 출시 시점.
-  - 원작 리뷰에서 특정 요소(예: 새 게임이 넣는 플레이 구성)를 요청한 리뷰 수. 원작이 Steam 에 있으면 `steam_reviews.py` 로 받아 분류하고 "N개 중 k개"로 쓴다. Steam 에 없으면 "확인 못 함"이다.
-  - 원작 리뷰의 언어 분포와 `regions` 비교 [간접].
-- 원작의 플레이 구성(싱글 / 협동 / 대전)과 새 게임의 `play_mode` 가 다르면 이용자층이 겹친다고 가정하지 않는다. 겹친다는 근거가 위 항목에서 두 개 이상 나와야 유리로 간다.
-- 원작 이름은 검색어로 쓸 수 있다. 다만 원작 이름을 새 게임의 장르·플레이 구성·특징과 함께 검색어에 넣지 않는다. 원작 이름은 단독으로, 또는 원작 자체의 사실을 찾는 말(판매, 출시, 플랫폼, 리뷰)과만 쓴다. `search_banned_combos` 를 지킨다.
+- Fill it only with items that can be counted from public material.
+  - Public results of the source IP: numbers announced by the publisher. Write the metric kind in the original wording (`metrics.md` §3).
+  - Release timing of the source IP per platform.
+  - The number of reviews of the source IP that request a specific element (for example, the play mode that the new game adds). If the source IP is on Steam, fetch them with `steam_reviews.py`, classify them, and write "k of N". If it is not on Steam, it is "not checked".
+  - The language distribution of the source IP's reviews compared with `regions` `[indirect]`.
+- If the play mode of the source IP (single / co-op / versus) differs from the new game's `play_mode`, do not assume that the audiences overlap. It goes to Favorable only if two or more pieces of evidence of overlap come from the items above.
+- You can use the source IP name as a search term. But do not put the source IP name in a search term together with the new game's genre, play mode, or features. Use the source IP name alone, or only with words that look for facts about the source IP itself (sales, release, platform, reviews). Keep `search_banned_combos`.
 
-## 6. 축 상세 서술 양식
+## 6. Axis detail format
 
 ```markdown
-### <축 이름>
-- 등급 / 확신도 / 제한:
-- 근거 (출처 번호): 근거마다 한 줄, 끝에 확인 / 추정 / 가설
-- 반대 근거:
-- 이 정보가 생기면 등급이 바뀐다:
+### <axis name>
+- Grade / Confidence / Restriction (등급 / 확신도 / 제한):
+- Evidence (source numbers) (근거 (출처 번호)): one line per piece of evidence, ending with confirmed / estimated / hypothesis
+- Counter-evidence (반대 근거):
+- The grade changes if this information appears (이 정보가 생기면 등급이 바뀐다):
 ```

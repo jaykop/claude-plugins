@@ -1,6 +1,6 @@
 # Which advisor to ask
 
-The rules that divide work between the advisors are kept in this one file. The "does not do" (안 하는 일) table in each advisor's SKILL.md lists only where the work goes. If the dividing rule is unclear, look at this file.
+The rules that divide work between the advisors are kept in this one file. The "does not do" table in each advisor's SKILL.md lists only where the work goes. If the dividing rule is unclear, look at this file.
 
 When a question looks like another advisor's work:
 - If it is a request that the user made in the conversation, ask once: "<고문>이 맡는 질문이에요. <고문>으로 볼까요?". If the user says yes, call that advisor's skill with the Skill tool (`advisors:<고문>`). If the user says no, do only the part that the current advisor can handle (for the technology trend advisor, the outside changes of that technology). If there is no part to handle, finish without a report.
@@ -9,7 +9,7 @@ When a question looks like another advisor's work:
 ## Word meanings
 
 - **Our tree** (우리 트리): all the game code, project plugins, and local engine source in our repository.
-- **Enabled technology** (켜져 있는 기술): the plugins in the technology trend advisor's technology list (`_state/radar-inventory.md`) whose status is "사용 중", "켜짐·사용 흔적 없음", or "엔진을 고쳐서 씀", and the engine features that project setting values turn on.
+- **Enabled technology** (켜져 있는 기술): the plugins in the technology trend advisor's technology list (`_state/radar-inventory.md`) whose status is "in use" (사용 중), "on, no sign of use" (켜짐·사용 흔적 없음), or "used with engine modifications" (엔진을 고쳐서 씀) (the script writes that file in Korean), and the engine features that project setting values turn on.
 - **Technology not in our tree or turned off** (우리 트리에 없거나 꺼진 기술): all other technology. With a source build, a plugin that is in the engine folder but turned off also belongs here. For engine features that settings turn on (for example, renderer features), the project setting values decide whether they are on or off.
 
 ## Technical questions: td and radar

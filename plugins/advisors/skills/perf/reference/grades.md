@@ -1,76 +1,78 @@
-# 근거 표시, 등급, 나빠짐 판정
+# Evidence marks, grades, and worsening judgment
 
-## 1. 근거 표시
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-리포트의 모든 발견에 아래 표시 중 하나를 붙인다. 표시 없는 판정 문장은 쓰지 않는다.
+## 1. Evidence marks
 
-| 표시 | 뜻 | 반드시 함께 적을 것 | 공통 규칙 §1 의 단계 |
+Attach one of the marks below to every finding in the report. Do not write a judgment sentence without a mark.
+
+| Mark (표시) | Meaning | Must be written with it | Level in common rules §1 |
 |---|---|---|---|
-| [확인] | 측정으로 비용을 확인했다. 병목·비용이라고 부를 수 있다 | 측정 파일 경로, 명령 또는 채널, 시나리오 ID, 구간, 값, 반복 횟수와 흩어짐 | 확인함 |
-| [의심] | 코드만 읽고 찾았다. 후보일 뿐이다 | 파일:줄, 그 코드가 매 프레임 또는 자주 불린다는 호출 경로(파일:함수 → 파일:함수) | 추정 |
-| [측정 못 함] | 잴 수단·시나리오·권한·환경이 없어 재지 못했다 | 무엇이 있으면 잴 수 있는지 | 모름 |
+| [confirmed] ([확인]) | The cost was confirmed by measurement. It can be called a bottleneck or a cost | Measurement file path, command or channel, scenario ID, region, value, repeat count and spread | confirmed (확인함) |
+| [suspected] ([의심]) | Found by reading code only. It is only a candidate | file:line, and the call path (file:function → file:function) that shows the code is called every frame or often | estimated (추정) |
+| [not measured] ([측정 못 함]) | It could not be measured because there was no means, scenario, permission, or environment to measure it | What would make it possible to measure | unknown (모름) |
 
-- [의심]을 [확인]으로 올리는 방법은 측정뿐이다. 코드를 더 읽거나 비슷한 사례를 대는 것으로 올리지 않는다.
-- 다른 고문 리포트에서 가져온 주장은 원래 등급 그대로 쓰고 그 리포트의 날짜를 적는다(공통 규칙 §1).
-- 코드 건강도 부문은 버전 관리 이력과 이슈 트래커에서 직접 센 수치를 [확인]으로 쓴다. 수치를 낸 명령을 함께 적는다.
+- The only way to raise [suspected] to [confirmed] is measurement. Do not raise it by reading more code or by citing similar cases.
+- For a claim taken from another advisor's report, use the original grade as it is, and write the date of that report (common rules §1).
+- In the code health category, use as [confirmed] the numbers counted directly from the version control history and the issue tracker. Write the command that produced the numbers with them.
 
-## 2. 숫자에 관한 금지
+## 2. Prohibitions about numbers
 
-- 개선 효과를 수치로 예측하지 않는다. "이걸 고치면 2ms 빨라진다"라고 쓰지 않는다.
-- 일반론 배수를 쓰지 않는다. "블루프린트는 C++ 보다 10배 느리다" 같은 문장은 근거가 아니다. 두 방식을 비교해야 하면 이 프로젝트에서 둘 다 잰다.
-- 리포트의 ms, MB, 횟수는 이 프로젝트의 측정 결과에서 온 것만 쓴다. 기억 속 수치, 다른 프로젝트 수치, 웹 글의 수치는 쓰지 않는다.
-- 계산은 스크립트나 Bash 로 하고 식과 입력을 남긴다(공통 규칙 §2).
+- Do not predict the improvement effect as a number. Do not write "fixing this makes it 2ms faster".
+- Do not use generic multipliers. A sentence such as "Blueprints are 10 times slower than C++" is not evidence. If two approaches must be compared, measure both in this project.
+- Use ms, MB, and counts in the report only if they come from the measurement results of this project. Do not use numbers from memory, numbers from other projects, or numbers from web articles.
+- Calculate with a script or Bash, and leave the formula and the inputs (common rules §2).
 
-## 3. 효과 상한
+## 3. Effect ceiling
 
-- 개선안에는 "효과 상한"만 적는다. 효과 상한은 그 구간이 지금 쓰는 포함 시간(그 함수가 부른 하위 함수 시간까지 합친 시간)이다. 개선으로 그보다 많이 줄일 수는 없다.
-- 그 스레드가 병목일 때만 "프레임 시간이 최대 <상한>만큼 줄 수 있다"고 쓴다. 병목이 아니면 "<스레드>의 여유가 최대 <상한> 생긴다(프레임 시간은 그대로일 수 있다)"로 쓴다.
-- 효과가 확정되는 것은 개선 뒤 같은 조건으로 다시 재서 비교했을 때다. 재측정 방법을 개선안에 붙인다.
+- In an improvement proposal, write only the "effect ceiling" (효과 상한). The effect ceiling is the inclusive time that the region uses now (the time including the time of the child functions that the function called). An improvement cannot reduce more than that.
+- Only when that thread is the bottleneck, write "frame time can drop by at most <ceiling>". If it is not the bottleneck, write "<thread> gains at most <ceiling> of headroom (the frame time can stay the same)".
+- The effect is confirmed only when you measure again under the same conditions after the improvement and compare. Attach the re-measurement method to the improvement proposal.
 
-## 4. 등급
+## 4. Grades
 
-[확인] 항목에만 순위를 매긴다. 판정에 쓴 예산은 프로필 `perf.budgets` 의 값이다.
+Rank only [confirmed] items. The budget used for the judgment is the value of profile `perf.budgets`.
 
-| 등급 | 조건 | 리포트에 붙일 것 |
+| Grade (등급) | Condition | What to attach in the report |
 |---|---|---|
-| 1순위 — 바로 처리 권장 | [확인]이고, 대표 시나리오에서 예산을 넘기며, 그 부문이 그 시나리오의 병목이다. 또는 되풀이되는 히치의 원인으로 확인됐다 | 원인 코드(파일:줄), 개선안, 효과 상한, 재측정 방법 |
-| 2순위 — 계획에 넣기 | [확인]이고 지금은 예산 안이지만 다음 중 하나다: 나빠짐 판정을 받았다 / 최저 사양 측정에서 예산을 넘었다 / 병목은 아니지만 그 부문에서 비용 비중이 가장 크다 | 원인 코드, 개선안, 효과 상한 |
-| 3순위 — 기록만 | [확인]이고 비용이 작다(병목이 아니고 나빠지지도 않았다). 손대지 않길 권한다 | 측정값만. 코드가 보기 나빠도 성능 근거로는 여기다 |
-| 의심 — 측정 필요 | [의심]. 순위를 매기지 않는다 | 측정 순서와 측정 계획 |
-| 측정 못 함 | 잴 수 없었다 | 무엇이 있으면 잴 수 있는지. 이 항목에는 수정·제거를 권하지 않는다 |
-| 비교 불가 (주기 점검 전용) | 측정 조건이 이전 회차와 달라 변화를 판정할 수 없다 | 달라진 칸. 엔진 버전업처럼 의도된 변화면 "새 기준선 후보" |
+| Priority 1 — recommended to handle now (1순위 — 바로 처리 권장) | [confirmed], it exceeds the budget in a representative scenario, and that category is the bottleneck of that scenario. Or it was confirmed as the cause of a recurring hitch | Cause code (file:line), improvement proposal, effect ceiling, re-measurement method |
+| Priority 2 — put in the plan (2순위 — 계획에 넣기) | [confirmed] and within the budget now, but one of these: it got a worsening judgment / it exceeded the budget in a minimum-spec measurement / it is not the bottleneck but it has the largest cost share in that category | Cause code, improvement proposal, effect ceiling |
+| Priority 3 — record only (3순위 — 기록만) | [confirmed] and the cost is small (it is not the bottleneck and it did not get worse). Recommend not touching it | Only the measured value. Even if the code looks bad, it belongs here as far as performance evidence goes |
+| Suspected — needs measurement (의심 — 측정 필요) | [suspected]. Do not rank it | Measurement order and measurement plan |
+| Not measured (측정 못 함) | It could not be measured | What would make it possible to measure. Do not recommend changing or removing this item |
+| Not comparable (periodic check only) (비교 불가 (주기 점검 전용)) | The measurement conditions differ from the earlier round, so the change cannot be judged | The fields that differ. If it is an intended change such as an engine upgrade, "new baseline candidate" (새 기준선 후보) |
 
-### 예산이 없을 때
+### When there is no budget
 
-`perf.budgets` 가 비어 있으면 예산 초과로 1순위를 매기지 않는다. 대신 아래 규칙을 쓰고 리포트 첫머리에 "예산 없음 — 대체 순위 규칙"이라고 적는다.
+If `perf.budgets` is empty, do not give Priority 1 for exceeding the budget. Instead, use the rules below, and write "no budget — fallback ranking rule" (예산 없음 — 대체 순위 규칙) at the top of the report.
 
-- 병목 스레드 안에서 포함 시간이 큰 구간 상위 5개를 2순위로 둔다. 반복 측정 사이에 순서가 흔들리는 구간(차이가 흩어짐보다 작은 구간)끼리는 같은 순위로 묶는다.
-  - 구간별 포함 시간은 Insights 타이머 통계 내보내기(`measure.md` 5-2)에서 읽는다. CSV 프로파일러 결과만 있으면 스레드 합계만 알 수 있으므로 구간 순위를 매기지 않고, 내보내기를 측정 계획에 넣는다.
-  - CSV 프로파일러에서 이름에 `Exclusive` 가 붙은 통계는 자체 시간(하위 호출을 뺀 시간)일 수 있다. 엔진 소스에서 정의를 확인하기 전에는 포함 시간이나 효과 상한으로 쓰지 않는다.
-- 되풀이되는 히치의 원인으로 확인된 것은 예산이 없어도 1순위다. 단, 점검 기록의 판정 기준 표에 히치 기준(ms)이 정해져 있어야 한다. 없으면 2순위로 두고 히치 기준을 정해 달라고 한다.
-- 나머지 [확인]은 3순위다.
-- "결정이 필요한 것"에 "예산을 정해 주세요(플랫폼별 목표 fps 또는 프레임 시간, 메모리 상한)"를 올린다. 예산은 결정권자가 정하므로 고문이 정하지 않는다.
+- Put the top 5 regions by inclusive time inside the bottleneck thread at Priority 2. Group regions whose order shifts between repeated measurements (regions whose difference is smaller than the spread) at the same rank.
+  - Read the inclusive time of each region from the Insights timer statistics export (`measure.md` 5-2). If you only have CSV profiler results, you know only the thread totals. So do not rank regions, and put the export in the measurement plan.
+  - In the CSV profiler, a statistic with `Exclusive` in its name can be exclusive time (the time excluding child calls). Until you check its definition in the engine source, do not use it as inclusive time or as an effect ceiling.
+- What was confirmed as the cause of a recurring hitch is Priority 1 even without a budget. But the hitch threshold (ms) must be set in the judgment criteria table of the ledger. If it is not set, put it at Priority 2 and ask for the hitch threshold to be set.
+- The remaining [confirmed] items are Priority 3.
+- Raise "Please set the budget (target fps or frame time per platform, memory limit)" in "Decisions needed". The decision owner sets the budget, so the advisor does not set it.
 
-## 5. 의심 목록 규칙
+## 5. Suspect list rules
 
-- 패턴 검색은 측정으로 병목 부문이 정해진 뒤 그 부문 패턴만 돌린다. 측정이 없으면 사용자가 지목한 시스템 경로 안에서만 돌린다. 소스 전체에 모든 패턴을 돌리지 않는다.
-- 패턴이 걸리면 바로 의심으로 올리지 않는다. 호출 경로를 따라가 다음 중 무엇인지 파일:줄로 적는다.
-  - 매 프레임: 틱 함수, 짧은 간격 타이머, 매 프레임 불리는 델리게이트(이벤트 연결)
-  - 잦은 이벤트: 피격, 발사, 입력처럼 초당 여러 번 생길 수 있는 이벤트
-  - 한 번: 시작 시(BeginPlay 등), 로딩, 설정 변경 때
-  - 모름: 호출 경로가 끊겼거나 블루프린트에서 부른다
-- "한 번"은 의심 목록에서 빼고 "제외한 검색 결과"에 사유와 함께 남긴다.
-- 의심 목록은 회차당 10건까지다. 넘으면 호출 빈도(매 프레임 > 잦은 이벤트 > 모름)와 그 코드를 가진 객체 수(캐릭터마다 도는지, 하나만 도는지)가 큰 순으로 자르고, 잘린 개수를 적는다.
-- 의심에는 순위 대신 측정 순서만 붙인다.
+- Run the pattern search only after measurement has decided the bottleneck category, and run only that category's patterns. If there is no measurement, run it only inside the system path that the user named. Do not run all patterns on the whole source.
+- When a pattern matches, do not raise it as a suspect right away. Follow the call path, and write with file:line which of the following it is.
+  - Every frame (매 프레임): tick functions, short-interval timers, delegates (event bindings) called every frame
+  - Frequent event (잦은 이벤트): events that can happen several times per second, such as hits, shots, and input
+  - Once (한 번): at start (BeginPlay and so on), at loading, at settings changes
+  - Unknown (모름): the call path is broken, or it is called from a Blueprint
+- Leave "once" out of the suspect list, and keep it with the reason in "Excluded search results".
+- The suspect list has at most 10 items per round. If there are more, cut it by call frequency (every frame > frequent event > unknown) and by the number of objects that have that code (whether it runs for every character or for only one), largest first, and write the number cut.
+- Attach only a measurement order to suspects, not a rank.
 
-## 6. 나빠짐 판정 (주기 점검)
+## 6. Worsening judgment (periodic check)
 
-1. **조건 일치**: 이번 회차와 비교 회차의 측정 조건 표(`measure.md` 2번 항목)가 모두 같아야 비교한다. 하나라도 다르면 "비교 불가"로 두고 다른 칸을 적는다. 엔진 버전이 바뀐 것처럼 의도된 변화면 "새 기준선 후보"로 표시한다. 무인 실행에서 사용자 확인 칸을 채울 수 없을 때의 예외는 SKILL.md 2-2 를 따르고, 그 비교 결과에는 "조건 일부 미확인"을 붙인다.
-2. **반복**: 양쪽 모두 3회 이상 잰 회차여야 한다. 지표마다 중앙값과 흩어짐(최대 − 최소)을 쓴다(`csv_profile_stat.py compare --a ... --b ...` 출력).
-3. **판정**: 중앙값 차이가 "두 회차 흩어짐 중 큰 값"과 "최소 변화폭" 중 더 큰 값보다 클 때만 "나빠짐" 또는 "좋아짐"으로 본다. 최소 변화폭은 점검 기록의 판정 기준 표에 있는 값이다. 없으면 흩어짐만 쓰고, "최소 변화폭을 정해 주세요"를 결정이 필요한 것에 올린다. 시간·메모리·횟수 지표는 클수록 나쁘다.
-4. **두 회차와 비교**: 직전 회차와 기준선 회차 둘 다와 비교한다. 직전 대비로는 판정이 안 나와도 기준선 대비 나빠짐이면 "누적 악화"로 표시한다. 조금씩 나빠지는 경우를 잡기 위해서다.
-5. **예산**: 나빠짐과 따로, 예산을 넘으면 "초과", 예산 안이면서 나빠졌으면 "주의"다.
-6. **원인 후보**: 나빠진 항목마다 두 회차 리비전 사이의 변경 가운데 그 부문 경로를 건드린 것을 "원인 후보"로 붙인다. 후보일 뿐이라고 적는다. 확정 방법은 두 리비전 사이를 나눠 재는 측정(가운데 리비전을 재서 범위를 반씩 줄이는 방법)으로 제안만 한다. 프로필 `vcs_read_commands` 에 필요한 읽기 명령이 없거나 조회에 실패해 변경 목록이 없으면 원인 후보 칸은 "확인 못 함"이다(대화·무인 실행 모두 같다). 변경 목록 없이 짐작으로 채우지 않는다.
-7. **측정이 없는 항목**: 이번에 재지 않은 항목은 직전 값을 그대로 두고 "이번 측정 없음"으로 표시한다. 직전 값을 이번 값처럼 옮겨 적지 않는다.
+1. **Conditions match**: Compare only if the measurement condition tables (`measure.md` item 2) of this round and the compared round are all the same. If even one differs, set "not comparable" and write the field that differs. If it is an intended change such as an engine version change, mark it "new baseline candidate". For the exception when an unattended run cannot fill the user confirmation field, follow SKILL.md 2-2, and add "some conditions unconfirmed" (조건 일부 미확인) to that comparison result.
+2. **Repeats**: Both rounds must have been measured 3 times or more. For each metric, use the median and the spread (maximum − minimum) (the output of `csv_profile_stat.py compare --a ... --b ...`).
+3. **Judgment**: Treat it as "worse" (나빠짐) or "better" (좋아짐) only when the median difference is larger than the larger of "the larger spread of the two rounds" and "the minimum change". The minimum change is the value in the judgment criteria table of the ledger. If it is not there, use only the spread, and raise "Please set the minimum change" in "Decisions needed". For time, memory, and count metrics, larger is worse.
+4. **Comparison with two rounds**: Compare with both the previous round and the baseline round. If the comparison with the previous round gives no judgment but the comparison with the baseline shows a worsening, mark it "cumulative worsening" (누적 악화). This is to catch cases that get worse little by little.
+5. **Budget**: Separately from worsening, if it exceeds the budget, it is "over budget" (초과). If it is within the budget and got worse, it is "caution" (주의).
+6. **Cause candidates**: For each item that got worse, attach as "cause candidates" (원인 후보) the changes between the two rounds' revisions that touched that category's paths. Write that they are only candidates. Only propose how to confirm them: a measurement that splits the range between the two revisions (measure the middle revision and halve the range each time). If profile `vcs_read_commands` does not have the needed read commands, or the lookup failed and there is no change list, the cause candidate field is "not checked" (확인 못 함) (the same in conversation and unattended runs). Do not fill it by guessing without a change list.
+7. **Items without a measurement**: For an item not measured this time, keep the previous value as it is and mark it "not measured this round" (이번 측정 없음). Do not copy the previous value as if it were this round's value.
 
-판정 값은 다섯 가지 중 하나다: 통과 / 주의 / 초과 / 측정 못 함 / 비교 불가. 예외로, 그 시나리오의 첫 회차이고 예산도 없으면 비교할 대상이 없으므로 "-"(판정 없음)로 둔다. 이때 "통과"라고 쓰지 않는다.
+The judgment value is one of five: pass (통과) / caution (주의) / over budget (초과) / not measured (측정 못 함) / not comparable (비교 불가). As an exception, if it is the first round of that scenario and there is also no budget, there is nothing to compare with, so set "-" (no judgment) (판정 없음). In this case, do not write "pass".

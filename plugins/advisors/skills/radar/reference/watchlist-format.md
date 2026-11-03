@@ -1,50 +1,52 @@
-# radar-watchlist.md 형식
+# radar-watchlist.md format
 
-파일: `<report_dir>/_state/radar-watchlist.md`. 기술 동향 고문만 쓴다. TD 고문이 "다음 버전으로 올릴 때 걸리는 것" 표의 상태와 추적 행을 읽는다(칸을 바꾸면 shared/state-formats.md 머리의 안내대로 td 쪽 문서도 맞춘다). 정기 점검과 단일 기술 진단이 끝날 때마다 갱신한다. 머리의 "작성:" 칸에는 고문 이름 대신 폴더 이름과 같은 `radar` 를 쓴다.
+File: `<report_dir>/_state/radar-watchlist.md`. Only the technology trend advisor writes it. The TD advisor reads the status of the "Blockers when upgrading to the next version" table and the tracking rows (if you change the columns, also update the td documents as the head of shared/state-formats.md says). Update it at the end of every periodic check and single-technology diagnosis. In the "Written by:" field of the head, write `radar`, the same as the folder name, instead of the advisor name.
+
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
 ```markdown
-# 기술 추적 목록
+# Technology watchlist (기술 추적 목록)
 
-다음 점검: YYYY-MM-DD
-작성: radar / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <CL 또는 커밋>
+Next check: YYYY-MM-DD
+Written by: radar / Last updated: YYYY-MM-DD / Base revision: <CL or commit>
 
-## 추적 중인 기술
-| ID | 기술 | 분야 | 우리 상태 | 발표 단계 | 현재 추천도 | 걸린 상한 규칙 | 관련 문제 | 다시 볼 조건 | 마지막 확인일 | 근거 리포트 |
+## Technologies being tracked (추적 중인 기술)
+| ID | Technology (기술) | Area (분야) | Our state (우리 상태) | Announcement stage (발표 단계) | Current recommendation level (현재 추천도) | Cap rules applied (걸린 상한 규칙) | Related problem (관련 문제) | Condition to revisit (다시 볼 조건) | Last check date (마지막 확인일) | Evidence report (근거 리포트) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| TW-001 | <공개 기술 이름> | 그래픽스·애니메이션 | 없음 (기술 목록 기준) | ④ "<원문 인용 짧게>" | 검토 | L1, L4 | 없음 | 다음 엔진 릴리스 노트에서 Beta 이상 | YYYY-MM-DD | radar/YYYY-MM-DD-periodic.md |
+| TW-001 | <public technology name> | graphics and animation (그래픽스·애니메이션) | none (없음) (per the technology inventory) | ④ "<short original quote>" | assess (검토) | L1, L4 | none (없음) | Beta or higher in the next engine release notes | YYYY-MM-DD | radar/YYYY-MM-DD-periodic.md |
 
-## 다음 버전으로 올릴 때 걸리는 것
-| ID | 처음 적은 날 | 우리 → 다음 버전 | 걸리는 것 | 종류 | 우리 쪽 근거 | 출처 | 상태 | 마지막 확인일 |
+## Blockers when upgrading to the next version (다음 버전으로 올릴 때 걸리는 것)
+| ID | First recorded (처음 적은 날) | Ours → next version (우리 → 다음 버전) | Blocker (걸리는 것) | Kind (종류) | Evidence on our side (우리 쪽 근거) | Source (출처) | Status (상태) | Last check date (마지막 확인일) |
 |---|---|---|---|---|---|---|---|---|
-| UP-001 | YYYY-MM-DD | 5.a.b → 5.c | <바뀌는 API 나 기능> | API 변경 | TI-012, 검색식 '...' 결과 N 파일 | <릴리스 노트 URL> | 열림 | YYYY-MM-DD |
+| UP-001 | YYYY-MM-DD | 5.a.b → 5.c | <API or feature that changes> | API change (API 변경) | TI-012, search expression '...' result N files | <release notes URL> | open (열림) | YYYY-MM-DD |
 
-## 바뀐 기록
-| 날짜 | ID | 바뀐 것 | 근거 |
+## Change log (바뀐 기록)
+| Date (날짜) | ID | What changed (바뀐 것) | Evidence (근거) |
 |---|---|---|---|
-| YYYY-MM-DD | TW-001 | 검토 → 시험 | perf 측정 리포트 <경로>, 1차 출처 <URL> |
+| YYYY-MM-DD | TW-001 | assess → trial (검토 → 시험) | perf measurement report <path>, primary source <URL> |
 
-## 공개 외부 제품으로 확인된 프로젝트 플러그인
-| TI | 플러그인 | 공급사와 공개 제품 이름 | 확인한 사람·방법 | 확인일 |
+## Project plugins confirmed as public outside products (공개 외부 제품으로 확인된 프로젝트 플러그인)
+| TI | Plugin (플러그인) | Vendor and public product name (공급사와 공개 제품 이름) | Confirmed by and how (확인한 사람·방법) | Check date (확인일) |
 |---|---|---|---|---|
-| TI-031 | <폴더 이름> | <공급사> <제품 이름> | 사용자 확인(대화) | YYYY-MM-DD |
+| TI-031 | <folder name> | <vendor> <product name> | confirmed by the user (conversation) (사용자 확인(대화)) | YYYY-MM-DD |
 ```
 
-## 칸 규칙
+## Column rules
 
-- **ID**: 추적 기술은 `TW-` 뒤 세 자리, 다음 버전 표는 `UP-` 뒤 세 자리. 한 번 준 번호는 다시 쓰지 않는다.
-- **기술**: 공개된 이름. 정식 출시 때 이름이 바뀌면 "새 이름 (옛 이름)"으로 쓰고 ID 는 그대로 둔다.
-- **우리 상태**: 기술 목록의 상태 다섯 가지 중 하나. 기술 목록에 행이 있으면 TI-ID 를 같이 적는다. "엔진에 있으나 꺼짐"이고 끈 이유를 찾았으면 "끈 이유: <한 문장> (<근거 위치 또는 '사용자 확인'>, YYYY-MM-DD)"를 덧붙인다. 다음 실행은 이 이유를 다시 찾지 않고 쓴다. 프로젝트 파일에서 그 플러그인 줄이 바뀌었으면(기술 목록의 "직전 목록과 달라진 상태") 다시 찾는다.
-- **공개 외부 제품 표**: 프로젝트 Plugins 폴더에 있는 외부 공급사 제품 가운데 사용자가 확인한 것만 넣는다. 이 표에 있는 것만 공급사 이름으로 웹 검색할 수 있다(sources.md §9). 사용자가 아니라고 하면 넣지 않고, 묻지 못했으면(무인) 넣지 않는다.
-- **발표 단계**: verdict-rules.md §1 의 번호와 1차 출처 원문 인용(짧게).
-- **현재 추천도**: 도입 / 시험 / 검토 / 보류 / 이미 사용 중 / 판단 보류-확인 부족 / 종료. 지우지 않는다. 더 볼 필요가 없어지면 "종료 — <이유>"로 바꾼다.
-- **관련 문제**: 그 판정을 낸 리포트의 문제 번호와 출처(티켓, 기획서 경로, 질문함 ID). 없으면 "없음".
-- **다시 볼 조건**: 사건으로 적는다. 사건이 없을 때만 날짜.
-- **종류**(다음 버전 표): 폐기 예정·제거 / API 변경 / 성숙도 변화 / 엔진 수정 블록 겹침 / 플랫폼 / 외부 공급사 플러그인.
-- **상태**(다음 버전 표): 열림 / 해소됨 / 해당 없음. 해소돼도 행을 지우지 않는다.
+- **ID**: `TW-` followed by three digits for tracked technologies, and `UP-` followed by three digits for the next-version table. Do not reuse a number once it is given.
+- **Technology**: the public name. If the name changes at the official release, write "new name (old name)" and keep the ID.
+- **Our state**: one of the five states of the technology inventory. If the technology inventory has a row for it, write the TI-ID with it. If it is "in the engine but off" (엔진에 있으나 꺼짐) and you found the reason it was turned off, append "reason turned off: <one sentence> (<evidence location or 'confirmed by the user'>, YYYY-MM-DD)" (끈 이유: <한 문장> (<근거 위치 또는 '사용자 확인'>, YYYY-MM-DD)). The next run uses this reason without looking for it again. If the line of that plugin in the project file changed ("States changed from the previous inventory" (직전 목록과 달라진 상태) in the technology inventory), look for it again.
+- **Public outside product table**: put in only the outside vendor products in the project Plugins folder that the user confirmed. Only products in this table can be searched on the web by vendor name (sources.md §9). If the user says it is not one, do not put it in. If you could not ask (unattended), do not put it in.
+- **Announcement stage**: the number in verdict-rules.md §1 and a short original quote from a primary source.
+- **Current recommendation level**: adopt (도입) / trial (시험) / assess (검토) / hold (보류) / already in use (이미 사용 중) / verdict withheld — not confirmed (판단 보류-확인 부족) / closed (종료). Do not delete it. When there is no longer a need to watch it, change it to "closed — <reason>" (종료 — <이유>).
+- **Related problem**: the problem number in the report that gave that verdict, and its source (ticket, design document path, question inbox ID). If there is none, "none" (없음).
+- **Condition to revisit**: write an event. Use a date only when there is no event.
+- **Kind** (next-version table): planned deprecation or removal (폐기 예정·제거) / API change (API 변경) / maturity change (성숙도 변화) / engine modification block overlap (엔진 수정 블록 겹침) / platform (플랫폼) / outside vendor plugin (외부 공급사 플러그인).
+- **Status** (next-version table): open (열림) / resolved (해소됨) / not applicable (해당 없음). Do not delete a row even when it is resolved.
 
-## 갱신 규칙
+## Update rules
 
-- 추천도는 새 출처나 우리 쪽 새 사실이 있을 때만 바꾸고, 바꾸면 "바뀐 기록"에 한 줄 남긴다.
-- 정기 점검마다 "다시 볼 조건"을 하나씩 확인한다. 조건이 채워졌으면 그 행을 리포트의 "지난 리포트와 달라진 것"에 올리고 다시 판정한다.
-- "다음 버전"은 source-checks.md 에 기록한 최신 정식 엔진 버전이다. 우리 엔진 버전과 같으면 다음 버전 표에 새 행을 넣지 않는다.
-- 머리의 `다음 점검:` 은 정기 점검이 끝날 때만 오늘 + 정기 점검 주기(기본 30일, 예약이 있으면 그 주기)로 바꾼다. 단일 기술 진단은 이 줄을 바꾸지 않는다(파일을 처음 만들 때만 오늘 + 30일). 날짜 계산은 `date` 로 한다.
+- Change the recommendation level only when there is a new source or a new fact on our side, and when you change it, add one line to "Change log".
+- In every periodic check, check each "Condition to revisit". If a condition is met, put that row in "Changes since the previous report" of the report and rate it again.
+- The "next version" is the latest official engine version recorded in source-checks.md. If it is the same as our engine version, do not add new rows to the next-version table.
+- Change the `Next check:` line in the head to today + the periodic check interval (default 30 days, or the schedule's interval if there is a schedule) only when a periodic check ends. A single-technology diagnosis does not change this line (only when the file is created for the first time, today + 30 days). Calculate dates with `date`.

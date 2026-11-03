@@ -1,146 +1,148 @@
-# 기술 동향 고문 리포트 본문 양식
+# Technology trend advisor report body format
 
-리포트 전체는 `<플러그인 폴더>/shared/report-base.md` 의 머리와 항목 순서를 따른다. 이 파일은 그 안의 "## 본문" 자리에 넣을 내용과, 공통 항목을 기술 동향 고문이 채우는 방법을 정한다.
+The whole report follows the head and the section order of `<플러그인 폴더>/shared/report-base.md`. This file decides what goes in the "## Body" place in it, and how the technology trend advisor fills the common sections.
 
-## 파일 이름과 제목
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-| 모드 | 파일 | 제목 |
+## File name and title
+
+| Mode | File | Title |
 |---|---|---|
-| 정기 점검 | `<report_dir>/radar/<YYYY-MM-DD>-periodic.md` | `# 기술 동향 고문 정기 점검 — <YYYY-MM-DD>` |
-| 단일 기술 진단 | `<report_dir>/radar/<YYYY-MM-DD>-single.md` | `# 기술 동향 고문 단일 기술 진단(<대상>) — <YYYY-MM-DD>` |
+| Periodic check (`정기 점검`) | `<report_dir>/radar/<YYYY-MM-DD>-periodic.md` | `# Technology trend advisor periodic check — <YYYY-MM-DD>` (ko: `# 기술 동향 고문 정기 점검 — <YYYY-MM-DD>`) |
+| Single-technology diagnosis (`단일 기술 진단`) | `<report_dir>/radar/<YYYY-MM-DD>-single.md` | `# Technology trend advisor single-technology diagnosis (<target>) — <YYYY-MM-DD>` (ko: `# 기술 동향 고문 단일 기술 진단(<대상>) — <YYYY-MM-DD>`) |
 
-- 파일 이름의 모드 부분은 `periodic`, `single` 영어 소문자만 쓴다. 한글 모드 이름을 넣지 않는다(rules.md §12).
-- 날짜는 작성일(시스템 날짜)이다. 대상 기간의 끝이나 다룬 글의 날짜를 넣지 않는다.
-- 같은 날 같은 모드를 두 번 돌리면 이름 끝에 `-2` 를 붙인다.
-- 단일 기술 진단 제목의 `<대상>` 은 다음 진단이 직전 리포트를 찾을 때 쓴다. 같은 기술이면 같은 이름(공개된 이름)으로 쓴다.
+- In the mode part of the file name, use only the lowercase English `periodic` and `single`. Do not put in a Korean mode name (rules.md §12).
+- The date is the writing date (system date). Do not put in the end of the target period or the dates of the posts covered.
+- If the same mode runs twice on the same day, add `-2` to the end of the name.
+- The `<target>` in the title of a single-technology diagnosis is used when the next diagnosis looks for the previous report. For the same technology, use the same name (the public name).
 
-## 공통 항목을 채우는 법
+## How to fill the common sections
 
-- **범위**(머리 표): 모드, 대상 기간(정기 점검은 직전 정기 점검 날짜 ~ 오늘, 단일 기술 진단은 SKILL.md Step 0 의 4), 연 출처 수와 열기 실패 수, 기술 목록을 새로 만들었는지, 기존 목록을 그대로 썼는지(새로 만들었으면 스크립트가 낸 이유), 커뮤니티 채널(읽은 auto 채널과 글 수, 열기 실패·도구가 막음, 사용자가 준 manual 채널 글이 있었는지). 서브에이전트 없이 메인에서 수집했으면 "에이전트 없이 메인에서 수집함"을 적는다.
-- 단일 기술 진단은 범위에 "수집" 한 줄을 더한다. 형식: `수집: 웹 1차 출처 <찾음 — 기록으로 채우지 못한 항목: …| 찾지 않음 — 기록으로 모두 채움> / 커뮤니티 <읽음 — 걸린 조건 C1·C2·C3 | 읽지 않음(조건 해당 없음)> / 재사용한 기록 <SC-ID 와 원래 확인일, 리포트 경로:줄 | 없음>`. 웹을 찾거나 커뮤니티 글을 읽은 이유, 또는 하지 않은 이유를 이 줄만 보고 알 수 있어야 한다.
-- **직전 리포트**(머리 표): 같은 모드의 직전 리포트. 단일 기술 진단은 제목의 대상까지 같은 직전 리포트. 없으면 "없음".
-- **결정이 필요한 것**: 정기 점검에서는 본문 2 항목(지금 쓰는 기술의 변화)과 3 항목(문제에 맞는 기술)에서만 올린다. 6 항목 소식과 7 항목 커뮤니티 실마리는 올리지 않는다(실마리는 1차로 확인돼 2·3 항목으로 옮긴 것만 올린다). 최대 세 개. 항목마다 "<기술> — <추천도 또는 대응 기한> — <한 문장 이유> — 결정권자: <decision_owners.tech>". 사용자가 결정권자가 아니면 "참고 선택지"로 쓴다.
-- **지난 리포트와 달라진 것**: 다섯 가지로 나눈다. 새로 들어온 항목 / 발표 단계가 오른 항목 / 추천도가 바뀐 항목과 바꾼 근거 / 다시 볼 조건이 채워진 항목 / 철회·폐기·이름이 바뀐 항목. 기술 목록 상태가 바뀐 것(스크립트가 낸 "직전 목록과 달라진 상태")도 여기에 적는다.
-- **확인 못 한 것**: 열기 실패한 출처, 실패한 검색, 비어 있는 프로필 값, 확인하지 못한 꺼진 이유, "검색 실패"인 엔진 수정 블록 수, 1차로 확인하지 못한 커뮤니티 실마리 수, 모르는 채널 이름. 각각 무엇이 있으면 확인할 수 있는지.
-- **다른 고문에게 넘긴 질문**: 질문함(`_state/inbox.md`)에 올린 Q-ID 목록.
-- **다음 점검 조건**: `radar-watchlist.md` 머리의 `다음 점검:` 값과 같게 쓴다. source-checks.md 의 값(가장 이른 다시 확인할 날짜)은 여기 쓰지 않는다.
+- **Scope** (head table): the mode, the target period (for a periodic check, from the date of the previous periodic check to today; for a single-technology diagnosis, item 4 of SKILL.md Step 0), the number of sources opened and the number that failed to open, whether the technology inventory was rebuilt or the existing inventory was used as is (if rebuilt, the reason the script gave), and the community channels (the auto channels read and the number of posts, failures to open and "blocked by the tool", and whether there were manual channel posts that the user gave). If collection was done in the main agent without subagents, write "collected by the main agent without agents" (에이전트 없이 메인에서 수집함).
+- A single-technology diagnosis adds one "Collection" line to the scope. Format: `Collection: web primary sources <looked for — items not filled from records: … | not looked for — all filled from records> / community <read — conditions met C1·C2·C3 | not read (no condition met)> / records reused <SC-ID and original check date, report path:line | none>` (ko: `수집: 웹 1차 출처 <찾음 — 기록으로 채우지 못한 항목: …| 찾지 않음 — 기록으로 모두 채움> / 커뮤니티 <읽음 — 걸린 조건 C1·C2·C3 | 읽지 않음(조건 해당 없음)> / 재사용한 기록 <SC-ID 와 원래 확인일, 리포트 경로:줄 | 없음>`). From this line alone, a reader must be able to tell why the web was searched or community posts were read, or why not.
+- **Previous report** (head table): the previous report of the same mode. For a single-technology diagnosis, the previous report whose title also has the same target. If there is none, "none".
+- **Decisions needed**: in a periodic check, raise items only from body item 2 (changes to technologies we use now) and item 3 (technologies that fit the problems). Do not raise news in item 6 or community leads in item 7 (raise only leads that were confirmed with a primary source and moved to items 2 and 3). At most three. Each item: "<technology> — <recommendation level or response deadline> — <one-sentence reason> — Decision owner: <decision_owners.tech>" (ko: "<기술> — <추천도 또는 대응 기한> — <한 문장 이유> — 결정권자: <decision_owners.tech>"). If the user is not the decision owner, write it as a "reference option".
+- **Changes since the previous report**: split into five kinds. Newly added items / items whose announcement stage went up / items whose recommendation level changed and the evidence for the change / items whose condition to revisit was met / items withdrawn, dropped, or renamed. Also write here the changes in technology inventory states ("States changed from the previous inventory" (직전 목록과 달라진 상태) that the script printed).
+- **Not checked**: sources that failed to open, failed searches, empty profile values, turn-off reasons that could not be checked, an engine modification block count that is "search failed", the number of community leads that could not be confirmed with a primary source, and unknown channel names. For each, what would make it possible to check.
+- **Questions passed to other advisors**: the list of Q-IDs posted to the question inbox (`_state/inbox.md`).
+- **Next check condition**: write the same value as the `Next check:` value in the head of `radar-watchlist.md`. Do not write the value of source-checks.md (the earliest recheck date) here.
 
-## 정기 점검 본문
+## Periodic check body
 
 ```markdown
-### 1. 기준
-- 우리 엔진: <버전>, <소스 빌드 여부>, 엔진 수정 블록 <N 또는 "검색 실패"> (radar-inventory.md, 갱신 YYYY-MM-DD)
-- 확인한 최신 정식 엔진 버전: <버전> (SC-xxx, <출처 URL>, 확인 YYYY-MM-DD)
-- 개발 단계: <dev_stage> / 다음 마일스톤: <next_milestone> / 대상 플랫폼: <platforms> (프로필 갱신 YYYY-MM-DD)
+### 1. Baseline (기준)
+- Our engine (우리 엔진): <version>, <source build or not>, engine modification blocks (엔진 수정 블록) <N or "search failed" (검색 실패)> (radar-inventory.md, updated (갱신) YYYY-MM-DD)
+- Latest official engine version checked (확인한 최신 정식 엔진 버전): <version> (SC-xxx, <source URL>, checked (확인) YYYY-MM-DD)
+- Development stage (개발 단계): <dev_stage> / Next milestone (다음 마일스톤): <next_milestone> / Target platforms (대상 플랫폼): <platforms> (profile updated (프로필 갱신) YYYY-MM-DD)
 
-### 2. 지금 쓰는 기술의 변화
-| TI | 기술 | 우리 상태 | 바뀐 점 | 원문 인용 | 우리 영향 | 대응 기한 | 출처 |
+### 2. Changes to technologies we use now (지금 쓰는 기술의 변화)
+| TI | Technology (기술) | Our state (우리 상태) | What changed (바뀐 점) | Original quote (원문 인용) | Impact on us (우리 영향) | Response deadline (대응 기한) | Source (출처) |
 |---|---|---|---|---|---|---|---|
-| TI-012 | <이름> | 사용 중 | 폐기 예정 | "<원문>" | N 파일 (검색식 '...') | <출처가 밝힌 제거 버전, 없으면 "밝힌 기한 없음"> | <URL>, 확인 YYYY-MM-DD |
+| TI-012 | <name> | in use (사용 중) | planned deprecation (폐기 예정) | "<original>" | N files (search expression '...') | <removal version stated by the source; if none, "no stated deadline" (밝힌 기한 없음)> | <URL>, checked YYYY-MM-DD |
 
-변화가 없으면 "확인한 범위에서 변화 없음 — 확인한 출처 N개"라고 쓴다(출처 목록은 부록 A).
+If there is no change, write "No change in the checked scope — N sources checked" (확인한 범위에서 변화 없음 — 확인한 출처 N개) (the source list is in Appendix A).
 
-### 3. 문제에 맞는 기술
-#### 3.<n> <기술 이름> (<처음 나오는 영어 용어 풀이>)
-- 문제: P-<n> <문제 한 줄> (출처: <티켓·기획서 경로·질문함 ID·사용자 말>)
-- 분야: <엔진 | 그래픽스·애니메이션 | 네트워크 | 개발 도구·AI | 플랫폼>
-- 무엇인가: <두세 문장>
-- 발표 단계: <①~⑦> — "<1차 원문 인용>" (<URL>)
-- 날짜: 발표 <YYYY-MM-DD | 발표일 미상> / 출시 <버전, 날짜 | 미출시> / 확인 <YYYY-MM-DD>
-- 우리 상태: <다섯 가지 중 하나> (<TI-ID 또는 검색 근거>)
-- 적용 가능성: <가능 | 조건부 | 불가> — <이유와 필요한 조건>
-- 필요성: <문제 확인됨 | 문제 예상 | 문제 없음> — <근거 링크>
-- 커뮤니티 실마리: <7 항목의 # 목록, 없으면 "없음">. 판정 근거가 아니라 후보를 찾은 경로다
-- 비용: 버전 차이 <>, 겹치는 엔진 수정 블록 <N>(<폴더>), 영향 파일 <N>(<검색식>), 다시 저장할 에셋 <범위>, 영향 직군 <>, 되돌리는 방법 <>
-- 추천도: **<도입 | 시험 | 검토 | 보류 | 이미 사용 중 | 판단 보류-확인 부족>** — 걸린 상한 규칙: <L 번호 목록 또는 "없음">
-- 시험 계획(시험일 때만): 범위 <>, 기간 <정할 것>, 성공 기준 <지표와 목표 — perf Q-xxxx>, 끄는 방법 <>
-- 다시 볼 조건: <사건 | 날짜>
-- 넘긴 질문: <Q-ID, 받는 고문>
+### 3. Technologies that fit the problems (문제에 맞는 기술)
+#### 3.<n> <technology name> (<explanation of the English term at first use>)
+- Problem (문제): P-<n> <one-line problem> (Source (출처): <ticket, design document path, question inbox ID, what the user said>)
+- Area (분야): <engine | graphics and animation | network | development tools and AI | platform>
+- What it is (무엇인가): <two or three sentences>
+- Announcement stage (발표 단계): <①~⑦> — "<primary original quote>" (<URL>)
+- Dates (날짜): announced (발표) <YYYY-MM-DD | announcement date unknown> / released (출시) <version, date | not released> / checked (확인) <YYYY-MM-DD>
+- Our state (우리 상태): <one of the five> (<TI-ID or search evidence>)
+- Applicability (적용 가능성): <possible | conditional | not possible> — <reason and the conditions needed>
+- Necessity (필요성): <problem confirmed | problem expected | no problem> — <evidence link>
+- Community leads (커뮤니티 실마리): <# list from item 7; if none, "none">. This is the path by which the candidate was found, not evidence for the verdict
+- Cost (비용): version difference (버전 차이) <>, overlapping engine modification blocks (겹치는 엔진 수정 블록) <N>(<folder>), affected files (영향 파일) <N>(<search expression>), assets to save again (다시 저장할 에셋) <scope>, affected job roles (영향 직군) <>, way to roll back (되돌리는 방법) <>
+- Recommendation level (추천도): **<adopt | trial | assess | hold | already in use | verdict withheld — not confirmed>** — cap rules applied (걸린 상한 규칙): <list of L numbers or "none">
+- Trial plan (시험 계획) (only for trial): scope (범위) <>, duration (기간) <to be decided>, success criteria (성공 기준) <metric and target — perf Q-xxxx>, how to turn it off (끄는 방법) <>
+- Condition to revisit (다시 볼 조건): <event | date>
+- Questions passed (넘긴 질문): <Q-ID, receiving advisor>
 
-문제 목록이 비어 있으면 "풀어야 할 문제가 등록되지 않음"이라고 쓰고, 문제를 등록하는 방법(프로필 radar.interests, 다른 고문 리포트, 질문함, 사용자 요청)을 한 줄 안내한다.
+If the problem list is empty, write "No problem to solve is registered" (풀어야 할 문제가 등록되지 않음), and give one line on how to register problems (profile radar.interests, other advisors' reports, the question inbox, a user request).
 
-### 4. 다음 버전으로 올릴 때 걸리는 것
-이번 회차에 추가하거나 상태를 바꾼 행만 보이고, 전체는 radar-watchlist.md 에 있다고 적는다.
-| UP | 우리 → 다음 버전 | 걸리는 것 | 종류 | 우리 쪽 근거 | 출처 | 상태 |
+### 4. Blockers when upgrading to the next version (다음 버전으로 올릴 때 걸리는 것)
+Show only the rows added or whose status changed in this run, and write that the full table is in radar-watchlist.md.
+| UP | Ours → next version (우리 → 다음 버전) | Blocker (걸리는 것) | Kind (종류) | Evidence on our side (우리 쪽 근거) | Source (출처) | Status (상태) |
 |---|---|---|---|---|---|---|
-다음 버전이 우리 버전과 같으면 "해당 없음 — 우리가 최신 정식 버전(SC-xxx)".
+If the next version is the same as our version, "not applicable — we are on the latest official version (SC-xxx)" (해당 없음 — 우리가 최신 정식 버전(SC-xxx)).
 
-### 5. 개발 도구용 AI
-정책(radar.ai_tool_policy)이 미확인이면 한 줄: "개발 도구용 AI — 정책 확인 필요(N건 보류)". 확인됐으면 3 항목 형식으로 쓰고, 가격은 "확인일 기준 공개 가격"으로만 적는다.
+### 5. AI for development tools (개발 도구용 AI)
+If the policy (radar.ai_tool_policy) is unchecked, one line: "AI for development tools — policy check needed (N items held)" (개발 도구용 AI — 정책 확인 필요(N건 보류)). If it is confirmed, write in the format of item 3, and write prices only as "public price as of the check date" (확인일 기준 공개 가격).
 
-### 6. 문제와 이어지지 않는 소식
-- <기술> — <발표 단계와 짧은 인용> — <URL>, 발행 <YYYY-MM-DD>
-- <글 제목> — <채널 이름>, 커뮤니티 글 — <URL>, 작성 <YYYY-MM-DD>
-(한 줄씩. 판정하지 않는다.)
+### 6. News that connects to no problem (문제와 이어지지 않는 소식)
+- <technology> — <announcement stage and a short quote> — <URL>, published (발행) <YYYY-MM-DD>
+- <post title> — <channel name>, community post (커뮤니티 글) — <URL>, posted (작성) <YYYY-MM-DD>
+(One line each. Do not rate them.)
 
-### 7. 커뮤니티에서 찾은 실마리
-| # | 채널 | 글 제목 | URL | 날짜 | 원문 인용 | 1차 확인 결과 | 보낸 곳 |
+### 7. Community leads (커뮤니티에서 찾은 실마리)
+| # | Channel (채널) | Post title (글 제목) | URL | Date (날짜) | Original quote (원문 인용) | Primary confirmation result (1차 확인 결과) | Sent to (보낸 곳) |
 |---|---|---|---|---|---|---|---|
-| 1 | qiita | <제목> | <URL> | 작성 YYYY-MM-DD | "<원문>" (번역: <한국어>) | 확인함 — <1차 출처 URL>, 확인 YYYY-MM-DD | ① TI-012 |
-| 2 | 사용자 제공(reddit) | <제목> | <사용자가 준 URL 또는 "없음"> | 작성 YYYY-MM-DD | "<원문>" | 확인 못 함 — <찾아본 1차 출처와 결과> | 실마리로만 둠 |
+| 1 | qiita | <title> | <URL> | posted (작성) YYYY-MM-DD | "<original>" (translation (번역): <in the report language>) | confirmed (확인함) — <primary source URL>, checked YYYY-MM-DD | ① TI-012 |
+| 2 | provided by the user (reddit) (ko: 사용자 제공(reddit)) | <title> | <URL the user gave, or "none"> | posted (작성) YYYY-MM-DD | "<original>" | not checked (확인 못 함) — <primary sources looked at and the result> | kept as a lead only (실마리로만 둠) |
 
-- ①의 실마리와 ②의 후보만 이 표에 쓴다. ③으로 보낸 글은 6 항목의 한 줄로 충분하다.
-- 원문 인용은 일본어·중국어면 원문 뒤에 한국어 번역을 붙인다. 한국어·영어 글은 원문만 적는다.
-- 1차 확인 결과는 넷 중 하나다: 확인함(1차 출처와 확인일) / 어긋남(1차 출처가 다르게 말함. 둘 다 적는다) / 확인 못 함(찾아본 곳과 결과) / 원문이 1차(글이 링크한 원문이 공식 자료였음).
-- 보낸 곳은 ① TI-ID, ② 3.<n>, "실마리로만 둠" 가운데 하나다. 1차로 확인하지 못한 것은 "실마리로만 둠"이다.
-- 커뮤니티 글이 하나도 없었으면 "읽은 채널 N개, 해당 글 없음"이라고 쓴다. 채널을 열지 못했으면 그 사실을 "확인 못 한 것"에 적는다.
+- Put only leads for ① and candidates for ② in this table. A post sent to ③ needs only one line in item 6.
+- If the original quote is Japanese or Chinese, add a translation into the report language after the original. For Korean and English posts, write only the original.
+- The primary confirmation result is one of four: confirmed (확인함) (primary source and check date) / disagrees (어긋남) (the primary source says something different; write both) / not checked (확인 못 함) (places looked at and the result) / original is primary (원문이 1차) (the original that the post linked was official material).
+- Sent to is one of ① TI-ID, ② 3.<n>, or "kept as a lead only" (실마리로만 둠). What could not be confirmed with a primary source is "kept as a lead only".
+- If there were no community posts at all, write "N channels read, no relevant posts" (읽은 채널 N개, 해당 글 없음). If a channel could not be opened, write that in "Not checked".
 
-### 부록 A. 출처 목록
-| # | 제목 | URL | 출처 종류 | 발행일 | 확인일 | 열림 |
+### Appendix A. Source list (부록 A. 출처 목록)
+| # | Title (제목) | URL | Source kind (출처 종류) | Publish date (발행일) | Check date (확인일) | Opened (열림) |
 |---|---|---|---|---|---|---|
 
-### 부록 B. 기억에서 나온 내용 — 근거 아님
-- <내용>
+### Appendix B. Content from memory — not evidence (부록 B. 기억에서 나온 내용 — 근거 아님)
+- <content>
 ```
 
-## 단일 기술 진단 본문
+## Single-technology diagnosis body
 
 ```markdown
-### 1. 질문
-- 질문: "<기술>로 우리의 <문제>를 풀 수 있는가" 또는 "<버전>으로 올리면 무엇이 걸리고 무엇을 얻는가"
-- 대상 종류: 기술 | 엔진 버전
-- 문제 출처: <티켓·기획서·perf 리포트·질문함 ID·사용자 말 | 문제 없음>
-- 추적 ID: <TW-xxx, 새로 만들었으면 그렇게 적음>
+### 1. Question (질문)
+- Question (질문): "Can <technology> solve our <problem>?" or "If we upgrade to <version>, what blocks us and what do we gain?" (ko: "<기술>로 우리의 <문제>를 풀 수 있는가" or "<버전>으로 올리면 무엇이 걸리고 무엇을 얻는가")
+- Target type (대상 종류): technology (기술) | engine version (엔진 버전)
+- Problem source (문제 출처): <ticket, design document, perf report, question inbox ID, what the user said | no problem (문제 없음)>
+- Tracking ID (추적 ID): <TW-xxx; if newly created, write so>
 
-### 2. 우리 쪽 사실
-| # | 사실 | 위치 | 근거 종류 |
+### 2. Facts on our side (우리 쪽 사실)
+| # | Fact (사실) | Location (위치) | Evidence type (근거 종류) |
 |---|---|---|---|
-(기술 목록 상태, 꺼진 이유, 관련 코드 범위와 검색식, 관련 엔진 폴더의 수정 블록 수)
+(technology inventory state, reason turned off, related code scope and search expression, modification block count of the related engine folders)
 
-### 3. 1차 출처로 본 기술
-| 버전 | 바뀐 점 | 발표 단계 원문 인용 | 범위 한정 문구 | 출처 |
+### 3. The technology according to primary sources (1차 출처로 본 기술)
+| Version (버전) | What changed (바뀐 점) | Original quote of the announcement stage (발표 단계 원문 인용) | Scope-limiting wording (범위 한정 문구) | Source (출처) |
 |---|---|---|---|---|
-- 지원 플랫폼: <플랫폼마다 표기와 출처, 미확인은 미확인>
-- 출시 사례: <게임, 출처, 출시 여부·측정 조건·팀 규모 공개 여부>
-- 알려진 문제: <1차·2차로 다시 확인한 것만. 커뮤니티에서만 본 것은 부록 C>
+- Supported platforms (지원 플랫폼): <mark and source for each platform; unconfirmed ones as "unconfirmed" (미확인)>
+- Shipped cases (출시 사례): <game, source, whether shipped, measurement conditions, whether the team size is disclosed>
+- Known problems (알려진 문제): <only what was checked again with primary or secondary sources. What was seen only in communities goes to Appendix C>
 
-### 4. 판정
-| 칸 | 값 | 근거 |
+### 4. Verdict (판정)
+| Column (칸) | Value (값) | Evidence (근거) |
 |---|---|---|
-| 발표 단계 | | |
-| 적용 가능성 | | |
-| 필요성 | | |
-| 추천도 | | 걸린 상한 규칙: |
+| Announcement stage (발표 단계) | | |
+| Applicability (적용 가능성) | | |
+| Necessity (필요성) | | |
+| Recommendation level (추천도) | | Cap rules applied (걸린 상한 규칙): |
 
-### 5. 비용과 위험
-(verdict-rules.md §6 의 단위로)
+### 5. Cost and risk (비용과 위험)
+(in the units of verdict-rules.md §6)
 
-### 6. 시험 계획
-(추천도가 시험일 때만. verdict-rules.md §8)
+### 6. Trial plan (시험 계획)
+(only when the recommendation level is trial. verdict-rules.md §8)
 
-### 7. 엔진 버전 점검표 결과
-(대상 종류가 엔진 버전일 때만. upgrade-checklist.md 의 표)
+### 7. Engine version checklist result (엔진 버전 점검표 결과)
+(only when the target type is engine version. The table in upgrade-checklist.md)
 
-### 8. 다시 볼 조건
+### 8. Condition to revisit (다시 볼 조건)
 
-### 부록 A. 출처 목록
-### 부록 B. 기억에서 나온 내용 — 근거 아님
-### 부록 C. 커뮤니티에서 찾은 실마리
-(정기 점검 본문 7 항목과 같은 표. 보낸 곳 칸은 "알려진 문제로 올림" 또는 "실마리로만 둠". 커뮤니티 글을 읽지 않았으면 "읽지 않음(조건 해당 없음)" 한 줄)
+### Appendix A. Source list (부록 A. 출처 목록)
+### Appendix B. Content from memory — not evidence (부록 B. 기억에서 나온 내용 — 근거 아님)
+### Appendix C. Community leads (부록 C. 커뮤니티에서 찾은 실마리)
+(The same table as item 7 of the periodic check body. The sent-to column is "raised as a known problem" (알려진 문제로 올림) or "kept as a lead only" (실마리로만 둠). If community posts were not read, one line: "not read (no condition met)" (읽지 않음(조건 해당 없음)))
 ```
 
-## 문체
+## Writing style
 
-- 평서문(~한다)으로 쓴다. 해요체를 쓰지 않는다. 대화로 내는 후속 제안만 "~할까요?"로 끝낸다.
-- 영어 용어는 처음 나올 때 뜻을 풀어 쓴다.
-- 설정 이름이나 클래스 이름을 설명 문장의 주어로 쓰지 않는다. 그 설정이 실제로 무엇을 바꾸는지를 쓰고, 이름은 괄호나 근거 칸에 둔다.
+- Write declarative sentences (in a Korean report, the plain ~한다 form). Do not use the polite 해요체 form. Only follow-up proposals given in the conversation end as a question ("~할까요?").
+- Explain the meaning of an English term the first time it appears.
+- Do not use a setting name or a class name as the subject of an explanatory sentence. Write what that setting actually changes, and put the name in parentheses or in the evidence column.

@@ -1,58 +1,60 @@
-# 리팩터링 필요성 판단
+# Judging whether refactoring is needed
 
-리팩터링은 모드가 아니다. 진단이나 주기 점검에서 대상이 정해졌을 때 이 기준으로 판단하고, 실제 수정은 사용자 승인 뒤 프로필 `code_change_entry` 의 스킬로 넘긴다. 여기서는 리팩터링이 필요한지까지만 정한다. 어떻게 고칠지(구조 선택, 모듈 나누기)는 TD 고문 설계 검토가 맡는다.
+Refactoring is not a mode. When a diagnosis or a periodic check has decided a target, judge it with these criteria. After user approval, hand the actual change to the skill in profile `code_change_entry`. This file decides only whether refactoring is needed. How to fix it (structure choices, module splitting) is the work of the TD advisor's design review.
 
-## 1. 세 축
+## 1. Three axes
 
-| 축 | 보는 것 | 수치 출처 |
+| Axis | What to look at | Source of the numbers |
 |---|---|---|
-| 성능 | 그 코드에 1·2순위 [확인] 항목이 있는가. 그 원인이 국소 수정(결과 저장해 두기, 부르는 빈도 낮추기, 일찍 빠져나오기)으로는 효과 상한을 얻을 수 없는 구조 문제인가. 예: 매 프레임 전체를 훑는 구조, 흩어진 자료 배치 | 측정 결과([확인]만) |
-| 변경 비용 | 기간 안 변경 횟수와 그 순위, 함께 바뀐 파일 수 평균, 자주 함께 바뀌는 파일 쌍, 파일 줄 수, 새 종류(무기·기술 같은 항목) 하나를 더할 때 새 파일 말고도 고쳐야 하는 기존 파일 수 | `vcs_churn.py`, 코드 읽기 |
-| 버그 빈도 | 그 파일을 고친 변경 가운데 버그 티켓이 걸린 수, 같은 함수가 다시 고쳐진 횟수 | `vcs_churn.py` 의 티켓 키 + 이슈 트래커 조회 |
+| Performance (성능) | Does that code have Priority 1 or Priority 2 [confirmed] items? Is their cause a structural problem for which local fixes (storing results, calling less often, returning early) cannot reach the effect ceiling? Examples: a structure that scans everything every frame, scattered data layout | Measurement results ([confirmed] only) |
+| Change cost (변경 비용) | Number of changes in the period and its rank, average number of files changed together, file pairs that often change together, file line count, number of existing files (besides new files) that must be changed to add one new kind (an entry such as a weapon or a skill) | `vcs_churn.py`, code reading |
+| Bug frequency (버그 빈도) | Among the changes to that file, the number linked to bug tickets; the number of times the same function was fixed again | Ticket keys from `vcs_churn.py` + issue tracker lookup |
 
-## 2. 수치 모으기
+## 2. Collecting the numbers
 
-대화 실행과 무인 실행이 같은 순서를 따른다. 무인 실행은 묻지 않고(1), 이슈 트래커를 조회하지 않는다(5).
+Conversation runs and unattended runs follow the same order. An unattended run does not ask (1) and does not query the issue tracker (5).
 
-1. **기간**: 점검 기록 판정 기준 표의 "리팩터링 이력 기간"을 쓴다. 비어 있으면 대화 실행은 사용자에게 묻는다. 무인 실행은 2~5 를 건너뛰고, 그 수치가 들어갈 칸을 "자료 없음(기간 미정)"으로 둔다.
-2. **읽기 명령 허용 확인**: 프로필 `vcs_read_commands` 에 git 이면 `git log`(줄 수를 세면 `git rev-parse` 도), p4 면 `p4 changes` 와 `p4 describe`(줄 수를 세면 `p4 fstat` 도)가 있어야 한다. 대화·무인 실행 모두 같다(공통 규칙 §7). 없으면 실행하지 않고 "확인 못 한 것"에 적는다.
-3. **비교 범위**: 순위는 비교할 다른 파일이 있어야 뜻이 있다. `--path` 에는 대상 파일만이 아니라 대상이 든 모듈 폴더나 `source_roots` 를 주고, 그 안에서 대상의 순위를 읽는다. 대상 경로만 주면 대상이 늘 1위로 나와 판정에 쓸 수 없다. 리포트에 비교 범위를 적는다.
-4. **실행** (`python` 이 없으면 `python3`):
+1. **Period**: Use "Refactoring history period" in the judgment criteria table of the check ledger. If it is empty, a conversation run asks the user. An unattended run skips 2 to 5, and leaves the fields where those numbers go as "no data (period not set)" (자료 없음(기간 미정)).
+2. **Check that read commands are allowed**: Profile `vcs_read_commands` must have `git log` for git (also `git rev-parse` if you count lines), and `p4 changes` and `p4 describe` for p4 (also `p4 fstat` if you count lines). This is the same in conversation and unattended runs (common rules §7). If they are not there, do not run it, and write it in "Not checked".
+3. **Comparison scope**: A rank has meaning only if there are other files to compare with. In `--path`, give not only the target file but the module folder that contains the target, or `source_roots`, and read the target's rank within it. If you give only the target path, the target always comes out first, and it cannot be used for the judgment. Write the comparison scope in the report.
+4. **Run** (if `python` is not available, `python3`):
 
    ```
    python "<플러그인 폴더>/scripts/vcs_churn.py" git --repo "<프로젝트 루트>" --since <시작일> --path <비교 범위> --sizes
    python "<플러그인 폴더>/scripts/vcs_churn.py" p4 --cwd "<프로젝트 루트>" --path <비교 범위 depot 경로>/... --since <시작일> --sizes
    ```
 
-   - 대상 파일이 파일 표(기본 상위 30개)에 없으면 `--top` 을 늘려 다시 돌린다. 그래도 없으면 "상위 N위 밖"으로 적는다.
-   - 티켓 키 접두사를 알면(점검 기록 판정 기준 표) `--ticket-prefix <접두사>` 를 준다. 모르면 결과 키 목록에서 키가 아닌 것을 사람이 거른다.
-   - "상한에 걸림"이 나오면 기간을 줄이거나 `--max-changes` 를 늘려 다시 돌린다.
-   - "검색 실패(시간 초과)"는 0건이 아니다(공통 규칙 §4). 경로나 기간을 좁혀 다시 돌린다.
-5. **버그 여부**: 스크립트는 티켓 종류를 조회하지 않는다. 세션에 이슈 트래커 도구가 있으면, 모은 키 전체로 **한 번에** 질의해 이슈 종류만 받는다(키가 많으면 100개씩 나눠도 되지만 파일마다 따로 묻지 않는다). 버그로 셀 이슈 종류·라벨은 판정 기준 표의 값을 쓰고, 없으면 사용자에게 묻는다. 도구가 없거나 무인 실행이면 키 목록만 리포트에 남기고 버그 빈도 축은 "자료 없음"으로 둔다. 이때도 변경 비용 축은 1~4 와 6 의 수치로 판정한다.
-6. **새 종류 하나를 더할 때 고칠 파일 수**: `advisors:analyst` 에게 대상 시스템에서 종류별로 갈라지는 자리(목록 등록, 분기문, 자료 표)를 찾게 해서 센다. 지시에 "파일:줄 과 그 자리가 종류마다 고쳐야 하는 곳인지"를 돌려받을 칸으로 넣는다.
+   - If the target file is not in the file table (top 30 by default), increase `--top` and run it again. If it is still not there, write "outside the top N" (상위 N위 밖).
+   - If you know the ticket key prefix (judgment criteria table of the check ledger), give `--ticket-prefix <접두사>`. If you do not know it, a person filters out the non-keys from the resulting key list.
+   - If "상한에 걸림" (limit reached) appears, shorten the period or increase `--max-changes`, and run it again.
+   - "검색 실패(시간 초과)" (search failed (timeout)) is not 0 results (common rules §4). Narrow the path or the period and run it again.
+5. **Whether it is a bug**: The script does not look up ticket types. If the session has an issue tracker tool, query **all the collected keys at once** and receive only the issue types (if there are many keys, you can split them into groups of 100, but do not ask separately for each file). For the issue types and labels counted as bugs, use the value in the judgment criteria table. If it is not there, ask the user. If there is no tool, or it is an unattended run, leave only the key list in the report and set the bug frequency axis to "no data" (자료 없음). Even in this case, judge the change cost axis with the numbers from 1 to 4 and 6.
+6. **Number of files to change to add one new kind**: Have `advisors:analyst` find the places in the target system that branch by kind (list registration, branch statements, data tables), and count them. In the instruction, put "file:line and whether that place must be changed for each kind" as a field to return.
 
-## 3. 판정
+## 3. Judgment
 
-- 절대 기준값을 지어내지 않는다. 판정 기준 표에 기준이 없으면 아래 임시 기준을 쓰고 "(임시 기준)"이라고 적은 뒤, 기준을 정해 달라고 "결정이 필요한 것"에 올린다.
-  - 변경 비용 축: 비교 범위 안 변경 횟수 순위가 상위 10위 안
-  - 버그 빈도 축: 버그 티켓이 걸린 변경이 2건 이상(버그 수정이 되풀이됐다)
-- 수치가 없는 축은 "자료 없음"으로 적는다. "해당 없음"으로 치지 않는다. 해당하는 축이 없어도 "자료 없음" 축이 있으면 비권장이 아니라 보류로 두고, 모자란 자료를 적는다.
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-| 판정 | 조건 |
+- Do not make up absolute threshold values. If the judgment criteria table has no criterion, use the temporary criteria below, write "(temporary criterion)" ((임시 기준)), and raise setting the criterion in "Decisions needed".
+  - Change cost axis: the rank of the number of changes within the comparison scope is in the top 10
+  - Bug frequency axis: 2 or more changes linked to bug tickets (bug fixes recurred)
+- Write an axis without numbers as "no data". Do not count it as "not applicable" (해당 없음). Even if no axis applies, if there is a "no data" axis, set it to on hold instead of not recommended, and write the missing data.
+
+| Judgment (판정) | Condition |
 |---|---|
-| 권장 | 두 축 이상 해당한다. 또는 성능 축이 1순위이면서 구조 문제다 |
-| 보류 | 한 축만 해당한다. 다음 점검에서 다시 본다 |
-| 비권장 | 해당하는 축이 없다. 폐기 예정 코드다(판정 기준 표의 "점검 제외 경로"). 엔진 코드다(게임 코드·설정 쪽 해결을 먼저 본다. 엔진 수정 블록 정리는 TD 고문 구조 점검의 '엔진 수정' 범위다) |
+| Recommended (권장) | Two or more axes apply. Or the performance axis is Priority 1 and it is a structural problem |
+| On hold (보류) | Only one axis applies. Look again in the next check |
+| Not recommended (비권장) | No axis applies. It is code to be retired ("Paths excluded from checks" in the judgment criteria table). It is engine code (look at solutions on the game code and settings side first; cleaning up engine-modification blocks is the 'engine modifications' scope of the TD advisor's structure audit) |
 
-- "읽기 어렵다"는 이유만으로는 권장하지 않는다.
-- 성능이 좋아도 변경 비용과 버그 빈도 두 축으로 권장할 수 있다. 이때 리포트의 그 행에 "성능 근거 아님"이라고 적고, 성능 등급 판단과 섞지 않는다.
-- 권장할 때는 동작 고정 테스트를 먼저 제안한다(`tests.md`). 테스트를 세울 수 없으면 리팩터링 범위를 줄이거나, 측정·수동 확인 절차를 대신 적는다.
-- 판정은 제안이다. 실제 리팩터링은 사용자 승인 뒤 `code_change_entry` 로 넘기고, 승인 등급(`tests.md` 4번 항목)을 함께 표시한다.
+- Do not recommend for the reason "it is hard to read" alone.
+- Even if performance is good, you can recommend based on the two axes of change cost and bug frequency. In this case, write "not a performance reason" (성능 근거 아님) in that row of the report, and do not mix it with the performance grade judgment.
+- When you recommend, first propose a behavior-locking test (`tests.md`). If a test cannot be set up, reduce the refactoring scope, or write a measurement or manual check procedure instead.
+- The judgment is a proposal. Hand the actual refactoring to `code_change_entry` after user approval, and mark the approval level (`tests.md` item 4) with it.
 
-## 4. 리포트 표
+## 4. Report table
 
 ```markdown
-| 대상 | 성능 | 변경 비용 | 버그 빈도 | 판정 | 수치를 낸 명령 |
+| Target (대상) | Performance (성능) | Change cost (변경 비용) | Bug frequency (버그 빈도) | Judgment (판정) | Command that produced the numbers (수치를 낸 명령) |
 |---|---|---|---|---|---|
-| <파일 또는 시스템> | <등급, 측정값, 구조 문제 여부 / 자료 없음> | <변경 N회(비교 범위 <경로> 안 N위), 함께 바뀐 파일 평균 N, N줄> | <버그 티켓 N / 티켓 키 N / 자료 없음> | 권장 / 보류 / 비권장 (성능 근거 아님) | <스크립트 명령, 이슈 트래커 질의> |
+| <file or system> | <grade, measured value, whether it is a structural problem / no data (자료 없음)> | <N changes (rank N within comparison scope <path>), average N files changed together, N lines> | <N bug tickets / N ticket keys / no data (자료 없음)> | recommended (권장) / on hold (보류) / not recommended (비권장) (not a performance reason (성능 근거 아님)) | <script command, issue tracker query> |
 ```

@@ -52,6 +52,7 @@
 
 - 저장 위치: 프로필의 `report_dir` (기본 `.claude/advisors/reports`). git 프로젝트라면 공유하지 않을 리포트 폴더를 `.gitignore` 에 넣는다.
 - 파일 이름: `<report_dir>/<고문>/<작성일>-<모드>.md`. 모드 부분은 영어 소문자다.
+- 언어: 리포트와 새로 만드는 `_state` 기록 파일은 프로필 `report_language` 를 따른다. 기본은 `en`(영어)이고, `ko` 로 두면 한국어로 쓴다. 대화는 사용자가 쓰는 말로 한다. 스크립트가 읽는 줄(`Next check:`/`다음 점검:`, `Last updated:`/`마지막 갱신:`, 상태 값, 표 칸 이름)은 두 형식을 모두 읽으므로, 한국어로 쓰던 기존 파일도 그대로 쓸 수 있다. 이미 있는 파일은 원래 쓰던 언어를 유지한다. `tech_inventory.py` 가 직접 쓰는 `radar-inventory.md` 는 늘 한국어다. 대응표는 [shared/state-formats.md](shared/state-formats.md)의 "Literal tokens that scripts read" 에 있다.
 
   | 고문 | 모드 |
   |---|---|

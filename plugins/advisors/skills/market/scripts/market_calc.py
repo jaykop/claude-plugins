@@ -252,6 +252,30 @@ def _split_row(line):
     return [c.strip() for c in cells.split("|")]
 
 
+# market-snapshot.md 는 프로필 report_language 에 따라 한국어나 영어 칸 이름으로 쓴다.
+# 영어 칸 이름은 한국어 칸 이름으로 바꿔 읽으므로, 아래 코드는 한국어 이름만 쓴다.
+_SNAPSHOT_COLUMNS = {
+    "metric id": "지표 ID", "game": "게임", "metric": "지표", "value": "값", "source": "출처",
+    "base period": "기준 기간", "accessed": "조회일", "note": "메모",
+}
+
+
+def _column_name(cell):
+    """칸 이름을 한국어 이름으로 맞춘다. "Metric ID (지표 ID)" 처럼 두 이름을 함께 적은 칸도 읽는다."""
+    names = [cell]
+    m = re.match(r"^(.*?)\s*\((.*)\)\s*$", cell)
+    if m:
+        names += [m.group(1), m.group(2)]
+    for n in names:
+        key = n.strip().lower()
+        if key in _SNAPSHOT_COLUMNS:
+            return _SNAPSHOT_COLUMNS[key]
+    for n in names[1:]:
+        if re.search(r"[가-힣]", n):
+            return n.strip()
+    return cell
+
+
 def _read_snapshot(path):
     if not os.path.isfile(path):
         _fail("파일이 없다: {}".format(path))
@@ -267,8 +291,9 @@ def _read_snapshot(path):
                 continue
             cells = _split_row(s)
             if header is None:
-                if "지표 ID" in cells:
-                    header = cells
+                names = [_column_name(c) for c in cells]
+                if "지표 ID" in names:
+                    header = names
                 continue
             if all(re.fullmatch(r":?-{2,}:?", c or "--") for c in cells):
                 continue
@@ -303,7 +328,7 @@ def _latest(rows):
 def cmd_snapshot(args):
     rows = _read_snapshot(args.file)
     if not rows:
-        _fail("'지표 ID' 칸이 있는 표에서 MS- 로 시작하는 줄을 찾지 못했다: {}".format(args.file))
+        _fail("'지표 ID'(Metric ID) 칸이 있는 표에서 MS- 로 시작하는 줄을 찾지 못했다: {}".format(args.file))
     latest, latest_num, count, count_num = _latest(rows)
     lines = []
     if not args.new:

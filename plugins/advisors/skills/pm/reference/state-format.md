@@ -1,102 +1,104 @@
-# PM 고문의 기록 파일 형식
+# Record file formats of the PM advisor
 
-`<report_dir>/_state/` 에 PM 고문만 쓰는 파일 세 개를 둔다. 머리 형식은 `shared/state-formats.md` 와 같다. 파일 이름이 `pm-` 로 시작하므로 세션 시작 알림(`scripts/due_check.py`)이 `다음 점검:` 줄을 읽는다. pm-cadence.md 는 그 날짜가 되면 `pm_calc.py cadence` 로 때가 된 행의 점검 이름을 찾아 함께 알린다.
+`<report_dir>/_state/` holds three files that only the PM advisor writes. The head format is the same as in `shared/state-formats.md`. The file names start with `pm-`, so the session start notice (`scripts/due_check.py`) reads the `Next check:` line. When that date comes for pm-cadence.md, the notice also finds the check names of the due rows with `pm_calc.py cadence` and announces them together.
 
-`pm_calc.py` 가 표를 칸 이름으로 읽는다. 칸 이름과 순서를 바꾸지 않는다. 칸을 더할 때는 맨 끝에 더한다.
+`pm_calc.py` reads the tables by column name. Do not change the column names or their order. If you add a column, add it at the end.
 
-## pm-cadence.md — 정기 점검표
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-다른 고문의 정기 점검, 리팩터링 판단, 플레이테스트처럼 주기를 갖는 일을 한곳에서 관리한다. PM 은 이 표로 때가 된 일을 알려 주고, 사용자가 동의하면 해당 고문을 부르거나 예약 작업을 제안한다. PM 이 다른 고문의 리포트를 대신 쓰지는 않는다.
+## pm-cadence.md — Periodic check table
+
+This file manages in one place the work that has a cycle, such as the other advisors' periodic checks, refactoring judgments, and playtests. With this table, the PM announces the work that is due, and if the user agrees, it calls that advisor or proposes a scheduled task. The PM does not write another advisor's report in its place.
 
 ```markdown
-# PM 정기 점검표
+# PM periodic check table (PM 정기 점검표)
 
-다음 점검: YYYY-MM-DD
-작성: pm / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <커밋>
+Next check: YYYY-MM-DD
+Written by: pm / Last updated: YYYY-MM-DD / Base revision: <commit>
 
-| ID | 점검 | 실행 방법 | 주기 | 기록 패턴 | 마지막 실행 | 메모 |
+| ID | Check (점검) | How to run (실행 방법) | Period (주기) | Record pattern (기록 패턴) | Last run (마지막 실행) | Note (메모) |
 |---|---|---|---|---|---|---|
-| PC-001 | 주간 점검 | /advisors:pm 주간 점검 | 7 | pm/*-weekly*.md | - | |
-| PC-002 | 성능 주기 점검 | /advisors:perf 주기 점검 | 7 | perf/*-periodic*.md | - | 새 측정 파일이 있을 때만 리포트가 생긴다 |
-| PC-003 | 리팩터링 판단 | /advisors:perf 진단 <영역> 리팩터링 필요성 | 28 | - | YYYY-MM-DD | 진단 리포트가 다른 목적과 섞이므로 마지막 실행을 직접 적는다 |
-| PC-004 | 기술 동향 정기 점검 | /advisors:radar 정기 점검 | 30 | radar/*-periodic*.md | - | |
-| PC-005 | 시장 변화 점검 | /advisors:market 변화 점검 | 90 | market/*-check*.md | - | |
-| PC-006 | 기획 영역 점검 | /advisors:design 영역 진단 <영역> | 마일스톤 14일 전 | design/*-area*.md | - | |
-| PC-007 | 플레이테스트 | 사람이 진행. 계획은 /advisors:pm 플레이테스트 계획 | 14 | - | - | |
-| PC-008 | 마일스톤 회고 | /advisors:pm 마일스톤 회고 | 조건 — 마일스톤 종료 | pm/*-retro*.md | - | |
-| PC-009 | 기술 부채 점검 | /advisors:td 구조 점검 기술 부채 | 마일스톤 30일 전 | 갱신:_state/td-debt.md | - | 구조 점검 리포트는 범위가 섞이므로 기술 부채 기록의 마지막 갱신으로 본다. 주기의 일수는 TD 기록 판정 기준 표의 "마일스톤 전 알림 일수"와 맞춘다 |
+| PC-001 | Weekly check (주간 점검) | /advisors:pm 주간 점검 | 7 | pm/*-weekly*.md | - | |
+| PC-002 | Performance periodic check (성능 주기 점검) | /advisors:perf 주기 점검 | 7 | perf/*-periodic*.md | - | A report is made only when there is a new measurement file |
+| PC-003 | Refactoring judgment (리팩터링 판단) | /advisors:perf 진단 <영역> 리팩터링 필요성 | 28 | - | YYYY-MM-DD | Diagnosis reports mix with other purposes, so write the last run directly |
+| PC-004 | Technology trend periodic check (기술 동향 정기 점검) | /advisors:radar 정기 점검 | 30 | radar/*-periodic*.md | - | |
+| PC-005 | Market change check (시장 변화 점검) | /advisors:market 변화 점검 | 90 | market/*-check*.md | - | |
+| PC-006 | Design area check (기획 영역 점검) | /advisors:design 영역 진단 <영역> | 14 days before milestone | design/*-area*.md | - | |
+| PC-007 | Playtest (플레이테스트) | Run by people. For the plan: /advisors:pm 플레이테스트 계획 | 14 | - | - | |
+| PC-008 | Milestone retrospective (마일스톤 회고) | /advisors:pm 마일스톤 회고 | Condition — milestone ends | pm/*-retro*.md | - | |
+| PC-009 | Technical debt check (기술 부채 점검) | /advisors:td 구조 점검 기술 부채 | 30 days before milestone | updated:_state/td-debt.md | - | Structure audit reports mix scopes, so use the last update of the technical debt record. Match the number of days of the period to "Days of notice before a milestone" in the Criteria table of the TD ledger |
 ```
 
-- **실행 방법**: 슬래시 명령이나 사람이 할 일. 프로젝트 고유 점검(규칙 검사 스크립트, 백업 확인 등)도 넣을 수 있다. 명령은 사용자가 동의했을 때만 부른다.
-- **주기**: 날수(정수), `마일스톤 N일 전`, `조건 — <설명>` 가운데 하나. 날수가 아닌 주기는 `pm_calc.py cadence` 가 날짜를 계산하지 않거나(조건) 프로필 `next_milestone` 날짜로 계산한다.
-- **기록 패턴**: `report_dir` 기준 glob. 맞는 파일 이름 앞 날짜 가운데 가장 늦은 날을 마지막 실행으로 본다. 파일 시스템 시각은 쓰지 않는다(공통 규칙 §3). 리포트가 남지 않는 일은 `-` 로 두고 마지막 실행 칸에 날짜를 적는다.
-- 기록 패턴을 `갱신:<report_dir 기준 경로>` 로 적으면 그 파일 머리의 `마지막 갱신` 날짜를 마지막 실행으로 본다. 리포트가 여러 목적으로 섞여 파일 이름으로 가릴 수 없고, 그 고문이 점검할 때만 고치는 기록 파일이 있을 때 쓴다(예: `갱신:_state/td-debt.md`). 날짜가 아닌 값(예: "점검 전")이면 실행 기록이 없는 것으로 본다.
-- 두 값이 모두 있으면 늦은 쪽을 쓴다.
-- **머리의 `다음 점검:`** 은 `pm_calc.py cadence` 출력의 "가장 이른 다음 예정일(오늘 이후)"이다. 이미 지난 항목이 남아 있으면 오늘 날짜를 쓴다(다음 세션 시작 때 다시 알리게).
-- 처음 만들 때는 이 예에서 프로젝트에 맞는 행만 남긴다. 켜 두지 않은 고문의 행은 넣지 않는다. 주기는 각 고문 SKILL.md 의 기본 주기를 제안하고 사용자가 정한 값을 쓴다.
+- **How to run** (실행 방법): a slash command or a task for a person. You can also add checks specific to the project (rule check scripts, backup checks, and so on). Call a command only when the user agreed.
+- **Period** (주기): one of a number of days (integer), `N days before milestone` (`마일스톤 N일 전`), or `Condition — <description>` (`조건 — <설명>`). For a period that is not a number of days, `pm_calc.py cadence` does not calculate a date (condition), or it calculates the date from the profile `next_milestone` date.
+- **Record pattern** (기록 패턴): a glob relative to `report_dir`. The latest of the dates at the start of the matching file names is the last run. Do not use file system times (common rules §3). For work that leaves no report, write `-` and write the date in the Last run column.
+- If you write the record pattern as `updated:<path relative to report_dir>` (`갱신:<path>`), the `Last updated` date at the head of that file is the last run. Use it when reports mix several purposes so that file names cannot tell them apart, and there is a record file that the advisor changes only when it checks (example: `updated:_state/td-debt.md`). If the value is not a date (for example, "not checked yet" (점검 전)), treat it as no run record.
+- If both values exist, use the later one.
+- **`Next check:` in the head** is the "가장 이른 다음 예정일(오늘 이후)" (earliest next due date after today) line of the `pm_calc.py cadence` output. If past items remain, write today's date (so that the next session start announces them again).
+- When you make the file for the first time, keep only the rows of this example that fit the project. Do not add rows for advisors that are not turned on. For each period, propose the default cycle in that advisor's SKILL.md, and write the value that the user decided.
 
-## pm-risks.md — 위험 목록
+## pm-risks.md — Risk list
 
-판단 방법은 `methods.md` 2번 항목.
+The judgment method is item 2 of `methods.md`.
 
 ```markdown
-# PM 위험 목록
+# PM risk list (PM 위험 목록)
 
-다음 점검: 조건 — 주간 점검 때 함께 확인
-작성: pm / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <커밋>
+Next check: Condition — check together at the weekly check
+Written by: pm / Last updated: YYYY-MM-DD / Base revision: <commit>
 
-| ID | 위험 | 종류 | 영향 | 가능성 | 대응책 | 결정 시점 | 상태 | 근거 | 마지막 확인 |
+| ID | Risk (위험) | Kind (종류) | Impact (영향) | Likelihood (가능성) | Response (대응책) | Decide by (결정 시점) | Status (상태) | Evidence (근거) | Last checked (마지막 확인) |
 |---|---|---|---|---|---|---|---|---|---|
-| PR-001 | <일어날 수 있는 일> | 사람 / 프로젝트 / 제작 과정 / 기술 | 치명 / 심각 / 보통 / 가벼움 | 높음 / 중간 / 낮음 | a) 능동: ... b) 대체: ... | YYYY-MM-DD 또는 "<마일스톤 이름>" | 관찰 / 대응 중 / 해소 / 폐기 | 파일:줄, 이슈, 리포트 | YYYY-MM-DD |
+| PR-001 | <what can happen> | people (사람) / project (프로젝트) / production process (제작 과정) / technology (기술) | critical (치명) / severe (심각) / moderate (보통) / minor (가벼움) | high (높음) / medium (중간) / low (낮음) | a) active (능동): ... b) fallback (대체): ... | YYYY-MM-DD or "<milestone name>" | watching (관찰) / responding (대응 중) / resolved (해소) / dropped (폐기) | file:line, issue, report | YYYY-MM-DD |
 
-## 해소 기록
-| ID | 해소일 | 어떻게 해소했나 |
+## Resolution record (해소 기록)
+| ID | Resolved on (해소일) | How it was resolved (어떻게 해소했나) |
 |---|---|---|
 ```
 
-- 점수와 순서는 `pm_calc.py risks` 가 영향 × 가능성으로 계산한다. 표에 점수 칸을 두지 않는다(손으로 쓴 점수와 계산이 어긋나지 않게).
-- 결정 시점이 `<마일스톤 이름>` 이면 그 마일스톤 날짜를 `--milestone-date` 로 넘긴다. 다른 마일스톤이면 날짜를 직접 적는다.
-- 지우지 않는다. 해소되면 상태를 "해소"로 바꾸고 해소 기록 표에 한 줄을 더한다.
-- 근거 없이 가능성을 "높음"으로 적지 않는다. 근거가 추정이면 근거 칸에 "추정"을 붙인다.
+- `pm_calc.py risks` calculates the score and the order as Impact × Likelihood. Do not put a score column in the table (so that a handwritten score and the calculation do not disagree).
+- If the Decide by value is `<milestone name>`, pass the date of that milestone with `--milestone-date`. For another milestone, write the date directly.
+- Do not delete rows. When a risk is resolved, change the status to "resolved" and add one line to the Resolution record table.
+- Do not write the likelihood as "high" without evidence. If the evidence is an estimate, add "estimated" (추정) in the Evidence column.
 
-## pm-plan.md — 마일스톤 계획과 주간 기록
+## pm-plan.md — Milestone plan and weekly log
 
 ```markdown
-# PM 마일스톤 계획
+# PM milestone plan (PM 마일스톤 계획)
 
-다음 점검: 마일스톤 7일 전
-작성: pm / 마지막 갱신: YYYY-MM-DD / 기준 리비전: <커밋>
+Next check: 7 days before milestone
+Written by: pm / Last updated: YYYY-MM-DD / Base revision: <commit>
 
-## 현재 마일스톤
-| 항목 | 값 |
+## Current milestone (현재 마일스톤)
+| Item (항목) | Value (값) |
 |---|---|
-| 이름 | ... |
-| 기간 | YYYY-MM-DD ~ YYYY-MM-DD |
-| 목표 | 한 문장 |
-| 출처 | 트래커 마일스톤 설명 / 프로필 next_milestone / 사용자 |
+| Name (이름) | ... |
+| Date range (기간) | YYYY-MM-DD ~ YYYY-MM-DD |
+| Goal (목표) | one sentence |
+| Source (출처) | tracker milestone description (트래커 마일스톤 설명) / profile next_milestone (프로필 next_milestone) / user (사용자) |
 
-## 완료 기준
-| ID | 기준 | 등급 | 확인 방법 | 상태 | 확인일 | 근거 |
+## Completion criteria (완료 기준)
+| ID | Criterion (기준) | Grade (등급) | Check method (확인 방법) | Status (상태) | Check date (확인일) | Evidence (근거) |
 |---|---|---|---|---|---|---|
-| MC-001 | ... | 필수 / 기본 / 추가 | 빌드에서 직접 해 보기 / 시연 / 플레이테스트 | 없음 / 일부 / 완료 / 제외 / 해당 없음 | YYYY-MM-DD | 이슈·리포트 |
+| MC-001 | ... | must (필수) / basic (기본) / extra (추가) | try it directly in the build (빌드에서 직접 해 보기) / demo (시연) / playtest (플레이테스트) | none (없음) / partial (일부) / done (완료) / excluded (제외) / not applicable (해당 없음) | YYYY-MM-DD | issue·report |
 
-## 남은 마일스톤별 통
-| 마일스톤 | 담을 일 (이슈 번호나 짧은 이름) | 필수 규모 합(h) | 메모 |
+## Buckets by remaining milestone (남은 마일스톤별 통)
+| Milestone (마일스톤) | Work to include (issue numbers or short names) (담을 일 (이슈 번호나 짧은 이름)) | Must size sum (h) (필수 규모 합(h)) | Note (메모) |
 |---|---|---|---|
 
-## 용량 기록
-| 계산일 | 기간 | 계획 가능 시간(h) | 필수 규모(h) | 필수 비율 | 명령 |
+## Capacity record (용량 기록)
+| Calculated on (계산일) | Date range (기간) | Plannable time (h) (계획 가능 시간(h)) | Must size (h) (필수 규모(h)) | Must ratio (필수 비율) | Command (명령) |
 |---|---|---|---|---|---|
 
-## 순서를 바꾼 기록
-| 날짜 | 바꾼 것 | 이유 |
+## Order change record (순서를 바꾼 기록)
+| Date (날짜) | What changed (바꾼 것) | Reason (이유) |
 |---|---|---|
 
-## 주간 기록
-| 주(시작일) | 계획한 일 | 끝낸 일 | 늦어진 일과 원인 | 바꿀 것 |
+## Weekly log (주간 기록)
+| Week (start date) (주(시작일)) | Planned work (계획한 일) | Finished work (끝낸 일) | Delayed work and cause (늦어진 일과 원인) | What to change (바꿀 것) |
 |---|---|---|---|---|
 ```
 
-- 원인 칸은 `methods.md` 6-1 의 원인 낱말 가운데 하나를 쓴다.
-- 트래커가 있는 프로젝트에서 완료 기준과 이슈 상태가 다르면 트래커를 사실로 보고, 차이를 리포트의 "결정이 필요한 것"에 올린다. PM 은 트래커를 고치지 않는다.
-- 마일스톤이 끝나면 이 파일을 지우지 않는다. 회고 리포트를 쓴 뒤 "현재 마일스톤"과 "완료 기준"을 새 마일스톤 값으로 바꾸고, 지난 값은 회고 리포트에 남는다.
+- In the cause column, write one of the cause words of `methods.md` 6-1.
+- In a project with a tracker, if the completion criteria and the issue states differ, treat the tracker as the fact, and raise the difference in "Decisions needed" of the report. The PM does not change the tracker.
+- When a milestone ends, do not delete this file. After you write the retrospective report, replace "Current milestone" and "Completion criteria" with the values of the new milestone. The previous values stay in the retrospective report.

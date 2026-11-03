@@ -1,138 +1,140 @@
-# TD 고문 판정 규칙
+# TD advisor verdict rules
 
-설계 검토는 이 파일의 순서대로 쓴다. 요구 → 선택지 비교 → 바꿀 이유 → 상한 규칙 → 결론 → 자기 반박 → 결정권자. 기술 동향 고문의 도입·시험·검토·보류는 쓰지 않는다. 두 고문의 판정 용어가 섞이지 않게 하기 위해서다.
+Write a design review in the order of this file: requirements → option comparison → reason to change → cap rules → conclusion → self-rebuttal → decision owner. Do not use the adopt · trial · assess · hold verdicts of the technology trend advisor. The reason: so that the verdict terms of the two advisors do not get mixed.
 
-## 1. 근거 표시와 등급
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-모든 사실에 표시를 붙인다. 표시는 공통 등급(rules.md §1 의 확인함 / 추정 / 모름)에 대응한다.
+## 1. Evidence marks and grades
 
-| 표시 | 무엇 | 등급 |
+Attach a mark to every fact. Each mark maps to a common grade (confirmed / estimated / unknown in rules.md §1).
+
+| Mark (표시) | What | Grade |
 |---|---|---|
-| [팀문서] | 팀 기술 규칙, 설계 기록, 사고 기록의 경로:줄 | 규칙이 있다는 사실은 확인함. 문서 속 원인 분석·효과 주장은 추정("출처 문서의 추정") |
-| [코드] | 이번 실행에서 우리 코드에서 읽거나 센 것. 경로:줄, 검색식과 결과 개수 | 정적 확인은 확인함. 실행 순서 추정과 연결 추정은 추정 |
-| [엔진] | 로컬 엔진 소스의 경로:줄 | 코드에 적힌 호출과 조건은 확인함. 돌려 보지 않은 실행 순서와 같은 프레임 여부는 추정 |
-| [측정] | perf 리포트나 측정 파일 | 원래 등급 그대로 |
-| [이력] | `vcs_churn.py` 결과, 이슈 트래커 조회 | 확인함 |
-| [1차] | 이번 실행에서 연 공식 문서·릴리스 노트, 또는 rules.md §3 의 재사용 조건에 맞는 source-checks 행(행 ID 와 원래 확인일) | "문서가 그렇게 말한다"까지 확인함. 우리 로컬 엔진 소스에도 맞는지는 [엔진]으로 본다. 둘이 다르면 둘 다 적고 로컬 쪽으로 판단한다 |
-| [일반론] | 설계 원칙, 다른 개발자의 기술 글(2차) | 추정 |
+| [team doc] ([팀문서]) | path:line of team technical rules, design records, or incident records | The fact that a rule exists is confirmed. Cause analyses and effect claims in documents are estimated ("source document's estimate" (출처 문서의 추정)) |
+| [code] ([코드]) | What you read or counted in our code in this run. path:line, the search pattern and the result count | A static check is confirmed. Execution order estimates and connection estimates are estimated |
+| [engine] ([엔진]) | path:line of the local engine source | Calls and conditions written in the code are confirmed. The execution order and whether things happen in the same frame, when not run, are estimated |
+| [measured] ([측정]) | A perf report or a measurement file | The original grade as it is |
+| [history] ([이력]) | A `vcs_churn.py` result, an issue tracker query | Confirmed |
+| [primary] ([1차]) | Official documents or release notes opened in this run, or a source-checks row that meets the reuse conditions of rules.md §3 (with the row ID and the original check date) | Confirmed only as far as "the document says so". Check with [engine] whether it also holds for our local engine source. If the two differ, write both and judge by the local side |
+| [general] ([일반론]) | Design principles, technical articles by other developers (secondary) | Estimated |
 
-근거로 쓰지 않는 것:
-- "업계 표준이다", "다들 이렇게 한다", 커뮤니티 다수 의견, 경쟁작이 썼다
-- 기억 속 이전 엔진 버전의 동작. 기억에서 나온 내용은 리포트 부록 "기억에서 나온 내용 — 근거 아님"에만 둔다
-- "더 깔끔하다", "읽기 쉽다"만 있는 이유
+What is not used as evidence:
+- "It is the industry standard", "everyone does it this way", the majority opinion of a community, a competing game used it
+- The behavior of a previous engine version from memory. Put content from memory only in the report appendix "Content from memory — not evidence"
+- Reasons that are only "it is cleaner" or "it is easier to read"
 
-다른 고문 리포트나 직전 기록을 인용할 때는 원래 등급, 날짜, 단서를 그대로 옮긴다. 예: 정기 점검의 "변화 없음" 줄에 "요약 도구로 읽어 줄이 빠졌을 수 있음"이 붙어 있으면 그 단서도 옮기고, 그 줄은 추정으로 다룬다. 날짜가 `stale_after_days` 보다 오래됐으면 "오래된 리포트"를 붙인다.
+When you cite another advisor's report or a previous record, copy the original grade, date, and caveats as they are. Example: if the "no change" line of a periodic check has "lines may be missing because a summarizing tool read the page" attached, copy that caveat too, and treat that line as estimated. If the date is older than `stale_after_days`, attach "outdated report".
 
-## 2. 요구 목록
+## 2. Requirement list
 
-- 요구 R-n 마다 요구 문장, 출처, 등급을 적는다. 출처는 기획서 경로:줄, 티켓, 팀 문서, 사고 기록, perf·design·radar 리포트, 사용자 말이다.
-- 출처가 사용자 말뿐이면 "요구 미확인"으로 표시한다. 권고는 할 수 있지만 "결정이 필요한 것"에 요구 확인을 올린다.
-- 게임 규칙이나 재미에 닿는 요구는 기획서나 design 판단에서만 가져온다. 근거가 없으면 design 에 질문을 넘기고 "요구 미확인"으로 둔다.
+- For each requirement R-n, write the requirement sentence, the source, and the grade. The source is a design document path:line, a ticket, a team document, an incident record, a perf · design · radar report, or what the user said.
+- If the only source is what the user said, mark it "requirement not confirmed" (요구 미확인). You can recommend, but put the requirement check in "Decisions needed".
+- Take requirements that touch game rules or fun only from design documents or design judgments. If there is no evidence, pass a question to design and keep the requirement as "requirement not confirmed".
 
-## 3. 선택지 비교 표
+## 3. Option comparison table
 
-- 안0 이 반드시 들어간다. 지금 구현이 있는 질문이면 "지금 방식 유지", 새 구조 설계(아직 구현이 없는 기능)면 "가장 가까운 기존 구조에 그대로 얹기"다. 얹을 기존 구조도 없으면 안0 은 "가장 단순한 구현(새 클래스 하나, 기존 시스템 연결 없음)"이다.
-- 안마다 같은 칸을 채운다. 칸을 채울 근거가 없으면 "모름"이라고 쓰고 비워 두지 않는다.
+- Option 0 must be included. For a question that has a current implementation, it is "keep the current approach" (지금 방식 유지). For new structure design (a feature with no implementation yet), it is "put it as is on the closest existing structure" (가장 가까운 기존 구조에 그대로 얹기). If there is no existing structure to put it on either, option 0 is "the simplest implementation (one new class, no connection to existing systems)" (가장 단순한 구현(새 클래스 하나, 기존 시스템 연결 없음)).
+- Fill the same columns for each option. If there is no evidence to fill a column, write "unknown". Do not leave it empty.
 
-| 칸 | 쓰는 법 |
+| Column (칸) | How to write it |
 |---|---|
-| 하는 일 | 한 줄 |
-| 요구 충족 | R-n 마다 충족 / 부분 / 불충족 / 모름과 근거 표시 |
-| 바뀌는 범위 | 파일 수, 모듈 수, 호출 지점 수, 새 Build.cs 의존 수, 공개 헤더에 드러나는 타입 수, 엔진 수정 블록 증감, 다시 저장할 에셋 종류. 검색식과 결과 개수를 함께 적는다. 블루프린트·에셋에서 쓰는 곳을 셀 수 없으면 "일부만 셈"을 붙인다 |
-| 엔진 동작 근거 | [엔진] 경로:줄 또는 [1차] URL |
-| 위험 | 알려진 실패 방식(재진입, 같은 프레임에 두 곳이 같은 상태를 씀, 복제 표시 누락, 로딩 순서 등)과 근거 위치 |
-| 성능 | [측정] 값과, 줄일 수 있는 최대치(지금 그 구간이 쓰는 시간). 없으면 "미측정 — perf Q-xxxx" |
-| 되돌리기 | §4 의 등급 |
-| 계속 드는 비용 | 직접 유지할 코드 범위(파일·줄 수), 전용 에디터 코드 범위, Experimental·Beta 의존 수(기술 목록 근거), 엔진 버전을 올릴 때 다시 확인할 곳 수 |
-| 성숙도 위험 | Experimental·Beta 기능에 기댈 때만. 기술 목록, 로컬 .uplugin, radar-watchlist 근거 |
-| 팀 공유 필요 | 모듈 등록, Build.cs 의존 추가, 공용 헤더 내보내기, 네트워크로 주고받는 형식을 바꾸면 "필요" |
+| What it does (하는 일) | One line |
+| Requirements met (요구 충족) | For each R-n: met (충족) / partial (부분) / not met (불충족) / unknown (모름), with the evidence mark |
+| Changed scope (바뀌는 범위) | The number of files, modules, call sites, new Build.cs dependencies, types exposed in public headers, the increase or decrease of engine modification blocks, the kinds of assets to save again. Write the search pattern and the result count with it. If the places used from Blueprints or assets cannot be counted, attach "partly counted" (일부만 셈) |
+| Engine behavior evidence (엔진 동작 근거) | [engine] path:line or [primary] URL |
+| Risk (위험) | Known failure modes (reentry, two places writing the same state in the same frame, a missing replication mark, loading order, and so on) and the evidence location |
+| Performance (성능) | The [measured] value, and the maximum that can be saved (the time that section uses now). If there is none, "not measured — perf Q-xxxx" (미측정 — perf Q-xxxx) |
+| Reversal (되돌리기) | The grade in §4 |
+| Ongoing cost (계속 드는 비용) | The scope of code to maintain directly (file and line counts), the scope of dedicated editor code, the number of Experimental or Beta dependencies (technology inventory evidence), the number of places to check again at an engine version upgrade |
+| Maturity risk (성숙도 위험) | Only when the option relies on an Experimental or Beta feature. Technology inventory, local .uplugin, radar-watchlist evidence |
+| Team sharing needed (팀 공유 필요) | "Needed" (필요) if it registers a module, adds a Build.cs dependency, exports a shared header, or changes a format sent over the network |
 
-- 점수를 매기거나 가중치로 합산하지 않는다. 칸마다 견주기만 한다.
-- 기간(사람·일) 칸은 두지 않는다. 규모는 셀 수 있는 단위로만 쓴다(rules.md §2). 효과는 지금 그 구간이 쓰는 시간을 넘지 않는 범위까지만 말한다.
+- Do not give scores, and do not sum with weights. Only compare column by column.
+- Do not have a duration (people · days) column. Write the size only in countable units (rules.md §2). Talk about the effect only up to the time that section uses now.
 
-## 4. 되돌리기 등급
+## 4. Reversal grades
 
-| 등급 | 뜻 |
+| Grade (등급) | Meaning |
 |---|---|
-| 1 | 설정, 플래그, 플러그인 끄기로 되돌린다 |
-| 2 | 코드만 되돌린다. 에셋과 데이터 형식은 그대로다 |
-| 3 | 에셋을 다시 저장하거나 데이터를 변환해야 한다 |
-| 4 | 저장 데이터, 네트워크로 주고받는 형식, 서버나 다른 팀이 쓰는 형식이 바뀐다 |
+| 1 | Reverted by turning off a setting, a flag, or a plugin |
+| 2 | Only the code is reverted. Assets and data formats stay as they are |
+| 3 | Assets must be saved again, or data must be converted |
+| 4 | Save data, a format sent over the network, or a format used by the server or other teams changes |
 
-되돌리기 쉬운 안(1·2)은 근거가 덜 모였어도 시험해 볼 수 있다. 어려운 안(3·4)은 측정과 결정권자 확인을 먼저 요구한다(T4). 엔진 수정은 되돌리기 어려움과 따로, 엔진 버전을 올릴 때마다 드는 비용으로 "계속 드는 비용" 칸과 T5 에서 다룬다.
+An option that is easy to reverse (1 · 2) can be tried even if less evidence has been collected. For an option that is hard to reverse (3 · 4), require measurement and decision owner confirmation first (T4). Handle engine modifications separately from how hard they are to reverse: as the cost paid at every engine version upgrade, in the "Ongoing cost" column and in T5.
 
-## 5. 바꿀 이유
+## 5. Reason to change
 
-선택 비교와 구조 문제에서 안0("지금 방식 유지")이 아닌 안을 권하려면 아래 가운데 하나가 확인함이어야 한다.
-- 되풀이된 버그: 같은 곳의 버그 티켓이나 사고 기록 2건 이상([이력]·[팀문서])
-- 막힌 요구: 지금 구조로는 채울 수 없는 요구(요구의 출처와 [코드]·[엔진] 근거). 요구가 사용자 말뿐이면 이 이유로 권하되 "요구 미확인"을 붙인다
-- 측정된 비용: perf 의 [측정]
-- 기한 있는 폐기 예정: 우리가 쓰는 엔진 기능의 제거 버전이나 날짜([1차])
-- 팀 규칙 위반: [팀문서] 의 규칙 조항과 그것을 어긴 [코드] 위치
+In a choice comparison or a structure problem, to recommend an option other than option 0 ("keep the current approach"), one of the following must be confirmed.
+- Recurring bug (되풀이된 버그): 2 or more bug tickets or incident records for the same place ([history]·[team doc])
+- Blocked requirement (막힌 요구): a requirement that the current structure cannot meet (the source of the requirement and [code]·[engine] evidence). If the only source of the requirement is what the user said, recommend with this reason, but attach "requirement not confirmed"
+- Measured cost (측정된 비용): perf's [measured]
+- Deprecation with a deadline (기한 있는 폐기 예정): the removal version or date of an engine feature we use ([primary])
+- Team rule violation (팀 규칙 위반): the rule clause in [team doc] and the [code] location that breaks it
 
-하나도 없으면 결론은 "현행 유지"나 "판단 보류-확인 부족"이다. 다른 안이 더 나아 보여도 바꿀 이유가 확인되지 않으면 옮기자고 권하지 않는다.
+If there is none, the conclusion is "keep as is" or "judgment on hold — not enough confirmation". Even if another option looks better, do not recommend moving if no reason to change is confirmed.
 
-새 구조 설계에는 이 절을 쓰지 않는다. 바꿀 지금 구현이 없기 때문이다. 안마다 요구 충족, 바뀌는 범위, 계속 드는 비용을 견주어 고른다. 요구가 사용자 말뿐이면 권고는 내되 요구 확인을 "결정이 필요한 것"에 올린다.
+Do not use this section for new structure design, because there is no current implementation to change. Choose by comparing, for each option, the requirements met, the changed scope, and the ongoing cost. If the only source of a requirement is what the user said, give the recommendation, but put the requirement check in "Decisions needed".
 
-팀 규칙이 정한 방식을 바꾸는 안을 사용자가 물었으면, 규칙대로 하는 안을 안0 으로 두고 같은 칸으로 견준다. 권고할 수 있지만 결론에 "팀 규칙 변경 필요 — 결정권자 <decision_owners.tech>"를 붙인다.
+If the user asked about an option that changes the way that team rules set, make the option that follows the rules option 0, and compare in the same columns. You can recommend, but attach "team rule change needed — decision owner <decision_owners.tech>" (팀 규칙 변경 필요 — 결정권자 <decision_owners.tech>) to the conclusion.
 
-## 6. 결론
+## 6. Conclusion
 
-결론은 넷 가운데 하나다.
+The conclusion is one of four.
 
-| 결론 | 조건 |
+| Conclusion (결론) | Condition |
 |---|---|
-| 권고 — 조건 X 면 안 A | "조건 X 면 안 A, Y 면 안 B" 꼴로 쓴다. §5 가 요구하면 바꿀 이유가 있고, 권고한 안의 요구 충족 근거에 [팀문서]·[코드]·[엔진]·[측정]·[이력]·[1차] 가운데 하나 이상이 있고, 상한 규칙에 걸리지 않는다 |
-| 시험 후 결정 | 안 둘 이상이 남고 측정이나 시험 구현으로만 가려진다. 시험 구현 명세(§9)를 붙인다 |
-| 현행 유지 | 안0 이 요구를 모두 채우거나, 바꿀 이유가 확인되지 않았다. 정당한 결론이다 |
-| 판단 보류-확인 부족 | 무엇을 확인하면 판정할 수 있는지와 누구에게 물을지 적는다. 이유를 괄호로 붙인다: (대상 미정), (안 미정), (바깥 확인 대기 Q-ID), (요구 미확인) 등 |
+| Recommend — if condition X, option A (권고 — 조건 X 면 안 A) | Write it in the form "if condition X, option A; if Y, option B". If §5 requires it, there is a reason to change; the evidence that the recommended option meets the requirements has at least one of [team doc]·[code]·[engine]·[measured]·[history]·[primary]; and no cap rule applies |
+| Decide after a trial (시험 후 결정) | Two or more options remain, and only measurement or a trial implementation can tell them apart. Attach a trial implementation spec (§9) |
+| Keep as is (현행 유지) | Option 0 meets all the requirements, or no reason to change was confirmed. This is a valid conclusion |
+| Judgment on hold — not enough confirmation (판단 보류-확인 부족) | Write what must be checked to make a verdict, and whom to ask. Attach the reason in parentheses: (target not set) ((대상 미정)), (options not set) ((안 미정)), (waiting for outside check Q-ID) ((바깥 확인 대기 Q-ID)), (requirement not confirmed) ((요구 미확인)), and so on |
 
-질문 종류에 따라 함께 쓰는 판정:
-- 구조 문제: 원인 판정을 먼저 쓴다.
-  - 원인 확인됨: analyst 의 정적 확인으로 증상까지 이어지는 호출 경로가 있고, 재현 조건이 티켓이나 문서에 있다
-  - 원인 후보: 경로는 있지만 실행 순서 추정이나 연결 추정에 기대거나, 재현 조건이 없다
-  - 모름
-- 기능 타당성: 가능성 판정을 먼저 쓴다. 지금 구조로 가능 / 구조 변경 필요(바꿀 곳 목록) / 불가(막는 근거) / 모름.
-- 전환 영향: 결론 대신 "영향받는 곳 표"(바뀌는 범위와 위험)를 내고, 할지 말지는 "결정이 필요한 것"에 올린다. 하라거나 말라고 결론 내리지 않는다.
+Verdicts written together, by question kind:
+- Structure problem: write the cause verdict first.
+  - Cause confirmed (원인 확인됨): analyst's static check has a call path that leads to the symptom, and the reproduction condition is in a ticket or a document
+  - Cause candidate (원인 후보): there is a path, but it relies on an execution order estimate or a connection estimate, or there is no reproduction condition
+  - Unknown (모름)
+- Feature feasibility: write the feasibility verdict first. Possible with the current structure (지금 구조로 가능) / structure change needed (list of places to change) (구조 변경 필요(바꿀 곳 목록)) / not possible (blocking evidence) (불가(막는 근거)) / unknown (모름).
+- Shift impact: instead of a conclusion, give an "affected places table" (영향받는 곳 표) (changed scope and risk), and put whether to do it in "Decisions needed". Do not conclude that it must be done or must not be done.
 
-## 7. 상한 규칙
+## 7. Cap rules
 
-결론의 높낮이는 권고 > 시험 후 결정 > 현행 유지·판단 보류 이다. 걸리는 규칙이 여럿이면 가장 낮은 것을 쓰고 걸린 번호를 모두 적는다.
+The order of conclusions from high to low is recommend > decide after a trial > keep as is · judgment on hold. If several rules apply, use the lowest one, and write all the numbers that apply.
 
-| 번호 | 조건 | 최대 결론 |
+| Number | Condition | Highest conclusion |
 |---|---|---|
-| T1 | 요구 충족 근거가 [일반론]·2차뿐 | 시험 후 결정 |
-| T2 | 성능이 안을 가르는데 측정이 없다 | 시험 후 결정. perf 측정 요청을 반드시 낸다 |
-| T3 | 소스 빌드인데 엔진 기능의 동작을 로컬 엔진 소스에서 확인하지 못하고 웹 문서로만 봤다 | 시험 후 결정 |
-| T4 | 되돌리기 3·4 인 안 | 측정이나 시험 구현 결과가 없으면 시험 후 결정. "결정권자 확인 필요"를 붙인다 |
-| T5 | 엔진 수정 블록을 늘리는 안 | 게임 코드·도구·설정 쪽 안이 요구를 못 채운다는 [코드]·[엔진] 근거가 없으면 시험 후 결정. 팀 규칙 문서에 엔진 수정 규칙이 있으면 그 조항을 인용한다 |
-| T6 | Experimental·Beta 기능에 기대는 안 | 성숙도 위험 칸을 반드시 채운다. 개발 단계가 알파 이후면 시험 후 결정 |
-| T7 | 개발 단계가 알파·베타·라이브이고, 콘텐츠 전반에 퍼지는 구조 교체(전역 조명 방식, 그림자 방식, 네트워크 복제 방식, 애니메이션 시스템, 머티리얼 체계 등) | 시험 후 결정. "리드 합의 필요"를 붙인다. `dev_stage` 가 비어 있으면 되돌리기 3·4 인 안을 권고하지 않는다 |
-| T8 | 판정을 가르는 바깥 사실이 radar 답을 기다리거나, 프로필·검색 금지어가 없어 웹에서 찾지 못했다 | 그 안은 "판단 보류-확인 부족(바깥 확인 대기 Q-ID)". 프로필이 없으면 "판단 보류-확인 부족(프로필 없음)". 나머지 안끼리만 견준다 |
-| T9 | 바뀌는 범위를 끝까지 세지 못했다("일부만 셈") | 그 안은 시험 후 결정 |
-| T10 | 실행 순서나 같은 프레임 여부가 판정을 가르는데 근거가 실행 순서 추정뿐이다 | 시험 후 결정. 확인 방법(로그, 디버거 기록, 시험 구현)을 명세에 넣는다 |
+| T1 | The evidence that the requirements are met is only [general] or secondary | Decide after a trial |
+| T2 | Performance decides between the options, but there is no measurement | Decide after a trial. A perf measurement request must be made |
+| T3 | It is a source build, but the behavior of the engine feature was not checked in the local engine source and was seen only in web documents | Decide after a trial |
+| T4 | An option with reversal 3 · 4 | If there is no measurement or trial implementation result, decide after a trial. Attach "decision owner confirmation needed" (결정권자 확인 필요) |
+| T5 | An option that adds engine modification blocks | If there is no [code]·[engine] evidence that the options on the game code, tools, or settings side cannot meet the requirements, decide after a trial. If the team rule documents have engine modification rules, quote that clause |
+| T6 | An option that relies on an Experimental or Beta feature | The maturity risk column must be filled. If the development stage is alpha or later, decide after a trial |
+| T7 | The development stage is alpha, beta, or live, and it is a structure replacement that spreads across all content (global illumination method, shadow method, network replication method, animation system, material system, and so on) | Decide after a trial. Attach "lead agreement needed" (리드 합의 필요). If `dev_stage` is empty, do not recommend an option with reversal 3 · 4 |
+| T8 | An outside fact that decides the verdict waits for radar's answer, or it could not be looked up on the web because there is no profile or no banned search terms | That option is "judgment on hold — not enough confirmation (waiting for outside check Q-ID)". If there is no profile, "judgment on hold — not enough confirmation (no profile)" ("판단 보류-확인 부족(프로필 없음)"). Compare only the remaining options with each other |
+| T9 | The changed scope could not be counted to the end ("partly counted") | That option is decide after a trial |
+| T10 | The execution order or whether things happen in the same frame decides the verdict, but the only evidence is an execution order estimate | Decide after a trial. Put the way to check (logs, debugger records, trial implementation) in the spec |
 
-## 8. 자기 반박과 결정권자
+## 8. Self-rebuttal and decision owner
 
-- 권고한 안마다 "틀렸다면 그 이유"를 두 개 이상 쓴다. 근거로 반박하지 못하면 결론을 한 단계 내린다.
-- "판단을 뒤집을 정보"를 적는다. 예: "perf 측정에서 이 구간이 예산의 10% 미만이면 안0".
-- 결정권자는 프로필 `decision_owners.tech` 다. 사용자가 결정권자가 아니면 "참고 선택지"로 쓴다(rules.md §8).
-- 팀 공용 구조를 바꾸는 안에는 "팀 공유 필요"를 붙인다(perf/reference/tests.md 4번 항목과 같은 기준).
+- For each recommended option, write two or more "if it is wrong, the reason" (틀렸다면 그 이유). If you cannot rebut them with evidence, lower the conclusion by one level.
+- Write the "information that would reverse the judgment" (판단을 뒤집을 정보). Example: "if the perf measurement shows that this section is less than 10% of the budget, option 0".
+- The decision owner is profile `decision_owners.tech`. If the user is not the decision owner, write it as a "reference option" (rules.md §8).
+- Attach "team sharing needed" to options that change team-shared structure (the same criterion as item 4 of perf/reference/tests.md).
 
-## 9. 시험 구현 명세 (결론이 "시험 후 결정"일 때만)
+## 9. Trial implementation spec (only when the conclusion is "decide after a trial")
 
-| 칸 | 쓰는 법 |
+| Column (칸) | How to write it |
 |---|---|
-| 범위 | 끌 수 있는 단위(플래그, 플러그인, 별도 맵, 브랜치) |
-| 잴 것 | 성능은 perf 측정 요청(시나리오 ID). 동작은 확인할 현상과 방법(로그, 디버거 기록) |
-| 동작 고정 테스트 | 손대기 전에 지금 동작을 고정할 테스트. perf/reference/tests.md 3번 항목 양식 |
-| 끄고 되돌리는 방법 | 확인한 설정·파일 이름만 쓴다 |
-| 기간 | "정할 것"으로 둔다. 고문이 정하지 않는다 |
+| Scope (범위) | A unit that can be turned off (a flag, a plugin, a separate map, a branch) |
+| What to measure (잴 것) | For performance, a perf measurement request (scenario ID). For behavior, the phenomenon to check and the method (logs, debugger records) |
+| Behavior-locking test (동작 고정 테스트) | A test that locks the current behavior before anything is touched. The form in item 3 of perf/reference/tests.md |
+| How to turn it off and revert (끄고 되돌리는 방법) | Write only setting and file names that you confirmed |
+| Duration (기간) | Keep it as "to be decided" (정할 것). The advisor does not decide it |
 
-고문은 시험 구현을 직접 만들지 않는다. 사용자 승인 뒤 `code_change_entry` 로 넘긴다.
+The advisor does not make the trial implementation itself. After user approval, pass it to `code_change_entry`.
 
-## 10. 결정 기록 갱신
+## 10. Updating decision records
 
-- 새 사실 없이 결론을 바꾸지 않는다. 같은 사실을 두고 판정이 오락가락하는 것을 막기 위해서다.
-- 바꿨으면 TD 기록의 "바뀐 기록"에 이전 결론, 새 결론, 바꾼 근거(새 사실의 위치)를 남긴다.
-- 결정 기록의 상태(제안 / 시험 중 / 채택 / 기각 / 보류)는 사용자가 대화에서 결정을 말했거나 결정이 적힌 문서를 인용할 수 있을 때만 바꾼다.
+- Do not change a conclusion without a new fact. The reason: to prevent the verdict from going back and forth on the same facts.
+- If you changed it, leave the previous conclusion, the new conclusion, and the evidence for the change (the location of the new fact) in the "Change log" of the TD ledger.
+- Change the status of a decision record (proposed / in trial / adopted / rejected / on hold) only when the user stated a decision in the conversation, or when you can quote a document in which the decision is written.

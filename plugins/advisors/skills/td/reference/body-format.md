@@ -1,180 +1,182 @@
-# TD 고문 리포트 본문 양식
+# TD advisor report body format
 
-리포트 전체는 `<플러그인 폴더>/shared/report-base.md` 의 머리와 항목 순서를 따른다. 이 파일은 그 안의 "## 본문" 자리에 넣을 내용과, 공통 항목을 TD 고문이 채우는 방법을 정한다.
+The whole report follows the head and the section order of `<플러그인 폴더>/shared/report-base.md`. This file sets what to put in the "## Body" place inside it, and how the TD advisor fills the common sections.
 
-## 파일 이름과 제목
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-| 모드 | 파일 | 제목 |
+## File name and title
+
+| Mode | File | Title |
 |---|---|---|
-| 설계 검토 | `<report_dir>/td/<YYYY-MM-DD>-decision.md` | `# TD 고문 설계 검토(<대상>) — <YYYY-MM-DD>` |
-| 구조 점검 | `<report_dir>/td/<YYYY-MM-DD>-audit.md` | `# TD 고문 구조 점검(<범위>) — <YYYY-MM-DD>` |
+| Design review | `<report_dir>/td/<YYYY-MM-DD>-decision.md` | `# TD advisor design review (<target>) — <YYYY-MM-DD>` (`ko`: `# TD 고문 설계 검토(<대상>) — <YYYY-MM-DD>`) |
+| Structure audit | `<report_dir>/td/<YYYY-MM-DD>-audit.md` | `# TD advisor structure audit (<scope>) — <YYYY-MM-DD>` (`ko`: `# TD 고문 구조 점검(<범위>) — <YYYY-MM-DD>`) |
 
-- 파일 이름의 모드 부분은 `decision`, `audit` 영어 소문자만 쓴다(rules.md §12).
-- 날짜는 작성일(시스템 날짜)이다. 같은 날 같은 모드를 두 번 돌리면 끝에 `-2` 를 붙인다.
-- 제목의 `<대상>` 은 질문을 줄인 말과 결정 기록 ID 다. 예: `설계 검토(몬스터 행동 선택 구조, TD-D-003)`. 다음 실행이 직전 리포트를 찾을 때 ID 로 가린다.
+- For the mode part of the file name, use only the lowercase English words `decision` and `audit` (rules.md §12).
+- The date is the writing date (system date). If you run the same mode twice on the same day, add `-2` at the end.
+- The `<target>` in the title is a shortened form of the question and the decision record ID. Example: `design review (monster action selection structure, TD-D-003)` (`ko`: `설계 검토(몬스터 행동 선택 구조, TD-D-003)`). The next run tells the previous report apart by the ID when it looks for it.
 
-## 공통 항목을 채우는 법
+## How to fill the common sections
 
-- **범위**(머리 표): 모드, 질문 종류나 점검 범위, 대상 코드 범위(경로), 결정 기록 ID, 읽은 자료 수와 못 읽은 자료 수, 필요한 표시("프로필 없음", "에이전트 없이 메인에서 수집함", "참고 선택지"), 그리고 바깥 자료 한 줄. 바깥 자료 한 줄은 아래 가운데 하나로 쓴다.
-  - `바깥 자료: 웹에서 찾지 않음(조건 해당 없음)`
-  - `바깥 자료: W2·W3 조건으로 1차 출처를 한 번 찾음`
-  - `바깥 자료: 웹에서 찾지 않음(W2 걸림 — 검색 금지어 비어 있음, radar Q-xxxx 로 넘김 | 프로필 없음 — 프로필을 만든 뒤 기술 동향 고문에게 물을 것)`
-  - 기록을 재사용했으면 끝에 `재사용한 기록 SC-004(확인 2026-10-13)` 처럼 붙인다.
-- **결정이 필요한 것**: 최대 셋. 항목마다 "<결정할 것> — <결론과 조건> — <한 문장 근거> — 결정권자: <decision_owners.tech>". 요구 미확인, 시나리오 추가, 층 규칙 확정, 바깥 확인 대기, 팀 규칙 변경도 여기에 올린다.
-- **지난 리포트와 달라진 것**: 결론이 바뀐 것과 바꾼 근거(새 사실의 위치), 새로 생긴 안, 사라진 안, 부채 순위가 바뀐 행.
-- **확인 못 한 것**: 못 읽은 자료(블루프린트 에셋 포함), 실패한 검색과 스크립트 종료 코드 3, 비어 있는 프로필 값, 종류를 몰라 검사하지 못한 모듈, include 를 셀 수 없는 모듈, 실행 순서 추정이나 연결 추정으로 남은 것, 답을 기다리는 질문. 각각 무엇이 있으면 확인할 수 있는지.
-- **다음 점검 조건**: 설계 검토와 모듈 의존 점검은 td-ledger.md 머리의 `다음 점검:` 값, 기술 부채 점검은 td-debt.md 머리의 값, 엔진 수정 점검은 td-engine-mods.md 머리의 값과 같게 쓴다. 코딩 규칙 점검과 에이전트 검증 가능성 점검은 "예약 없음 — 사용자가 요청할 때"다.
+- **Scope** (head table): the mode, the question kind or the audit scope, the target code scope (paths), the decision record ID, the number of materials read and not read, the needed marks ("no profile" (프로필 없음), "collected in the main agent without agents" (에이전트 없이 메인에서 수집함), "reference option" (참고 선택지)), and one line on outside material. Write the outside material line as one of the following.
+  - `Outside material: not searched on the web (no condition applies)` (`ko`: `바깥 자료: 웹에서 찾지 않음(조건 해당 없음)`)
+  - `Outside material: looked for primary sources once under the W2·W3 conditions` (`ko`: `바깥 자료: W2·W3 조건으로 1차 출처를 한 번 찾음`)
+  - `Outside material: not searched on the web (W2 applies — banned search terms empty, passed to radar Q-xxxx | no profile — ask the technology trend advisor after making a profile)` (`ko`: `바깥 자료: 웹에서 찾지 않음(W2 걸림 — 검색 금지어 비어 있음, radar Q-xxxx 로 넘김 | 프로필 없음 — 프로필을 만든 뒤 기술 동향 고문에게 물을 것)`)
+  - If you reused records, append them at the end, like `reused records SC-004 (checked 2026-10-13)` (`ko`: `재사용한 기록 SC-004(확인 2026-10-13)`).
+- **Decisions needed**: at most three. For each item: "<what to decide> — <conclusion and condition> — <one-sentence evidence> — decision owner: <decision_owners.tech>" (`ko`: "<결정할 것> — <결론과 조건> — <한 문장 근거> — 결정권자: <decision_owners.tech>"). Also put here unconfirmed requirements, adding scenarios, confirming layer rules, waiting for outside checks, and team rule changes.
+- **Changes since the previous report**: conclusions that changed and the evidence for the change (the location of the new fact), new options, options that are gone, and rows whose debt rank changed.
+- **Not checked**: material not read (including Blueprint assets), failed searches and script exit code 3, empty profile values, modules not checked because their kind is unknown, modules whose includes cannot be counted, what remains as an execution order estimate or a connection estimate, and questions that wait for an answer. For each one, what would make it possible to check.
+- **Next check condition**: for a design review and a module dependency audit, write the same value as the `Next check:` line at the top of td-ledger.md. For a technical debt audit, write the value at the top of td-debt.md. For an engine modification audit, write the value at the top of td-engine-mods.md. For a coding rule audit and an agent verifiability audit, it is "no schedule — when the user asks" (예약 없음 — 사용자가 요청할 때).
 
-## 설계 검토 본문
+## Design review body
 
 ```markdown
-### 1. 질문
-- 질문: <사용자 질문을 줄이지 않고 옮긴 문장>
-- 종류: 선택 비교 / 새 구조 설계 / 구조 문제 / 기능 타당성 / 전환 영향
-- 대상 코드 범위: <경로 목록>
-- 결정 기록: TD-D-<번호> (새로 만들었으면 그렇게 적음)
+### 1. Question (질문)
+- Question (질문): <the user's question, copied without shortening it>
+- Kind (종류): choice comparison (선택 비교) / new structure design (새 구조 설계) / structure problem (구조 문제) / feature feasibility (기능 타당성) / shift impact (전환 영향)
+- Target code scope (대상 코드 범위): <path list>
+- Decision record (결정 기록): TD-D-<number> (if you made it new, write so)
 
-### 2. 요구
-| R | 요구 | 출처 | 등급 |
+### 2. Requirements (요구)
+| R | Requirement (요구) | Source (출처) | Grade (등급) |
 |---|---|---|---|
-| R-1 | <요구 문장> | <기획서 경로:줄 / 티켓 / 팀 문서 / 사용자 말> | 확인함 / 추정 / 요구 미확인 |
+| R-1 | <requirement sentence> | <design document path:line / ticket / team document / what the user said> | confirmed (확인함) / estimated (추정) / requirement not confirmed (요구 미확인) |
 
-### 3. 지금 구조
-| # | 사실 | 위치 | 정적 확인 / 실행 순서 추정 / 연결 추정 | 근거 |
+### 3. Current structure (지금 구조)
+| # | Fact (사실) | Location (위치) | Static check (정적 확인) / execution order estimate (실행 순서 추정) / connection estimate (연결 추정) | Evidence (근거) |
 |---|---|---|---|---|
-(진입점, 상태를 쓰는 곳, 네트워크 역할 분기, 같은 프레임의 실행 순서를 정하는 장치. 새 구조 설계면 붙일 기존 구조)
-- 관련 팀 규칙: <규칙 문장과 위치>
-- 지난 결정: <TD-D-xxx 의 결론과 상태, 없으면 "없음">
-- 선례: <같은 문제를 이미 푼 곳과 방식, 없으면 "없음">
+(entry points, places that write the state, network role branches, mechanisms that set the execution order within the same frame. For new structure design, the existing structure to attach to)
+- Related team rules (관련 팀 규칙): <rule sentence and location>
+- Previous decision (지난 결정): <conclusion and status of TD-D-xxx; if there is none, "none" (없음)>
+- Precedent (선례): <places that already solved the same problem, and how; if there is none, "none" (없음)>
 
-### 4. 선택지 비교
-| 칸 | 안0 <지금 방식 유지 / 기존 구조에 그대로 얹기> | 안1 <이름> | 안2 <이름> (고문이 더함) |
+### 4. Option comparison (선택지 비교)
+| Column (칸) | Option 0 (안0) <keep the current approach (지금 방식 유지) / put it as is on the existing structure (기존 구조에 그대로 얹기)> | Option 1 (안1) <name> | Option 2 (안2) <name> (added by the advisor (고문이 더함)) |
 |---|---|---|---|
-| 하는 일 | | | |
-| 요구 충족 | R-1 충족 [코드] ... | | |
-| 바뀌는 범위 | 없음 | 파일 N, 모듈 N (검색식 '...') | 일부만 셈 — <이유> |
-| 엔진 동작 근거 | | [엔진] <경로:줄> | |
-| 위험 | | | |
-| 성능 | | 미측정 — perf Q-xxxx | |
-| 되돌리기 | - | 2 | 4 |
-| 계속 드는 비용 | | | |
-| 성숙도 위험 | | | |
-| 팀 공유 필요 | | | |
+| What it does (하는 일) | | | |
+| Requirements met (요구 충족) | R-1 met [code] ... | | |
+| Changed scope (바뀌는 범위) | none | files N, modules N (search pattern '...') | partly counted — <reason> |
+| Engine behavior evidence (엔진 동작 근거) | | [engine] <path:line> | |
+| Risk (위험) | | | |
+| Performance (성능) | | not measured — perf Q-xxxx | |
+| Reversal (되돌리기) | - | 2 | 4 |
+| Ongoing cost (계속 드는 비용) | | | |
+| Maturity risk (성숙도 위험) | | | |
+| Team sharing needed (팀 공유 필요) | | | |
 
-### 5. 결론
-- 원인 판정(구조 문제만) 또는 가능성 판정(기능 타당성만): <값과 근거>
-- 바꿀 이유: <choice-rules.md §5 의 항목과 근거 위치, 없으면 "확인된 바꿀 이유 없음". 새 구조 설계면 "해당 없음 — 요구 충족 비교">
-- 결론: **<권고 — 조건 X 면 안 A | 시험 후 결정 | 현행 유지 | 판단 보류-확인 부족(이유)>** — 걸린 상한 규칙: <T 번호 목록 또는 "없음">
-- 틀렸다면 그 이유: 1. <…> 2. <…> (반박 결과: <근거로 반박함 / 반박 못 해 한 단계 내림>)
-- 판단을 뒤집을 정보: <…>
-- 결정권자: <decision_owners.tech> (사용자가 아니면 "참고 선택지")
+### 5. Conclusion (결론)
+- Cause verdict (원인 판정; structure problem only) or feasibility verdict (가능성 판정; feature feasibility only): <value and evidence>
+- Reason to change (바꿀 이유): <the item of choice-rules.md §5 and the evidence location; if there is none, "no confirmed reason to change" (확인된 바꿀 이유 없음). For new structure design, "not applicable — comparison of requirements met" (해당 없음 — 요구 충족 비교)>
+- Conclusion (결론): **<recommend — if condition X, option A | decide after a trial | keep as is | judgment on hold — not enough confirmation (reason)>** — cap rules applied (걸린 상한 규칙): <list of T numbers, or "none" (없음)>
+- If it is wrong, the reason (틀렸다면 그 이유): 1. <…> 2. <…> (rebuttal result (반박 결과): <rebutted with evidence (근거로 반박함) / could not rebut, lowered by one level (반박 못 해 한 단계 내림)>)
+- Information that would reverse the judgment (판단을 뒤집을 정보): <…>
+- Decision owner (결정권자): <decision_owners.tech> (if it is not the user, "reference option" (참고 선택지))
 
-전환 영향 질문이면 결론 대신 "영향받는 곳 표"(| 영향받는 곳 | 바뀌는 범위 | 위험 | 근거 |)를 쓰고, 할지 말지는 "결정이 필요한 것"에 올린다.
+For a shift impact question, instead of the conclusion, write an "affected places table" (영향받는 곳 표) (| Affected place (영향받는 곳) | Changed scope (바뀌는 범위) | Risk (위험) | Evidence (근거) |), and put whether to do it in "Decisions needed".
 
-### 6. 시험 구현 명세
-(결론이 "시험 후 결정"일 때만. choice-rules.md §9 의 칸)
+### 6. Trial implementation spec (시험 구현 명세)
+(Only when the conclusion is "decide after a trial". The columns of choice-rules.md §9)
 
-### 7. 바깥 자료
-| 조건 | 사실 | 출처 | 확인일 | 재사용한 기록인지 |
+### 7. Outside material (바깥 자료)
+| Condition (조건) | Fact (사실) | Source (출처) | Check date (확인일) | Reused record or not (재사용한 기록인지) |
 |---|---|---|---|---|
-(웹에서 찾지 않았으면 머리 "범위"의 바깥 자료 한 줄을 그대로 옮긴다)
+(If you did not look on the web, copy the outside material line of "Scope" in the head as it is)
 
-### 부록 A. 검색 기록
-(analyst·web-scout 가 돌려준 범위, 패턴, 결과 개수, 실패 여부, 사용한 검색어)
+### Appendix A. Search log (부록 A. 검색 기록)
+(the scope, patterns, result counts, whether a search failed, and the search queries used, as returned by analyst and web-scout)
 
-### 부록 B. 기억에서 나온 내용 — 근거 아님
-- <내용>
+### Appendix B. Content from memory — not evidence (부록 B. 기억에서 나온 내용 — 근거 아님)
+- <content>
 ```
 
-## 구조 점검 본문
+## Structure audit body
 
-머리 다음에 범위에 맞는 절 하나만 쓴다.
+After the head, write only the one section that matches the scope.
 
-**모듈 의존**
+**Module dependencies**
 ```markdown
-### 1. 기준
-- 모듈 N 개, 간선 N 개(프로젝트 모듈 사이 N 개), 해석 못 했거나 일부만 해석한 줄 N 개, 제외한 모듈 N 개 — module_graph.py <인자>, 종료 코드 <0 | 3>
-- 층 규칙: 확정(<팀 문서 위치>) / 초안(--layer-draft)
+### 1. Basis (기준)
+- N modules, N edges (N between project modules), N lines not parsed or only partly parsed, N excluded modules — module_graph.py <arguments>, exit code <0 | 3>
+- Layer rules (층 규칙): final (확정) (<team document location>) / draft (초안) (--layer-draft)
 
-### 2. 분류별 결과
-| # | 분류 | 의존하는 모듈 → 의존 대상 모듈 | 의존 종류·조건 | 위치 | 쓰는 곳(analyst) | 판정 |
+### 2. Results by classification (분류별 결과)
+| # | Classification (분류) | Depending module → depended-on module (의존하는 모듈 → 의존 대상 모듈) | Dependency kind and condition (의존 종류·조건) | Location (위치) | Where it is used (쓰는 곳; analyst) | Verdict (판정) |
 |---|---|---|---|---|---|---|
 
-### 3. include 가 많은 헤더
-(module_graph.py 결과 상위 N)
+### 3. Headers with the most includes (include 가 많은 헤더)
+(top N of the module_graph.py result)
 
-### 4. 층 규칙
-| TD-L | 층 | 모듈 | 출처 | 상태 |
+### 4. Layer rules (층 규칙)
+| TD-L | Layer (층) | Modules (모듈) | Source (출처) | Status (상태) |
 |---|---|---|---|---|
 ```
 
-**엔진 수정**
+**Engine modifications**
 ```markdown
-### 1. 기준
-- 시작·끝 표시 규칙, 셀 폴더, 폴더별 블록 수(목록 기준), 짝이 맞지 않는 블록 수, 건너뛴 파일 — tech_inventory.py <인자>
-- 비교에 쓴 순정 엔진 폴더와 그 버전(Build.version), 우리 버전과의 관계(같음 / 더 새 버전)
+### 1. Basis (기준)
+- The start and end marker rules, the folders counted, the block count per folder (by list), the number of blocks whose pairs do not match, skipped files — tech_inventory.py <arguments>
+- The vanilla engine folder used for comparison and its version (Build.version), and its relation to our version (same (같음) / newer version (더 새 버전))
 
-### 2. 묶음 표
-| TD-E | 묶음 | 엔진 영역(블록 수) | 블록 수 | 파일 수 | 줄 수 합 | 분류 | 근거 | 머지 위험 근거(셀 수 있는 것만) |
+### 2. Group table (묶음 표)
+| TD-E | Group (묶음) | Engine area (block count) (엔진 영역(블록 수)) | Block count (블록 수) | File count (파일 수) | Total line count (줄 수 합) | Classification (분류) | Evidence (근거) | Merge risk evidence (머지 위험 근거; only countable things) |
 |---|---|---|---|---|---|---|---|---|
 
-### 3. 분류별·엔진 영역별 블록 수
-(블록 하나하나의 경로로 센다)
-| 분류 | 런타임 | 에디터 | 도구 프로그램 | 플러그인 | 셰이더 | 그 밖 |
+### 3. Block counts by classification and engine area (분류별·엔진 영역별 블록 수)
+(count by the path of each block)
+| Classification (분류) | Runtime (런타임) | Editor (에디터) | Tool program (도구 프로그램) | Plugin (플러그인) | Shader (셰이더) | Other (그 밖) |
 |---|---|---|---|---|---|---|
 
-### 4. 규칙 위반 후보
-| 규칙(팀 문서 위치) | 검사 방법 | 걸린 블록 수 | 위치 |
+### 4. Rule violation candidates (규칙 위반 후보)
+| Rule (규칙; team document location) | Check method (검사 방법) | Blocks caught (걸린 블록 수) | Location (위치) |
 |---|---|---|---|
 ```
 
-**기술 부채**
+**Technical debt**
 ```markdown
-### 1. 모은 곳
-(출처별 건수와 못 읽은 곳)
+### 1. Where it was collected (모은 곳)
+(count per source, and the places that could not be read)
 
-### 2. 부채 표
-| 순위 | TD-B | 종류 | 위치 | 근거 수치와 명령 | 갚는 범위 | 권고 | 결정 시점 | 상태 |
+### 2. Debt table (부채 표)
+| Rank (순위) | TD-B | Kind (종류) | Location (위치) | Evidence numbers and command (근거 수치와 명령) | Payoff scope (갚는 범위) | Recommendation (권고) | Decide by (결정 시점) | Status (상태) |
 |---|---|---|---|---|---|---|---|---|
 ```
 
-**코딩 규칙**
+**Coding rules**
 ```markdown
-### 1. 영역과 모은 자료
+### 1. Area and collected material (영역과 모은 자료)
 
-### 2. 규칙 후보
-| # | 규칙 | 이유와 근거 위치 | 따른 예 / 어긴 예 (파일:줄, 개수) | 자동 검사 | 팀 문서에 있음 | 상태 |
+### 2. Rule candidates (규칙 후보)
+| # | Rule (규칙) | Reason and evidence location (이유와 근거 위치) | Examples that follow / examples that break (따른 예 / 어긴 예) (file:line, count) | Automatic check (자동 검사) | In team documents (팀 문서에 있음) | Status (상태) |
 |---|---|---|---|---|---|---|
-| 1 | | | | 검색식 '...' / 사람이 봐야 함 | 예 / 아니오 | 초안 |
+| 1 | | | | search pattern '...' (검색식 '...') / a person must check (사람이 봐야 함) | yes (예) / no (아니오) | draft (초안) |
 ```
 
-**에이전트 검증 가능성**
+**Agent verifiability**
 ```markdown
-### 1. 기준
-- 대상 범위(경로), 제외 경로, 시드 고정 난수 경로(판정 기준 표의 값 / 정한 경로 없음)
-- 프레임 간격 설정(참고): <bUseFixedFrameRate·FixedFrameRate·bSubstepping 값과 위치>
-- 에이전트 실행에 관한 팀 규칙: <조항과 위치 / 없음>
+### 1. Basis (기준)
+- Target scope (paths), excluded paths, seeded random number path (the value in the criteria table / no set path (정한 경로 없음))
+- Frame interval settings (reference) (프레임 간격 설정(참고)): <values and locations of bUseFixedFrameRate·FixedFrameRate·bSubstepping>
+- Team rules on agent runs (에이전트 실행에 관한 팀 규칙): <clause and location / none (없음)>
 
-### 2. 축 표
-| 축 | 판정 | 근거 수치와 검색식 | 위치 | 확인 못 한 것 |
+### 2. Axis table (축 표)
+| Axis (축) | Verdict (판정) | Evidence numbers and search patterns (근거 수치와 검색식) | Location (위치) | Not checked (확인 못 한 것) |
 |---|---|---|---|---|
-| 1. 난수 경로 | 갖춤 / 일부 / 없음 / 모름 | 전역 난수 호출 N(검색식 '...'), 스트림 N(시드 출처별 수) | | 블루프린트 난수 노드 |
-| 2. 상태 재현 | | | | |
-| 3. 텍스트 출력 | | | | |
-| 4. 재컴파일 없는 조작 | | | | |
-| 5. 수치의 데이터 분리 | | | | |
-| 6. 자동 시험 | | | | |
+| 1. Random number path (난수 경로) | complete (갖춤) / partial (일부) / none (없음) / unknown (모름) | global random calls N (search pattern '...'), streams N (count per seed source) | | Blueprint random nodes |
+| 2. State reproduction (상태 재현) | | | | |
+| 3. Text output (텍스트 출력) | | | | |
+| 4. Control without recompiling (재컴파일 없는 조작) | | | | |
+| 5. Separation of numeric values into data (수치의 데이터 분리) | | | | |
+| 6. Automated tests (자동 시험) | | | | |
 
-### 3. 빈 곳 순위
-| 순위 | 축 | 빈 곳 | 위치 | 바뀌는 범위 | 권고(조건 X 면 안 A / 받아들임) | 팀 규칙 |
+### 3. Gap ranking (빈 곳 순위)
+| Rank (순위) | Axis (축) | Gap (빈 곳) | Location (위치) | Changed scope (바뀌는 범위) | Recommendation (권고; if condition X, option A (조건 X 면 안 A) / accept (받아들임)) | Team rules (팀 규칙) |
 |---|---|---|---|---|---|---|
 
-### 4. 사람이 볼 항목
-(함수 안에 바로 쓴 숫자, 블루프린트 난수 노드, 고정 프레임 간격이 아닐 때의 영향처럼 검색으로 가리지 못한 것)
+### 4. Items for a person to check (사람이 볼 항목)
+(things that search cannot tell apart, such as numbers written directly inside functions, Blueprint random nodes, and the impact when the frame interval is not fixed)
 ```
 
-## 문체
+## Writing style
 
-- 평서문(~한다)으로 쓴다. 해요체를 쓰지 않는다. 대화로 내는 후속 제안만 "~할까요?"로 끝낸다.
-- 영어 용어는 처음 나올 때 뜻을 풀어 쓴다.
-- 클래스·함수 이름을 설명 문장의 주어로 쓰지 않는다. 그 코드가 실제로 하는 일을 쓰고, 이름은 괄호나 근거 칸에 둔다.
+- Write in plain declarative sentences. In a Korean report, use the plain form (~한다), and do not use the polite form (해요체). Only the follow-up proposals given in the conversation end with "~할까요?" ("Shall I ...?").
+- Explain the meaning of a technical term (in a Korean report, an English term) the first time it appears.
+- Do not use a class or function name as the subject of an explanatory sentence. Write what that code actually does, and put the name in parentheses or in the evidence column.

@@ -24,7 +24,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
-UPDATED_RE = re.compile(r"마지막 갱신\s*[:：]\s*(\d{4}-\d{2}-\d{2})")
+UPDATED_RE = re.compile(r"(?:마지막 갱신|Last updated)\s*[:：]\s*(\d{4}-\d{2}-\d{2})", re.I)
 CAPACITY_RE = re.compile(r"(?:용량|capacity)\s*[:：]\s*(\d+(?:\.\d+)?)\s*(?:시간|h\b|hours?\b)", re.I)
 
 
@@ -103,8 +103,39 @@ def cmd_capacity(args):
 
 # ── cadence ──────────────────────────────────────────────
 
+# 기록 파일은 프로필 report_language 에 따라 한국어나 영어 칸 이름으로 쓴다.
+# 영어 칸 이름은 한국어 칸 이름으로 바꿔 읽으므로, 아래 코드는 한국어 이름만 쓴다.
+COLUMN_ALIASES = {
+    # pm-cadence.md
+    "check": "점검", "how to run": "실행 방법", "period": "주기", "record pattern": "기록 패턴",
+    "last run": "마지막 실행", "note": "메모",
+    # pm-risks.md
+    "risk": "위험", "kind": "종류", "impact": "영향", "likelihood": "가능성", "response": "대응책",
+    "decide by": "결정 시점", "status": "상태", "evidence": "근거", "last checked": "마지막 확인",
+    # td-debt.md
+    "location": "위치", "evidence numbers and command": "근거 수치와 명령", "rank": "순위",
+    "payoff scope": "갚는 범위", "recommendation": "권고", "last check date": "마지막 확인일",
+}
+
+
+def column_name(cell):
+    """칸 이름을 한국어 이름으로 맞춘다. "Period (주기)" 처럼 두 이름을 함께 적은 칸도 읽는다."""
+    names = [cell]
+    m = re.match(r"^(.*?)\s*\((.*)\)\s*$", cell)
+    if m:
+        names += [m.group(1), m.group(2)]
+    for n in names:
+        key = n.strip().lower()
+        if key in COLUMN_ALIASES:
+            return COLUMN_ALIASES[key]
+    for n in names[1:]:
+        if re.search(r"[가-힣]", n):
+            return n.strip()
+    return cell
+
+
 def read_table(path):
-    """마크다운 파일의 첫 표를 칸 이름 → 값 사전 목록으로 읽는다."""
+    """마크다운 파일의 첫 표를 칸 이름 → 값 사전 목록으로 읽는다. 칸 이름은 한국어 이름으로 맞춘다."""
     try:
         with open(path, "r", encoding="utf-8-sig") as f:
             text = f.read()
@@ -119,7 +150,7 @@ def read_table(path):
             continue
         cells = [c.strip() for c in s.strip("|").split("|")]
         if header is None:
-            header = cells
+            header = [column_name(c) for c in cells]
             continue
         if all(set(c) <= set("-: ") for c in cells):
             continue  # 구분선
@@ -171,9 +202,10 @@ def cmd_cadence(args):
         period = r.get("주기", "")
         pattern = r.get("기록 패턴", "").strip("` ")
         last, source = None, ""
-        if pattern.startswith("갱신:"):
+        m_upd = re.match(r"^(?:갱신|updated)\s*:", pattern, re.I)
+        if m_upd:
             # 리포트가 여러 목적으로 섞이는 점검은 그 고문 기록 파일의 마지막 갱신으로 본다
-            found = state_updated(report_dir, pattern[len("갱신:"):].strip())
+            found = state_updated(report_dir, pattern[m_upd.end():].strip())
             if found:
                 last, source = found
         elif pattern and pattern != "-":
@@ -185,8 +217,9 @@ def cmd_cadence(args):
             last, source = manual, "점검표 기록"
 
         due, note = None, ""
-        m_days = re.match(r"^\s*(\d+)\s*일?\s*$", period)
-        m_mile = re.search(r"마일스톤\s*(\d+)\s*일\s*전", period)
+        m_days = re.match(r"^\s*(\d+)\s*(?:일|days?)?\s*$", period, re.I)
+        m_mile = (re.search(r"마일스톤\s*(\d+)\s*일\s*전", period)
+                  or re.search(r"(\d+)\s*days?\s+before\s+(?:the\s+)?milestone", period, re.I))
         if m_days:
             due = (last + dt.timedelta(days=int(m_days.group(1)))) if last else today
             if not last:
@@ -228,14 +261,23 @@ def cmd_cadence(args):
 
 # ── risks ────────────────────────────────────────────────
 
-IMPACT = {"치명": 4, "심각": 3, "보통": 2, "가벼움": 1}
-LIKELIHOOD = {"높음": 3, "중간": 2, "낮음": 1}
+IMPACT = {"치명": 4, "심각": 3, "보통": 2, "가벼움": 1,
+          "critical": 4, "severe": 3, "moderate": 2, "minor": 1}
+LIKELIHOOD = {"높음": 3, "중간": 2, "낮음": 1,
+              "high": 3, "medium": 2, "low": 1}
+RISK_CLOSED = ("해소", "폐기", "resolved", "dropped")
 
 
 def level(text, table):
-    # "중간~높음"처럼 두 값을 적었으면 높은 쪽을 쓴다
-    hits = [v for k, v in table.items() if k in (text or "")]
+    # "중간~높음"처럼 두 값을 적었으면 높은 쪽을 쓴다. 영어 값은 낱말 단위로 대소문자 없이 찾는다
+    text = text or ""
+    hits = [v for k, v in table.items()
+            if (re.search(r"\b" + k + r"\b", text, re.I) if k.isascii() else k in text)]
     return max(hits) if hits else None
+
+
+def is_closed_risk(state):
+    return state in RISK_CLOSED or state.lower() in RISK_CLOSED
 
 
 def cmd_risks(args):
@@ -258,11 +300,11 @@ def cmd_risks(args):
         score = i * l if i and l else None
         when = r.get("결정 시점", "")
         due = parse_date(when)
-        if due is None and "마일스톤" in when and milestone:
+        if due is None and ("마일스톤" in when or "milestone" in when.lower()) and milestone:
             due = milestone
         state = r.get("상태", "")
         flag = ""
-        if state in ("해소", "폐기"):
+        if is_closed_risk(state):
             flag = state
         elif due is None:
             flag = "결정 시점 없음"
@@ -273,7 +315,7 @@ def cmd_risks(args):
         out.append({"id": rid, "risk": r.get("위험", ""), "impact": r.get("영향", ""), "likelihood": r.get("가능성", ""),
                     "score": score, "decide_by": due, "state": state, "flag": flag})
 
-    active = [o for o in out if o["state"] not in ("해소", "폐기")]
+    active = [o for o in out if not is_closed_risk(o["state"])]
     active.sort(key=lambda o: (-(o["score"] or 0), o["decide_by"] or dt.date.max, o["id"]))
     lines = ["오늘: {} / 점수 = 영향(치명 4·심각 3·보통 2·가벼움 1) × 가능성(높음 3·중간 2·낮음 1)".format(today),
              "| 순서 | ID | 위험 | 영향 | 가능성 | 점수 | 결정 시점 | 알림 |", "|---|---|---|---|---|---|---|---|"]
@@ -289,7 +331,14 @@ def cmd_risks(args):
 
 # ── debts ────────────────────────────────────────────────
 
-DEBT_CLOSED = ("갚음", "받아들임")
+DEBT_CLOSED = ("갚음", "받아들임", "paid off", "accepted")
+DEBT_PAYING = ("갚는 중", "paying off")
+DEBT_WAITING = ("조건 대기", "waiting for condition")
+
+
+def starts_with_any(text, words):
+    low = text.lower()
+    return any(low.startswith(w) for w in words)
 
 
 def cmd_debts(args):
@@ -310,9 +359,9 @@ def cmd_debts(args):
         state = r.get("상태", "")
         when = r.get("결정 시점", "")
         due = parse_date(when)
-        if any(state.startswith(c) for c in DEBT_CLOSED) or state.startswith("갚는 중"):
+        if starts_with_any(state, DEBT_CLOSED + DEBT_PAYING):
             flag = ""  # 결정이 끝난 부채는 알리지 않는다
-        elif state.startswith("조건 대기") or when.startswith("조건"):
+        elif starts_with_any(state, DEBT_WAITING) or starts_with_any(when, ("조건", "condition")):
             flag = "조건 대기"
         elif due is None:
             flag = "결정 시점 없음"  # 권고·결정 시점을 채우기 전에 등록된 부채

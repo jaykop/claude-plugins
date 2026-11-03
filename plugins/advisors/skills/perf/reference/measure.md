@@ -1,120 +1,122 @@
-# 측정 조건, 측정 계획, 결과 파일 읽기
+# Measurement conditions, measurement plans, and reading result files
 
-## 1. 측정은 누가 언제 하나
+## 1. Who measures, and when
 
-- 고문은 빌드, 쿡, 에디터 실행, 설정 파일 수정을 하지 않는다(공통 규칙 §7). 측정은 프로필 `perf.measured_by` 에 적힌 주체가 한다.
-  - `사용자` 또는 `빌드 머신`: 고문은 측정 계획을 건네고, 결과 파일이 `perf.profiling_dir` 에 들어오기를 기다린다.
-  - `에디터 자동화`: 세션에 에디터를 조작하는 도구가 있고, 사용자가 대화에서 "지금 재도 된다"고 답했을 때만 고문이 콘솔 명령을 보낸다. 이 값은 에디터 안 플레이 값이므로 "에디터 상대값"으로 표시한다.
-- 무인 실행에서는 측정하지 않는다. 이미 있는 측정 파일만 읽는다.
-- 측정용 설정 변경은 콘솔 명령이나 명령줄 인자로만 한다. 설정 파일에 저장하지 않는다. 바꾼 것은 측정 조건 표의 "임시로 바꾼 설정" 칸에 적고, 끝나면 되돌렸는지 사용자에게 확인한다.
+- The advisor does not build, cook, run the editor, or change settings files (common rules §7). The measurer written in profile `perf.measured_by` does the measuring.
+  - `사용자` or `빌드 머신`: the advisor hands over a measurement plan and waits for the result files to arrive in `perf.profiling_dir`.
+  - `에디터 자동화`: the advisor sends console commands only when the session has a tool that operates the editor and the user answered "지금 재도 된다" in the conversation. These are play-in-editor values, so mark them as "editor-relative value" (에디터 상대값).
+- An unattended run does not measure. It reads only measurement files that already exist.
+- Make setting changes for measurement only with console commands or command-line arguments. Do not save them in settings files. Write what you changed in the "Temporarily changed settings" field of the measurement condition table, and when the measurement ends, ask the user whether it was reverted.
 
-## 2. 측정 조건 점검표
+## 2. Measurement condition checklist
 
-측정 회차마다 아래 칸을 모두 채운다. 칸을 채우는 근거는 결과 파일의 메타데이터(`csv_profile_stat.py` 가 출력), 측정 계획, 사용자 답변이다. 빈칸이 있는 회차는 기준선으로 등록하지 않고, 회차 비교에도 쓰지 않는다(무인 실행의 예외는 SKILL.md 2-2).
+Fill in all the fields below for every measurement round. The evidence for filling the fields is the metadata of the result files (printed by `csv_profile_stat.py`), the measurement plan, and the user's answers. Do not register a round with an empty field as a baseline, and do not use it for round comparison either (for the unattended exception, see SKILL.md 2-2).
 
-| 칸 | 지킬 것 | 어긋나면 |
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
+
+| Field (칸) | What to follow | If it deviates |
 |---|---|---|
-| 빌드 구성 | Development 또는 Test 구성의 독립 실행(에디터 밖 실행). Debug 구성 값은 쓰지 않는다 | 에디터 안 플레이 값은 "에디터 상대값"으로만 쓰고, 예산 초과 판정에 쓰지 않는다 |
-| 프레임 상한·수직 동기화 | 둘 다 끈다(예: `t.MaxFPS`, `r.VSync` — 이름은 대상 엔진에서 확인) | 상한에 걸리면 병목이 기다리는 시간 뒤로 숨는다. 병목 판정을 하지 않는다 |
-| 창 비활성 시 프레임 제한 | 창이 뒤로 가도 프레임을 낮추지 않게 한다. 독립 실행은 `t.IdleWhenNotForeground`, 에디터는 환경설정의 백그라운드 CPU 절약 항목(설정 이름 확인 필요) | 측정 중 창을 앞에 두었는지 사용자에게 확인한다. 확인 못 하면 그 회차는 "조건 미확인" |
-| 워밍업 | 첫 진입과 셰이더 컴파일 구간을 뺀다. 첫 실행 1회를 버리거나, `--skip-frames` 로 앞 구간을 자른다 | 히치·로딩 항목을 볼 때만 첫 진입을 따로 잰다 |
-| 반복 횟수 | 같은 조건으로 3회 이상 | 1~2회면 흩어짐을 몰라 나빠짐 판정을 하지 않는다 |
-| 해상도·화질 설정 | 해상도와 화질 단계(스케일러빌리티: 화질 묶음 설정) 값을 적는다 | 회차 사이에 다르면 "비교 불가" |
-| 장면 | 프로필 `perf.scenarios` 의 시나리오 ID. 재현 절차와 측정 구간(시작·끝 표시 방법) | ID 가 없는 장면은 이번 회차만의 참고값 |
-| 플랫폼·하드웨어 | 플랫폼, CPU, GPU, 메모리 | 다르면 "비교 불가" |
-| 엔진·빌드 리비전 | 엔진 버전과 프로젝트 리비전(변경 번호나 커밋) | 다르면 변화 원인에 리비전 차이를 함께 적는다. 엔진 버전이 바뀌었으면 새 기준선 후보 |
-| 임시로 바꾼 설정 | 측정용으로 바꾼 콘솔 변수·인자와 되돌렸는지 | 되돌렸는지 모르면 리포트에 적는다 |
+| Build configuration (빌드 구성) | A standalone run (a run outside the editor) of the Development or Test configuration. Do not use Debug configuration values | Use play-in-editor values only as "editor-relative value", and do not use them for over-budget judgments |
+| Frame cap and vsync (프레임 상한·수직 동기화) | Turn both off (for example, `t.MaxFPS`, `r.VSync` — check the names in the target engine) | If the cap is hit, the bottleneck hides behind the waiting time. Do not judge the bottleneck |
+| Frame throttling when the window is inactive (창 비활성 시 프레임 제한) | Make sure the frame rate does not drop even when the window goes to the back. For a standalone run, `t.IdleWhenNotForeground`; for the editor, the background CPU saving item in the preferences (setting name: check needed) | Ask the user whether the window was kept in front during the measurement. If you cannot confirm it, that round is "conditions unconfirmed" (조건 미확인) |
+| Warm-up (워밍업) | Exclude the first entry and the shader compilation section. Discard the first run, or cut the early section with `--skip-frames` | Measure the first entry separately only when you look at hitch and loading items |
+| Repeat count (반복 횟수) | 3 times or more under the same conditions | With 1 or 2 runs, the spread is unknown, so do not make a worsening judgment |
+| Resolution and quality settings (해상도·화질 설정) | Write the resolution and the quality level (scalability: grouped quality settings) values | If they differ between rounds, "not comparable" (비교 불가) |
+| Scene (장면) | A scenario ID of profile `perf.scenarios`. The reproduction steps and the measurement region (how the start and the end are marked) | A scene without an ID gives only a reference value for this round |
+| Platform and hardware (플랫폼·하드웨어) | Platform, CPU, GPU, memory | If they differ, "not comparable" |
+| Engine and build revision (엔진·빌드 리비전) | The engine version and the project revision (change number or commit) | If they differ, write the revision difference among the causes of the change. If the engine version changed, it is a new baseline candidate |
+| Temporarily changed settings (임시로 바꾼 설정) | Console variables and arguments changed for the measurement, and whether they were reverted | If you do not know whether they were reverted, write it in the report |
 
-## 3. 값이 실제로 일하는 구간을 따로 잰다
+## 3. Measure separately the region where the value actually does work
 
-- 대상 코드가 기본 동작과 달라지는 조건을 코드에서 먼저 짚는다. 예: 분기 조건, 인원이 가장 많을 때, 생성이 몰릴 때, 애니메이션 블렌드 시작과 끝, 레벨 전환, 기능의 시작 프레임과 끝 프레임.
-- 짚은 근거(파일:줄)를 측정 계획에 적고, 그 구간을 측정 표본에 넣는다. 구간 표시는 트레이스 책갈피·구간 명령(`Trace.Bookmark`, `Trace.RegionBegin` / `Trace.RegionEnd` — 대상 엔진에서 확인)을 쓴다.
-- 그 구간을 재지 못했으면 "확인 못 함"으로 둔다. 편한 구간만 재서 "늘 같은 값이라 의미 없음"이라고 판정하지 않는다.
-- 평균만 보지 않는다. 평균, p95(느린 쪽 5% 를 뺀 경계값), p99, 최대, 히치 횟수를 함께 본다.
+- First, find in the code the conditions under which the target code differs from its default behavior. Examples: branch conditions, the maximum headcount, bursts of spawning, the start and the end of an animation blend, level transitions, the start frame and the end frame of a feature.
+- Write the evidence you found (file:line) in the measurement plan, and put that region in the measurement sample. To mark the region, use trace bookmarks and region commands (`Trace.Bookmark`, `Trace.RegionBegin` / `Trace.RegionEnd` — check them in the target engine).
+- If you could not measure that region, leave it as "not checked" (확인 못 함). Do not measure only a convenient region and judge "it is always the same value, so it is meaningless".
+- Do not look only at the average. Look at the average, p95 (the boundary value after excluding the slowest 5%), p99, the maximum, and the hitch count together.
 
-## 4. 측정 계획 양식
+## 4. Measurement plan format
 
-측정이 없을 때 진단의 첫 결과물이다. 리포트 본문의 "측정 계획" 항목에 이 양식으로 쓴다. 사용자가 그대로 따라 할 수 있게 쓴다.
+This is the first deliverable of a diagnosis when there is no measurement. Write it in this format in the "Measurement plan" section of the report body. Write it so that the user can follow it exactly.
 
 ```markdown
-### 측정 계획 MP-<번호>: <무엇을 확인하려는가>
+### Measurement plan (측정 계획) MP-<number>: <what it tries to confirm>
 
-| 칸 | 값 |
+| Field (칸) | Value (값) |
 |---|---|
-| 확인할 의심 | <의심 목록의 번호와 항목 ID> |
-| 시나리오 | <perf.scenarios 의 ID> — <재현 절차 한 줄> |
-| 측정 구간 | <시작·끝 표시 방법>. 값이 일하는 구간 근거: <파일:줄> |
-| 빌드 구성 | Development / Test 독립 실행 (에디터 안이면 "에디터 상대값") |
-| 명령 | <명령줄 인자 또는 콘솔 명령. 이름마다 실재 확인 위치(파일:줄) 또는 "확인 필요"> |
-| 반복 | 워밍업 1회 버림 + 3회 |
-| 비교 대상 | <기준선 회차 / 직전 회차 / 같은 장면의 다른 설정> |
-| 결과 파일 | <perf.profiling_dir> 아래. 점검 기록 판정 기준 표의 "측정 파일 이름 규칙"대로 시나리오 ID 를 파일 이름이나 하위 폴더에 넣어 달라고 적는다. 규칙이 비어 있으면 규칙을 정하는 일을 "결정이 필요한 것"에 올린다 |
-| 측정 조건 표 | 2번 항목의 칸을 채워서 함께 넘겨 달라고 적는다 |
-| 고문이 결과로 할 일 | <예: csv_profile_stat.py summary 로 게임 스레드 시간 p95 를 보고, 의심 3번 구간의 포함 시간을 Insights 내보내기로 본다> |
+| Suspect to confirm (확인할 의심) | <number in the suspect list and item ID> |
+| Scenario (시나리오) | <ID of perf.scenarios> — <reproduction steps in one line> |
+| Measurement region (측정 구간) | <how the start and the end are marked>. Evidence for the region where the value does work: <file:line> |
+| Build configuration (빌드 구성) | Development / Test standalone run (if inside the editor, "editor-relative value" (에디터 상대값)) |
+| Command (명령) | <command-line arguments or console commands. For each name, the location where its existence was checked (file:line) or "check needed" (확인 필요)> |
+| Repeats (반복) | discard 1 warm-up run + 3 runs |
+| Compared with (비교 대상) | <baseline round / previous round / another setting of the same scene> |
+| Result files (결과 파일) | Under <perf.profiling_dir>. Ask that the scenario ID be put in the file name or the subfolder by the "Measurement file naming rule" in the judgment criteria table of the check ledger. If the rule is empty, raise setting the rule in "Decisions needed" |
+| Measurement condition table (측정 조건 표) | Ask that the fields of item 2 be filled in and handed over together |
+| What the advisor does with the result (고문이 결과로 할 일) | <example: look at game thread time p95 with csv_profile_stat.py summary, and look at the inclusive time of the region of suspect 3 with an Insights export> |
 ```
 
-- 계획은 회차당 3개 이내로 줄인다. 의심 목록의 측정 순서(호출 빈도와 그 코드를 가진 객체 수가 큰 순)를 따른다.
-- 다른 고문이 측정을 요청한 경우(질문함)에는 요청에 적힌 시나리오 ID·플랫폼·지표·비교 방법을 그대로 쓴다. 시나리오 ID 가 프로필에 없으면 측정 계획 대신 "시나리오 추가가 필요하다"를 "결정이 필요한 것"에 올린다.
+- Reduce the plans to at most 3 per round. Follow the measurement order of the suspect list (largest call frequency and number of objects that have the code first).
+- If another advisor requested the measurement (question inbox), use the scenario ID, platform, metric, and comparison method written in the request as they are. If the scenario ID is not in the profile, raise "a scenario must be added" in "Decisions needed" instead of a measurement plan.
 
-## 5. 결과 파일 읽기
+## 5. Reading result files
 
-화면에 뜬 숫자는 근거로 쓰지 않는다. 로그나 파일로 남긴 값만 쓴다. 큰 파일은 눈으로 훑지 않고 스크립트로 집계하고, 실행한 명령을 리포트에 남긴다.
+Do not use numbers shown on screen as evidence. Use only values left in a log or a file. Do not scan large files by eye. Aggregate them with a script, and leave the commands you ran in the report.
 
-### 5-1. CSV 프로파일러 결과(.csv)
+### 5-1. CSV profiler results (.csv)
 
-`<스킬 폴더>/scripts/csv_profile_stat.py` 로 집계한다. `python` 이 없으면 `python3` 로 실행한다.
+Aggregate them with `<스킬 폴더>/scripts/csv_profile_stat.py`. If `python` is not available, run it with `python3`.
 
 ```
-# 1) 통계 이름부터 본다. 이름을 추측해 --stats 에 넣지 않는다.
+# 1) Look at the stat names first. Do not guess a name and put it in --stats.
 python "<스킬 폴더>/scripts/csv_profile_stat.py" list <파일.csv>
 
-# 2) 한 회차(반복 3회) 집계. 워밍업 구간은 --skip-frames 로 뺀다.
+# 2) Aggregate one round (3 repetitions). Remove the warm-up part with --skip-frames.
 python "<스킬 폴더>/scripts/csv_profile_stat.py" summary <r1.csv> <r2.csv> <r3.csv> --stats "<프레임 시간 열>,<게임 스레드 시간 열>,<렌더 스레드 시간 열>,<GPU 시간 열>" --budget-ms <예산 ms> --hitch-ms <히치 기준 ms> --skip-frames <N>
 
-# 3) 두 회차 비교(직전 회차, 기준선 회차와 각각)
+# 3) Compare two rounds (with the previous round and with the baseline round, each)
 python "<스킬 폴더>/scripts/csv_profile_stat.py" compare --a <이전 r1> <이전 r2> <이전 r3> --b <이번 r1> <이번 r2> <이번 r3> --stats "<열 이름들>" --budget-ms <예산 ms> --hitch-ms <히치 기준 ms> --skip-frames <N>
 ```
 
-- 프레임 시간과 스레드별 시간 열은 흔히 `FrameTime`, `GameThreadTime`, `RenderThreadTime`, `RHIThreadTime`, `GPUTime` 같은 이름이다. 실제 이름은 1) 의 결과로 확인한다. GPU 관련 열은 측정 설정에 따라 없을 수 있다(GPU 통계를 켜는 인자는 대상 엔진에서 확인).
-- `--budget-ms`, `--hitch-ms` 를 주면 스크립트는 고른 통계마다 그 값을 넘은 프레임 수를 센다. 히치 횟수는 프레임 시간 열에서만 읽고, 예산 초과는 ms 단위 시간 열에서만 읽는다. 개수·바이트 같은 열에 붙은 같은 칸은 뜻이 없다. 값이 없으면 그 인자를 빼고 리포트에 "예산 없음", "히치 기준 없음"을 적는다.
-- 출력의 "메타데이터"(플랫폼, 빌드 구성, 엔진 버전, CPU, 해상도 등)를 측정 조건 표에 옮긴다. 파일끼리 메타데이터가 다르면 스크립트가 따로 표로 보여 준다.
-- "집계 중단" 표시가 있으면 그 결과를 쓰지 않는다. 상한을 늘리거나 범위를 줄여 다시 돌린다.
-- 이진 형식 CSV 는 읽지 못한다. 텍스트 CSV 로 바꿔 달라고 요청한다(변환 도구 이름은 대상 엔진에서 확인 필요).
-- `--out` 은 쓰지 않는다. 결과는 표준 출력으로 받아, 판단에 쓴 표와 실행한 명령을 리포트에 옮긴다. 출력이 길면 `--stats` 로 통계를 줄이거나 `summary --sort p95 --top 20` 으로 자른다. 리포트 파일 저장은 Step Final 에서만 한다.
+- The frame time and per-thread time columns usually have names such as `FrameTime`, `GameThreadTime`, `RenderThreadTime`, `RHIThreadTime`, and `GPUTime`. Check the actual names with the result of 1). GPU-related columns may be missing depending on the measurement settings (check the argument that enables GPU statistics in the target engine).
+- If you give `--budget-ms` and `--hitch-ms`, the script counts, for each chosen statistic, the frames over that value. Read the hitch count only from the frame time column, and read budget overruns only from time columns in ms. The same fields attached to columns such as counts and bytes have no meaning. If a value is missing, leave out that argument and write "no budget" (예산 없음) and "no hitch threshold" (히치 기준 없음) in the report.
+- Copy the "메타데이터" (metadata) of the output (platform, build configuration, engine version, CPU, resolution, and so on) into the measurement condition table. If the metadata differs between files, the script shows it in a separate table.
+- If the output has the "집계 중단" (aggregation stopped) mark, do not use that result. Raise the limit or narrow the scope, and run it again.
+- A binary-format CSV cannot be read. Ask for it to be converted to a text CSV (the conversion tool name: check needed in the target engine).
+- Do not use `--out`. Take the results from standard output, and copy the tables used for the judgment and the commands you ran into the report. If the output is long, reduce the statistics with `--stats` or cut it with `summary --sort p95 --top 20`. Save the report file only in Step Final.
 
-### 5-2. Insights 트레이스(.utrace)
+### 5-2. Insights traces (.utrace)
 
-.utrace 는 이진 파일이라 직접 읽지 않는다. Unreal Insights 의 명령줄 내보내기로 CSV 를 만든다. 고문은 이 명령을 실행하지 않고, 사용자에게 아래 형식을 건넨다.
+A .utrace is a binary file, so do not read it directly. Make a CSV with the command-line export of Unreal Insights. The advisor does not run this command. It hands the user the form below.
 
 ```
 UnrealInsights -OpenTraceFile="<파일>.utrace" -NoUI -AutoQuit -log -ExecOnAnalysisCompleteCmd="TimingInsights.ExportTimerStatistics <출력>.csv -region=<구간 이름> -threads=<스레드 이름>"
 ```
 
-- 이 명령줄 인자와 내보내기 명령 이름, 옵션(`-region=`, `-threads=`, `-timers=`, `-startTime=`, `-endTime=`, `-columns=`, `-sortBy=` 등)은 **대상 엔진 버전에서 확인 필요**하다. 엔진 소스에서 `ExecOnAnalysisCompleteCmd` 와 `TimingInsights.Export` 를 검색하면 내보내기 명령의 구현과 기능 테스트 예시가 나온다.
-- 타이머 통계 내보내기 결과는 타이머(측정 구간 이름)마다 한 행인 표다. 프레임마다 한 행인 CSV 프로파일러 결과와 모양이 달라서 `csv_profile_stat.py` 로 읽지 않는다. 칸 이름을 머리 행에서 확인한 뒤 analyst 에게 "병목 스레드의 포함 시간 상위 20개 타이머"처럼 읽을 범위를 정해 맡긴다.
-- 히치를 볼 때는 히치 프레임의 시간 범위(`-startTime=`, `-endTime=`)로 잘라 내보낸다.
+- These command-line arguments, the export command name, and the options (`-region=`, `-threads=`, `-timers=`, `-startTime=`, `-endTime=`, `-columns=`, `-sortBy=`, and so on) **must be checked in the target engine version**. If you search the engine source for `ExecOnAnalysisCompleteCmd` and `TimingInsights.Export`, you find the implementation of the export commands and functional test examples.
+- The result of the timer statistics export is a table with one row per timer (measured region name). Its shape differs from CSV profiler results, which have one row per frame, so do not read it with `csv_profile_stat.py`. Check the column names in the header row, and then hand it to analyst with a defined reading scope, such as "the top 20 timers by inclusive time on the bottleneck thread".
+- When you look at hitches, export cut to the time range of the hitch frames (`-startTime=`, `-endTime=`).
 
-### 5-3. 그 밖의 결과
+### 5-3. Other results
 
-| 결과 | 읽는 법 |
+| Result | How to read it |
 |---|---|
-| 구간 프레임 통계(`StartFPSChart` / `StopFPSChart` 결과 로그·파일) | 로그 줄을 그대로 인용한다. 스레드별 평균과 히치 수를 측정 조건과 함께 적는다 |
-| 메모리 보고서(`memreport` 결과 파일) | 보고서 안 제목별로 analyst 에 맡겨 상위 항목만 받는다 |
-| 틱 목록(`dumpticks` 로그) | 클래스별로 묶어 개수를 센다. 로그가 길면 analyst 에 맡겨 클래스별 개수 표로 받는다 |
-| 빌드·쿡 로그 | 총 시간 줄과 단계별 시간 줄을 인용한다 |
+| Section frame statistics (logs and files from `StartFPSChart` / `StopFPSChart`) | Quote the log lines as they are. Write the per-thread averages and the hitch count together with the measurement conditions |
+| Memory report (result file of `memreport`) | Hand it to analyst by heading in the report, and receive only the top items |
+| Tick list (`dumpticks` log) | Group by class and count. If the log is long, hand it to analyst and receive a count table by class |
+| Build and cook logs | Quote the total time line and the per-step time lines |
 
-## 6. 병목 판정
+## 6. Bottleneck judgment
 
-병목은 프레임 시간을 붙잡고 있는 스레드나 자원이다. 시나리오마다 따로 정한다.
+The bottleneck is the thread or resource that holds the frame time. Decide it separately for each scenario.
 
-1. 프레임 상한과 수직 동기화가 꺼진 측정인지 먼저 본다. 켜져 있으면 판정하지 않는다.
-2. 같은 회차의 프레임 시간과 스레드별 시간(게임 스레드, 렌더 스레드, RHI 스레드: 그래픽 API 호출을 드라이버로 넘기는 스레드, GPU)을 같은 지표(p50 과 p95)로 나란히 놓는다.
-3. 프레임 시간에 가장 가까운 쪽을 병목으로 본다. 두 쪽이 비슷하면(차이가 그 지표의 흩어짐보다 작으면) "병목 둘: <A>, <B>"로 적고 둘 다 본다.
-4. 병목이 아닌 쪽을 줄여도 프레임 시간은 줄지 않는다. 병목이 아닌 쪽의 개선은 "여유 확보"로만 적는다.
-5. 히치는 평균 병목과 따로 본다. 히치 프레임마다 어느 쪽이 길어졌는지 본다.
-6. 판정에 쓴 표(지표, 값, 파일, 명령)를 리포트 "프레임 개요"에 남긴다.
+1. First check whether frame cap and vsync were off in the measurement. If they were on, do not judge.
+2. Put the frame time and the per-thread times of the same round (game thread, render thread, RHI thread: the thread that passes graphics API calls to the driver, GPU) side by side with the same metrics (p50 and p95).
+3. Treat the side closest to the frame time as the bottleneck. If two sides are similar (the difference is smaller than the spread of that metric), write "two bottlenecks: <A>, <B>" (병목 둘: <A>, <B>) and look at both.
+4. Reducing a side that is not the bottleneck does not reduce the frame time. Write an improvement on a side that is not the bottleneck only as "headroom gained" (여유 확보).
+5. Look at hitches separately from the average bottleneck. For each hitch frame, look at which side got longer.
+6. Leave the table used for the judgment (metrics, values, files, commands) in the "Frame overview" of the report.
 
-## 7. 오래된 측정 파일
+## 7. Old measurement files
 
-- 이전 리비전에서 잰 파일을 쓸 때는 파일의 리비전과 날짜를 적고 "이전 리비전 측정"이라고 표시한다.
-- 측정 파일의 날짜는 파일 시스템 시각이 아니라 결과 파일의 메타데이터, 파일 이름에 든 날짜(그 파일을 만든 날로만 본다. 공통 규칙 §3), 사용자가 알려 준 날짜로 정한다. 셋 다 없으면 "날짜 미상"이다.
+- When you use a file measured at an earlier revision, write the file's revision and date, and mark it "measured at an earlier revision" (이전 리비전 측정).
+- Decide the date of a measurement file not from the file system time but from the metadata of the result file, the date in the file name (treat it only as the date the file was made; common rules §3), or the date the user gave. If none of the three exists, it is "date unknown" (날짜 미상).

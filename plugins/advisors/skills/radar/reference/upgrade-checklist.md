@@ -1,44 +1,46 @@
-# 엔진 버전 점검표
+# Engine version checklist
 
-단일 기술 진단의 대상이 **엔진 버전 하나**일 때 쓴다. 사용자가 버전을 지목했거나("5.x 로 올려야 해?") 질문함에 기술 동향 고문(radar) 앞으로 그런 질문이 왔을 때만이다. 정기 점검은 이 점검표를 돌리지 않고, `radar-watchlist.md` 의 "다음 버전으로 올릴 때 걸리는 것" 표에 회차마다 쌓기만 한다.
+Use it when the target of a single-technology diagnosis is **one engine version**. Use it only when the user named a version ("5.x 로 올려야 해?") or when such a question came to the technology trend advisor (radar) in the question inbox. A periodic check does not run this checklist. It only accumulates, each run, rows in the "Blockers when upgrading to the next version" table of `radar-watchlist.md`.
 
-절차는 단일 기술 진단과 같다(D1~D5). 이 파일은 D2·D3 에서 무엇을 볼지, D4 에서 무엇을 판정할지를 정한다.
+The procedure is the same as the single-technology diagnosis (D1~D5). This file decides what to look at in D2 and D3, and what to rate in D4.
 
-## 시작점
+## Starting point
 
-1. `radar-watchlist.md` 의 "다음 버전으로 올릴 때 걸리는 것" 표에서 상태가 "열림"인 행을 모두 가져온다. 이미 쌓인 것은 다시 조사하지 않고 "마지막 확인일"이 30일을 넘은 행만 다시 확인한다.
-2. 결정권자를 확인한다. 엔진 버전 올리기는 프로필 `decision_owners.tech` 의 일이다. 사용자가 결정권자가 아니면 리포트 전체를 "참고 선택지"로 쓴다(rules.md §8).
-3. 고문은 올리라거나 올리지 말라고 결론 내리지 않는다. 걸리는 것과 얻는 것을 셀 수 있는 단위로 정리하고, 결정은 "결정이 필요한 것"에 결정권자와 함께 올린다.
+1. From the "Blockers when upgrading to the next version" table of `radar-watchlist.md`, take all rows whose status is "open". Do not investigate again what has already accumulated. Check again only the rows whose "Last check date" is more than 30 days ago.
+2. Check the decision owner. An engine upgrade is the job of profile `decision_owners.tech`. If the user is not the decision owner, write the whole report as a "reference option" (rules.md §8).
+3. The advisor does not conclude whether to upgrade or not. Organize what blocks and what is gained in countable units, and put the decision in "Decisions needed" with the decision owner.
 
-## 점검 항목
+## Check items
 
-| # | 항목 | 어디서 확인하나 | 맡는 쪽 |
+| # | Item | Where to check | Who does it |
 |---|---|---|---|
-| 1 | 버전 차이와 사이에 낀 버전 목록 | 우리 버전: 기술 목록. 대상 버전과 사이 버전: 1차 릴리스 노트 목록 | web-scout |
-| 2 | 사이 버전들의 폐기 예정·제거·API 변경 가운데 우리가 쓰는 것에 걸리는 것 | 1차 릴리스 노트. 대조 대상은 기술 목록에서 "사용 중", "켜짐·사용 흔적 없음", "엔진을 고쳐서 씀"인 엔진 플러그인과 설정 표의 기능 | web-scout(버전마다 병렬) + 메인 대조 |
-| 3 | 우리가 켠 Experimental·Beta 플러그인이 대상 버전에서 어떻게 바뀌는가 | 기술 목록 근거 칸의 `IsExperimentalVersion`, `IsBetaVersion` → 대상 버전 릴리스 노트 | web-scout |
-| 4 | 엔진 수정 블록 (소스 빌드일 때만) | 전체 수와 폴더별 분포: 기술 목록. 묶음별 엔진 영역(런타임 / 에디터 / 도구 프로그램 / 플러그인 / 셰이더 / 그 밖)과 분류(엔진 밖으로 옮길 후보 / 엔진 버전을 올리면 지울 수 있음 / 엔진 개발사가 고쳤는지 확인 필요 / 유지 필요 / 모름), 머지 위험 근거: `_state/td-engine-mods.md` 가 있으면 그대로 인용한다(없으면 "TD 고문 구조 점검 전"). 기술 목록의 블록 수와 다르면 shared/state-formats.md 의 규칙대로 늦게 센 쪽을 쓴다. 대상 버전에서 그 폴더가 크게 바뀌었는가: 1차 출처의 변경 설명이나 공개 소스 비교. 확인 못 하면 "모름". 팀의 엔진 버전 올리기 절차 문서(프로필 `td.rule_docs`)가 있으면 실제 머지 충돌을 확인하는 방법으로 그 절차를 인용한다. 고문은 실행하지 않는다 | 메인(스크립트) + web-scout |
-| 5 | 프로젝트 설정 가운데 대상 버전에서 이름이나 기본값이 바뀐 것 | 기술 목록의 설정 표 → 1차 출처 | web-scout |
-| 6 | 대상 플랫폼마다 대상 버전 지원 표기 | 공개 자료만. 비공개 콘솔 정보는 "플랫폼 비공개 문서 확인 필요" | web-scout |
-| 7 | 외부 공급사 플러그인(공개 제품)이 대상 버전을 지원하는가 | 공급사 공개 자료. 검색 대상은 radar-watchlist 의 "공개 외부 제품으로 확인된 프로젝트 플러그인" 표에 있는 것뿐이다. 표에 없는 프로젝트 플러그인은 대화 실행에서 외부 제품인지 묻고, 맞다고 하면 표에 넣은 뒤 검색한다. 프로젝트가 직접 만든 플러그인은 검색하지 않고 "코드 작업 필요 여부 확인"으로만 적는다(무인: 묻지 않고 "확인 못 한 것") | web-scout |
-| 8 | 다음 마일스톤과 겹치는가 | 프로필 `next_milestone`. 남은 날 수는 `date` 로 계산한다. 작업 기간은 근거가 없으면 "모름" | 메인 |
-| 9 | 얻는 것 | 대상 버전의 새 기능 가운데 문제 목록(Step 2)과 이어지는 것. 기능마다 verdict-rules.md 의 판정 3칸 | 메인 |
-| 10 | 되돌리는 방법 | 이전 엔진을 유지하는 브랜치가 있는가 등. 사용자에게 확인할 항목으로 적는다 | 메인 |
+| 1 | Version difference and the list of versions in between | Our version: technology inventory. Target version and versions in between: list of primary release notes | web-scout |
+| 2 | Among planned deprecations, removals, and API changes in the versions in between, the ones that affect what we use | Primary release notes. Compare against the engine plugins in the technology inventory whose state is "in use", "on, no sign of use", or "used with engine modifications", and the features in the settings table | web-scout (in parallel, one per version) + comparison by the main agent |
+| 3 | How the Experimental and Beta plugins we turned on change in the target version | `IsExperimentalVersion`, `IsBetaVersion` in the evidence column of the technology inventory → release notes of the target version | web-scout |
+| 4 | Engine modification blocks (source build only) | Total count and distribution by folder: technology inventory. The engine area of each group (runtime / editor / tool program / plugin / shader / other) and its classification (candidate to move out of the engine / can be removed after an engine upgrade / check needed whether the engine developer fixed it / must be kept / unknown), and the merge risk evidence: if `_state/td-engine-mods.md` exists, quote it as is (if it does not exist, "before the TD advisor structure check" (TD 고문 구조 점검 전)). If it differs from the block count in the technology inventory, use the one counted later, as the rule in shared/state-formats.md says. Whether that folder changed a lot in the target version: change descriptions in primary sources or a comparison of the public source. If it cannot be checked, "unknown". If the team has a procedure document for engine upgrades (profile `td.rule_docs`), quote that procedure as the way to check actual merge conflicts. The advisor does not run it | main agent (script) + web-scout |
+| 5 | Project settings whose name or default value changed in the target version | Settings table of the technology inventory → primary sources | web-scout |
+| 6 | Support mark of the target version for each target platform | Public material only. For private console information, "the platform's private documents must be checked" (플랫폼 비공개 문서 확인 필요) | web-scout |
+| 7 | Whether outside vendor plugins (public products) support the target version | Vendor's public material. Search only the ones in the "Project plugins confirmed as public outside products" table of radar-watchlist. For a project plugin not in the table, in a conversation run ask whether it is an outside product, and if the answer is yes, put it in the table and then search. Do not search plugins that the project made itself; for those, write only "check whether code work is needed" (코드 작업 필요 여부 확인) (unattended: do not ask, and write it in "Not checked") | web-scout |
+| 8 | Whether it overlaps with the next milestone | Profile `next_milestone`. Calculate the remaining days with `date`. If there is no evidence for the work duration, "unknown" | main agent |
+| 9 | What is gained | New features of the target version that connect to the problem list (Step 2). For each feature, the three verdict columns of verdict-rules.md | main agent |
+| 10 | Way to roll back | Whether there is a branch that keeps the previous engine, and so on. Write it as an item to confirm with the user | main agent |
 
-- 2·3·5 는 "변경 사항 목록을 통째로 옮겨 오기"가 아니다. 기술 목록에 있는 것과 맞닿은 줄만 남긴다.
-- 프로젝트 파일 영향(바뀐 API 를 쓰는 파일 수)은 analyst 에 검색식을 주고 센다. 검색식과 결과 개수를 같이 적는다.
+- Items 2, 3, and 5 are not "copy the whole change list". Keep only the lines that touch what is in the technology inventory.
+- For the impact on project files (the number of files that use a changed API), give analyst the search expression and count. Write the search expression and the result count together.
 
-## 리포트에 넣는 표
+## Table to put in the report
+
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
 ```markdown
-| # | 점검 항목 | 결과 | 걸리는 정도 | 근거 |
+| # | Check item (점검 항목) | Result (결과) | Blocking level (걸리는 정도) | Evidence (근거) |
 |---|---|---|---|---|
-| 2 | <바뀌는 API> | 우리 파일 N 개에서 사용 (검색식 '...') | 작업 필요 | <릴리스 노트 URL>, 확인 YYYY-MM-DD |
+| 2 | <API that changes> | used in N of our files (search expression '...') | work needed (작업 필요) | <release notes URL>, checked YYYY-MM-DD |
 ```
 
-걸리는 정도는 네 가지 중 하나: 막힘 / 작업 필요 / 영향 없음 / 모름.
+The blocking level is one of four: blocked (막힘) / work needed (작업 필요) / no impact (영향 없음) / unknown (모름).
 
-## 정기 점검의 누적 표와의 관계
+## Relation to the accumulated table of the periodic check
 
-- 정기 점검 Step R5 는 ①(지금 쓰는 기술의 변화)에서 찾은 것 가운데 다음 버전에서 걸리는 것만 `UP-` 행으로 추가한다. 위 점검 항목 2·3·4 의 일부가 회차마다 쌓이는 셈이다.
-- 이 점검표를 돌린 뒤에는 새로 찾은 걸리는 것을 `UP-` 행으로 추가하고, 해소된 행은 상태를 "해소됨"으로 바꾼다.
+- Step R5 of the periodic check adds, among the findings of ① (changes to technologies we use now), only the ones that block the next version, as `UP-` rows. In effect, part of check items 2, 3, and 4 above accumulates each run.
+- After running this checklist, add the newly found blockers as `UP-` rows, and change the status of resolved rows to "resolved".

@@ -1,179 +1,181 @@
-# TD 고문 구조 점검 범위
+# TD advisor structure audit scopes
 
-구조 점검은 한 번에 범위 하나만 본다. 범위마다 수집, 셀 것, 판정, 산출물을 정한다. 순위와 분류는 고정 규칙으로 하고 가중치나 점수 합산을 쓰지 않는다. 근거 표시와 등급은 choice-rules.md §1 을 따른다.
+A structure audit looks at only one scope at a time. For each scope, this file sets the collection, what to count, the verdict, and the output. Ranking and classification use fixed rules. Do not use weights or score sums. Evidence marks and grades follow choice-rules.md §1.
 
-스크립트는 `--out` 없이 표준 출력으로만 받는다. `module_graph.py` 의 종료 코드 3 이나 결과의 "검색 실패", `tech_inventory.py` 결과의 "검색 실패"·"건너뛴 파일"이 있는 절은 수를 최소값으로 읽고, 0 이나 "없음"으로 쓰지 않는다.
+Write the English names when profile `report_language` is `en`, and the Korean names in parentheses when it is `ko`.
 
-## 1. 모듈 의존
+Take script output only on standard output, without `--out`. If a section has exit code 3 of `module_graph.py`, "검색 실패" (search failed) in the `module_graph.py` result, or "검색 실패" or "건너뛴 파일" (skipped files) in the `tech_inventory.py` result, read the counts in that section as minimum values. Do not write them as 0 or "none".
 
-**수집**
-1. 점검 제외 경로를 정한다. 외부 공급사 플러그인(radar-watchlist 의 "공개 외부 제품으로 확인된 프로젝트 플러그인" 표에 있는 것, 사용자가 외부 제품이라고 한 것)과 TD 기록 판정 기준 표의 "점검 제외 경로"다. 첫 구조 점검이고 표가 비어 있으면 대화 실행에서 프로젝트 Plugins 아래 폴더 목록을 보여 주고 뺄 폴더를 묻고, 답을 표에 적는다. 무인 실행에서는 표에 있는 것만 뺀다.
-2. 모듈 지도를 만든다(`python` 이 없으면 `python3`).
+## 1. Module dependencies
+
+**Collection**
+1. Set the excluded paths. They are external vendor plugins (the plugins in the "Project plugins confirmed as public outside products" table of radar-watchlist, and the plugins that the user said are external products) and the "Excluded paths" in the criteria table of the TD ledger. If this is the first structure audit and the table is empty, in a conversation run show the list of folders under the project's Plugins, ask which folders to exclude, and write the answer in the table. In an unattended run, exclude only what is in the table.
+2. Make the module map (if `python` is not available, use `python3`).
    ```
    python "<스킬 폴더>/scripts/module_graph.py" "<프로젝트 루트>" --project-file "<project_file>" [--source-roots "<폴더1>" "<폴더2>"] [--extra-roots "<폴더1>" "<폴더2>"] [--engine-root "<engine.root>"] [--exclude "<제외 경로1>" "<제외 경로2>"] --includes [--layer "<층 이름>=<모듈1>,<모듈2>" ...] [--layer-draft]
    ```
-   - `--layer` 는 TD 기록의 층 규칙(TD-L) 행을 아래 층부터 순서대로 준다. 행이 없으면 빼고 `--layer-draft` 를 준다.
-   - Godot 이면 결과 머리에 "--unit-depth N 로 다시 돌릴 것" 주의가 있을 때 그 값으로 다시 돌린다(engine-godot.md §4).
-   - 간선은 Build.cs 나 프로젝트 파일에 적힌 의존 선언 하나다. 같은 두 모듈이라도 Public 과 동적 로드로 따로 적혀 있으면 둘로 센다.
-   - `--engine-root` 가 없으면 엔진 모듈의 종류를 몰라 런타임 → 에디터 의존 검사가 프로젝트 모듈끼리만 된다. 결과의 "종류를 몰라 검사하지 못한 의존 대상 모듈" 수를 "확인 못 한 것"에 옮긴다.
-   - 결과 끝 "해석 못 한 줄"에 걸린 의존(일부만 해석한 줄 포함)은 표에 없다. 그 모듈의 간선 수는 최소값으로 읽는다.
-   - "헤더가 하나도 없어 include 를 셀 수 없는 모듈"로 가는 간선은 include 검사에서 빠진다. 그 사실을 "확인 못 한 것"에 적는다.
-3. 층 규칙을 정한다.
-   - `td.rule_docs` 에 모듈·플러그인 사이의 층이나 의존 방향 규칙이 있으면 그것이 "확정"이다. 규칙 문장과 위치를 TD-L 행으로 옮긴다.
-   - 없으면 `--layer-draft` 결과(의존을 따라 깊이를 센 층 초안)를 "초안 — 목표 구조 아님"으로 둔다. 손으로 층을 계산하지 않는다(rules.md §2). 대화 실행에서 보여 주고, 사용자가 고친 뒤 확정하면 TD-L 행의 상태를 "확정"으로 쓴다.
-4. analyst 를 부른다(위반 간선과 지울 후보마다): 의존하는 모듈의 어느 파일이 의존 대상 모듈의 무엇을 쓰는지(include, 클래스·함수 이름, 리플렉션 문자열, 모듈 로드 호출). 정적 확인과 연결 추정을 나눠 받는다. 대상이 10개를 넘으면 include 가 많은 순으로 10개까지만 보고, 나머지는 수만 적는다.
+   - Give `--layer` the layer rule (TD-L) rows of the TD ledger in order, starting from the lowest layer. If there are no rows, leave it out and give `--layer-draft`.
+   - For Godot, if the result head has the caution "--unit-depth N 로 다시 돌릴 것" (run again with --unit-depth N), run it again with that value (engine-godot.md §4).
+   - An edge is one dependency declaration written in Build.cs or the project file. Even for the same two modules, if a Public dependency and a dynamic load are written separately, count them as two.
+   - Without `--engine-root`, the kinds of engine modules are unknown, so the runtime → editor dependency check runs only between project modules. Move the count of "종류를 몰라 검사하지 못한 의존 대상 모듈" (depended-on modules not checked because their kind is unknown) in the result to "Not checked".
+   - Dependencies caught in "해석 못 한 줄" (lines not parsed) at the end of the result (including partly parsed lines) are not in the table. Read the edge count of that module as a minimum value.
+   - Edges to a "헤더가 하나도 없어 include 를 셀 수 없는 모듈" (module whose includes cannot be counted because it has no headers) are left out of the include check. Write that fact under "Not checked".
+3. Set the layer rules.
+   - If `td.rule_docs` has a rule on layers or on the dependency direction between modules and plugins, that rule is "final". Move the rule sentence and its location to a TD-L row.
+   - If not, keep the `--layer-draft` result (a draft of layers counted by depth along the dependencies) as "draft — not the target structure". Do not calculate layers by hand (rules.md §2). In a conversation run, show it. If the user fixes it and confirms it, write the status of the TD-L row as "final".
+4. Call analyst (for each violating edge and each removal candidate): which file of the depending module uses what of the depended-on module (include, class and function names, reflection strings, module load calls). Get static checks and connection estimates separately. If there are more than 10 targets, look at only up to 10, in order of most includes, and write only the count for the rest.
 
-**판정**
+**Verdict**
 
-| 분류 | 조건 |
+| Classification (분류) | Condition (조건) |
 |---|---|
-| 층 규칙 위반 | 층 규칙이 "확정"이고 아래 층 모듈이 위 층 모듈에 의존한다. 초안이면 "초안과 다름"으로만 쓴다 |
-| 런타임 → 에디터 의존 | 런타임 종류 모듈이 if 조건 없이 에디터 종류 모듈에 의존한다. 출시 빌드에서 링크가 깨질 수 있다. 등급은 확인함이다. 조건 안의 의존은 참고로만 적는다 |
-| 순환 의존 | 동적 로드를 뺀 간선으로 서로 의존하는 묶음 |
-| 지울 후보 의존 | Build.cs 의 Public·Private 의존인데 include 를 못 찾았다. analyst 가 리플렉션·모듈 로드로도 쓰지 않는다고 확인했을 때만 "후보", 확인 못 했으면 "모름" |
-| 선언 없는 include | 의존 선언 없이 다른 모듈 헤더를 include 한다. 다른 모듈의 Public 의존을 거쳐 빌드되므로, 그 Public 의존이 바뀌면 빌드가 깨진다 |
+| Layer rule violation (층 규칙 위반) | The layer rules are "final", and a module in a lower layer depends on a module in an upper layer. If the layer rules are a draft, write only "differs from the draft" (초안과 다름) |
+| Runtime → editor dependency (런타임 → 에디터 의존) | A runtime-kind module depends on an editor-kind module without an if condition. The link can break in a shipping build. The grade is confirmed. Write a dependency inside a condition only for reference |
+| Circular dependency (순환 의존) | A group of modules that depend on each other through edges other than dynamic loads |
+| Removal candidate dependency (지울 후보 의존) | A Public or Private dependency in Build.cs for which no include was found. Write "candidate" (후보) only when analyst confirmed that it is not used through reflection or module loading either. If that was not confirmed, write "unknown" |
+| Undeclared include (선언 없는 include) | It includes a header of another module without a dependency declaration. It builds through a Public dependency of another module, so if that Public dependency changes, the build breaks |
 
-**산출물**: 모듈 수와 간선 수, 분류별 표, include 가 많은 헤더 상위 목록, 층 규칙 TD-L 갱신. 의존을 옮기거나 지우는 제안에는 "팀 공유 필요"를 붙인다.
+**Output**: the module count and the edge count, a table for each classification, the top list of the headers with the most includes, and the update of the TD-L layer rules. Attach "team sharing needed" to proposals that move or remove a dependency.
 
-## 2. 엔진 수정
+## 2. Engine modifications
 
-소스 빌드이고 엔진 폴더(`engine.root`)가 있을 때만 한다. 없으면 "해당 없음"으로 끝낸다.
+Do this only if the project is a source build and the engine folder (`engine.root`) exists. If not, end with "not applicable".
 
-**수집**
-1. 수정 표시 규칙을 정한다. 프로필 `radar.engine_mod_marker`(시작 줄), `radar.engine_mod_end_marker`(끝 줄), `radar.engine_mod_tag_re`(주제 태그), `radar.engine_mod_dirs`(셀 폴더)를 쓴다.
-   - 시작 표시는 시작 줄에만 걸려야 한다. 끝 줄에도 걸리는 값(예: `X_(BEGIN|END)`)이면 블록 수가 부풀므로, 대화 실행에서 시작 줄에만 걸리는 값으로 고치자고 확인받는다.
-   - 칸이 비어 있으면 `td.rule_docs` 와 엔진 폴더 바로 아래 안내 문서(`*.md`)에서 시작·끝 표시 규칙과 주제 태그 규칙을 찾는다. 대화 실행에서는 찾은 규칙을 확인받는다. 프로필이 있으면 `[파일]` 출처로 적고, 없으면 이번 실행에만 쓴다.
-   - 무인 실행이고 시작 표시, 끝 표시, 셀 폴더 가운데 하나라도 비어 있으면 이 범위를 하지 않고 "확인 못 한 것"에 적는다. 끝 표시가 없으면 시작 표시가 끝 줄에도 걸리는지 가릴 수 없어 블록 수가 부풀 수 있기 때문이다. 대화 실행에서 끝 표시가 비어 있으면 1 대로 찾아 확인받는다.
-2. 블록 목록을 뽑는다. `--engine-root`, `--literal` 은 기술 동향 고문이 기술 목록을 만들 때와 같게 준다.
+**Collection**
+1. Set the modification marker rules. Use profile `radar.engine_mod_marker` (start line), `radar.engine_mod_end_marker` (end line), `radar.engine_mod_tag_re` (topic tag), and `radar.engine_mod_dirs` (folders to count).
+   - The start marker must match only start lines. If the value also matches end lines (for example `X_(BEGIN|END)`), the block count inflates. In that case, in a conversation run, get confirmation to change it to a value that matches only start lines.
+   - If the fields are empty, look for the start and end marker rules and the topic tag rule in `td.rule_docs` and in the guide documents (`*.md`) right under the engine folder. In a conversation run, get confirmation of the rules you found. If there is a profile, write them with the `[파일]` source. If there is no profile, use them only for this run.
+   - In an unattended run, if any one of the start marker, the end marker, or the folders to count is empty, do not do this scope, and write it under "Not checked". The reason: without an end marker, you cannot tell whether the start marker also matches end lines, so the block count can inflate. In a conversation run, if the end marker is empty, find it as described in item 1 and get confirmation.
+2. Extract the block list. Give `--engine-root` and `--literal` the same way as the technology trend advisor gives them when it makes the technology inventory.
    ```
    python "<플러그인 폴더>/scripts/tech_inventory.py" "<프로젝트 루트>" --project-file "<project_file>" --engine-root "<engine.root>" --mod-only --mod-list --mod-marker "<시작 표시>" [--mod-end "<끝 표시>"] [--literal] [--mod-tag-re "<태그 정규식>"] --mod-dirs "<폴더1>" "<폴더2>"
    ```
-   - 블록 수는 결과의 "폴더별 블록 수 (목록 기준)"를 쓴다. 그 줄에 "위의 개수와 다르다"가 있으면 1 의 시작 표시 문제다.
-   - 결과의 "태그별 묶음"이 분류 단위다. 태그가 없는 블록은 파일 단위로 묶인다.
-   - 수정 사유는 프로젝트 내부 정보다. 검색어에 넣지 않는다. 스크립트는 시작 표시(수정자 ID 가 들 수 있다)를 결과에 넣지 않는다. 고문도 수정자 ID 를 리포트·질문함·`_state` 에 옮기지 않는다.
-3. 블록마다 엔진 영역을 정한다: 런타임(Engine/Source/Runtime) / 에디터(Engine/Source/Editor, Developer) / 도구 프로그램(Engine/Source/Programs) / 플러그인(Engine/Plugins, 그 플러그인의 모듈 종류를 함께) / 셰이더(Engine/Shaders) / 그 밖(경로를 적는다. 예: Engine/Source/ThirdParty, Config). 묶음의 블록이 둘 이상의 영역에 걸치면 묶음의 엔진 영역 칸에 영역별 블록 수를 함께 적는다(예: 런타임 46, 에디터 6). 분류별·엔진 영역별 블록 수 표는 블록 하나하나의 경로로 센다.
-4. analyst 를 묶음마다 부른다(묶음이 많으면 블록 수가 큰 순으로 10개까지): 바꾼 엔진 함수와 그 파일, 게임 코드나 도구가 그 수정에 기대는 곳(수정이 더한 함수·필드·콘솔 변수 이름으로 검색), 같은 경로의 공개 확장 지점(델리게이트, 가상 함수, 콘솔 변수, 서브시스템, 플러그인 훅, 설정 파일 값).
-5. `td.vanilla_engine_root` 가 비어 있으면 대화 실행에서 한 번 묻는다. 있으면 그 폴더의 `Build/Build.version` 을 읽어 버전을 리포트에 적는다. 우리 엔진과 같은 버전이면 같은 파일의 순정 엔진 쪽을 열어 블록이 바꾼 원래 코드를 확인하는 데만 쓴다. 우리보다 새 버전이면 엔진 개발사가 이미 고쳤는지 확인하는 데만 쓴다. 우리보다 낮은 버전이면 쓰지 않는다. `td.engine_base_ref` 가 있고 `vcs_read_commands` 가 허용하면, 순정 엔진 쪽에서 그 파일이 바뀐 횟수를 이력으로 센다.
+   - For the block count, use "폴더별 블록 수 (목록 기준)" (block count per folder, by list) in the result. If that line has "위의 개수와 다르다" (differs from the count above), it is the start marker problem of item 1.
+   - "태그별 묶음" (groups by tag) in the result is the classification unit. Blocks without a tag are grouped by file.
+   - Modification reasons are internal project information. Do not put them in search queries. The script does not put the start marker (it can contain a modifier ID) in its result. The advisor also does not copy modifier IDs into the report, the question inbox, or `_state`.
+3. For each block, set the engine area: runtime (런타임; Engine/Source/Runtime) / editor (에디터; Engine/Source/Editor, Developer) / tool program (도구 프로그램; Engine/Source/Programs) / plugin (플러그인; Engine/Plugins, with the module kind of that plugin) / shader (셰이더; Engine/Shaders) / other (그 밖; write the path. Example: Engine/Source/ThirdParty, Config). If the blocks of a group span two or more areas, write the block count of each area together in the engine area column of the group (example: runtime 46, editor 6). Count the table of block counts by classification and by engine area by the path of each block.
+4. Call analyst for each group (if there are many groups, up to 10, in order of block count, largest first): the engine function that was changed and its file, the places where game code or tools rely on that modification (search with the names of the functions, fields, and console variables that the modification added), and the public extension points on the same path (delegates, virtual functions, console variables, subsystems, plugin hooks, settings file values).
+5. If `td.vanilla_engine_root` is empty, ask once in a conversation run. If it is set, read `Build/Build.version` in that folder and write the version in the report. If it is the same version as our engine, use it only to open the vanilla engine side of the same file and check the original code that the block changed. If it is a newer version than ours, use it only to check whether the engine developer already fixed the problem. If it is a lower version than ours, do not use it. If `td.engine_base_ref` is set and `vcs_read_commands` allows it, count from the history the number of times that file changed on the vanilla engine side.
 
-**판정** — 묶음마다 다섯 가운데 하나로 분류한다.
+**Verdict** — Classify each group as one of five.
 
-| 분류 | 조건 |
+| Classification (분류) | Condition (조건) |
 |---|---|
-| 엔진 밖으로 옮길 후보 | 같은 일을 게임 코드·도구·설정 쪽에서 할 공개 확장 지점이 [엔진] 경로:줄로 있다. 옮길 범위(파일 수)를 함께 적는다 |
-| 엔진 버전을 올리면 지울 수 있음 | 버그를 고친 블록인데, 엔진 개발사가 같은 버그를 고친 버전을 [1차] 출처나 더 새 버전의 순정 엔진 소스로 확인했다. 수정 버전과 근거를 적는다 |
-| 엔진 개발사가 고쳤는지 확인 필요 | 버그를 고친 블록인데, 엔진 개발사가 이미 고쳤는지 아직 모른다. 더 새 버전의 순정 엔진 소스가 로컬에 있으면 그것으로 보고, 없으면 W3·W4 조건으로 공개 기능 이름과 일반 증상 용어만 써서 1차 출처(핫픽스 노트, 공식 이슈 트래커)를 찾는다(evidence.md §4·§7). 블록 수가 큰 묶음 10개까지만 찾고 나머지는 수만 적는다. 찾으면 "엔진 버전을 올리면 지울 수 있음"으로 옮기고, 못 찾으면 이 분류로 둔다 |
-| 유지 필요 | 확장 지점이 없고 게임 코드나 도구가 그 수정에 기댄다는 [코드]·[엔진] 근거가 있다 |
-| 모름 | 위 넷을 가릴 근거가 없다 |
+| Candidate to move out of the engine (엔진 밖으로 옮길 후보) | A public extension point to do the same work on the game code, tools, or settings side exists, as [engine] path:line. Write the scope to move (file count) with it |
+| Can be removed after an engine upgrade (엔진 버전을 올리면 지울 수 있음) | The block fixes a bug, and you confirmed the version in which the engine developer fixed the same bug, with a [primary] source or with the vanilla engine source of a newer version. Write the fixed version and the evidence |
+| Check needed whether the engine developer fixed it (엔진 개발사가 고쳤는지 확인 필요) | The block fixes a bug, and it is not yet known whether the engine developer already fixed it. If the vanilla engine source of a newer version is local, look with it. If not, look for primary sources (hotfix notes, the official issue tracker) under the W3·W4 conditions, using only public feature names and general symptom terms (evidence.md §4·§7). Look only for up to 10 groups with the largest block counts, and write only the count for the rest. If you find it, move the group to "can be removed after an engine upgrade". If you do not find it, keep the group in this classification |
+| Must be kept (유지 필요) | There is no extension point, and there is [code]·[engine] evidence that game code or tools rely on the modification |
+| Unknown (모름) | There is no evidence to tell among the four above |
 
-- 머지 위험은 셀 수 있는 것만 적는다: 파일당 블록 수, 묶음의 줄 수 합, 순정 엔진 쪽 변경 횟수(이력이 있을 때). 위험 등급을 지어 붙이지 않는다.
-- 팀 규칙에 수정 규칙(시작·끝 표시, 사유 적기, 태그로 묶기, 수정 최소화 등)이 있으면 규칙마다 셀 수 있는 검사를 만든다. 예: 짝이 맞지 않는 블록 수, 수정 사유가 없는 블록 수. 걸린 블록은 "규칙 위반 후보"다.
-- 셀 수 없는 규칙은 "사람이 볼 항목"으로 따로 적는다. 예: 태그가 없는데 한 수정이 여러 파일에 걸쳤는지(스크립트는 태그 없는 블록을 파일 단위로 묶는다). 태그 없는 블록의 수정 사유를 파일끼리 견주어 같은 일로 보이는 것을 후보로 올리고, 같은 수정인지는 사용자에게 확인받는다.
-- "줄일 방법"을 물었으면 분류별·엔진 영역별 블록 수를 함께 낸다.
+- For merge risk, write only countable things: blocks per file, the total line count of the group, the number of changes on the vanilla engine side (when there is history). Do not make up a risk grade and attach it.
+- If the team rules have modification rules (start and end markers, writing the reason, grouping by tag, keeping modifications minimal, and so on), make a countable check for each rule. Example: the number of blocks whose pairs do not match, the number of blocks without a modification reason. The blocks that the check catches are "rule violation candidates" (규칙 위반 후보).
+- Write the rules that cannot be counted separately, as "items for a person to check" (사람이 볼 항목). Example: whether one modification without a tag spans several files (the script groups untagged blocks by file). Compare the modification reasons of untagged blocks across files, raise the ones that look like the same work as candidates, and get the user's confirmation whether they are the same modification.
+- If the user asked for "ways to reduce", give the block counts by classification and by engine area together.
 
-**산출물**: `_state/td-engine-mods.md` 갱신(형식: shared/state-formats.md), 리포트의 묶음 표와 규칙 위반 후보. 기술 동향 고문의 엔진 버전 점검표(upgrade-checklist.md 4번 항목)가 이 파일을 읽는다.
+**Output**: the update of `_state/td-engine-mods.md` (format: shared/state-formats.md), and the group table and the rule violation candidates in the report. The engine version checklist of the technology trend advisor (item 4 of upgrade-checklist.md) reads this file.
 
-## 3. 기술 부채
+## 3. Technical debt
 
-**모을 곳** — 하나의 목록으로 합친다. 같은 대상이 여러 곳에서 나오면 한 행으로 묶고 근거를 모두 적는다.
-- 기술 목록: 위치가 엔진인 플러그인 가운데 Experimental·Beta 표시가 있는데 "사용 중"인 것, "켜짐·사용 흔적 없음" 플러그인. 프로젝트 플러그인이 스스로 단 Experimental·Beta 표시는 따로 적고 순위에 넣지 않는다
-- radar-watchlist 의 "다음 버전으로 올릴 때 걸리는 것"(UP 행) 가운데 상태가 "열림"인 것
-- td-engine-mods 의 묶음 가운데 분류가 "엔진 밖으로 옮길 후보", "엔진 버전을 올리면 지울 수 있음", "엔진 개발사가 고쳤는지 확인 필요"인 것
-- `td.record_roots` 의 백로그·사고 기록
-- 임시 표시 주석 수. 패턴은 TD 기록 판정 기준 표의 값이고, 없으면 `TODO|FIXME|HACK` 을 쓰고 "(기본 패턴)"이라고 적는다. 폴더별 개수만 센다
-- 되풀이된 버그: `vcs_churn.py` 와 이슈 트래커로 센 버그 수정이 2건 이상인 파일. 기간·접두사·버그 종류는 TD 기록 판정 기준 표의 값이다(SKILL.md V2)
-- perf 리포트의 리팩터링 판정이 "권장"인 행(원래 등급 그대로)
+**Where to collect** — Merge everything into one list. If the same target comes from several places, combine it into one row and write all the evidence.
+- Technology inventory: among the plugins whose location is the engine, the ones that have an Experimental or Beta marker and are "사용 중" (in use), and the plugins that are "켜짐·사용 흔적 없음" (on, no sign of use). Write separately the Experimental or Beta markers that project plugins put on themselves, and do not put them in the ranking
+- Among the "Blockers when upgrading to the next version" (UP rows) of radar-watchlist, the ones whose status is "open"
+- Among the groups of td-engine-mods, the ones whose classification is "candidate to move out of the engine", "can be removed after an engine upgrade", or "check needed whether the engine developer fixed it"
+- The backlog and incident records in `td.record_roots`
+- The count of temporary marker comments. The pattern is the value in the criteria table of the TD ledger. If there is no value, use `TODO|FIXME|HACK` and write "(default pattern)" ("(기본 패턴)"). Count only per folder
+- Recurring bugs: files with 2 or more bug fixes, counted with `vcs_churn.py` and the issue tracker. The period, the prefix, and the bug kinds are the values in the criteria table of the TD ledger (SKILL.md V2)
+- Rows of perf reports whose refactoring verdict is "Recommended" (with the original grade unchanged)
 
-**순위 규칙** — 위에서부터 고정 순서다.
-1. 출시를 막는 근거가 있다: 우리 크래시 보고·사고 기록(경로:줄), 플랫폼 요건, 출시 빌드에 들어가는 Experimental 기능(.uplugin 을 읽어 Runtime 종류 모듈이 있고 대상 제한이 에디터만이 아닌 것), 다음 마일스톤 기능과 부딪힘(기획서 경로:줄). 엔진 릴리스 노트에 있는 크래시 수정은 순위 1 이 아니라 3 이다
-2. 같은 곳의 버그 티켓·사고 기록이 2건 이상이다(perf refactor.md 임시 기준과 같다)
-3. 다음 엔진 버전 올리기를 막거나 비용을 키운다: UP 행, 엔진 수정 블록 묶음
-4. 그 밖: 켜짐·사용 흔적 없음 플러그인, 임시 표시 주석
+**Ranking rules** — A fixed order from the top.
+1. There is evidence that it blocks release: our crash reports and incident records (path:line), platform requirements, Experimental features that go into the shipping build (read the .uplugin: it has a Runtime-kind module, and its target restriction is not editor only), a conflict with a feature of the next milestone (design document path:line). A crash fix in the engine release notes is rank 3, not rank 1
+2. There are 2 or more bug tickets or incident records for the same place (the same as the temporary criterion of perf refactor.md)
+3. It blocks the next engine version upgrade or raises its cost: UP rows, engine modification block groups
+4. Others: plugins that are on with no sign of use, temporary marker comments
 
-- 같은 순위 안에서는 영향받는 파일 수가 큰 순서다.
-- 갚는 범위(바뀌는 파일·모듈 수)는 칸으로만 보여 주고 순위에 섞지 않는다. 기능 일정보다 먼저 갚을지는 사람이 정한다.
-- "켜짐·사용 흔적 없음" 플러그인을 실제로 끌 수 있는지는 텍스트로 알 수 없다(에셋에서만 쓸 수 있다). 끄자고 권하지 않고, 에디터의 참조 확인을 사용자에게 요청하는 항목으로 적는다.
+- Within the same rank, order by the number of affected files, largest first.
+- Show the payoff scope (the number of files and modules that change) only as a column, and do not mix it into the ranking. A person decides whether to pay it off before the feature schedule.
+- Whether a plugin that is "켜짐·사용 흔적 없음" (on, no sign of use) can actually be turned off cannot be known from text (it can be used only from assets). Do not recommend turning it off. Write it as an item that asks the user to check its references in the editor.
 
-**권고와 결정 시점** — 부채마다 붙인다. 순위가 "얼마나 급한가"라면 권고는 "어디로 보낼까"다.
-- 갚음: 순위 1, 또는 순위 2 이면서 다음 마일스톤 기능이 같은 위치를 고칠 때(기획서·이슈 경로). 넣을 곳은 지금 마일스톤 / 다음 마일스톤 / 백로그 가운데 하나로 적는다. 언제 할지는 PM 몫이라 마일스톤을 단정하지 않고 후보로 적는다
-- 조건 대기: 고칠 계기가 특정 이슈·사건에 묶일 때(예: 그 파일을 고치는 이슈를 시작할 때). 조건은 이슈 번호나 확인할 수 있는 사건으로 적는다
-- 받아들임: 순위 4 이고 고치지 않아도 막히는 것이 없을 때. 이유를 한 줄 남긴다
-- 결정 시점은 ledger-format.md 의 규칙대로 적는다. 이미 있는 "열림" 부채에 권고나 결정 시점이 비어 있으면 이번 점검에서 채운다
+**Recommendation and decide-by date** — Attach both to each debt. The rank answers "how urgent is it". The recommendation answers "where to send it".
+- Pay off (갚음): rank 1, or rank 2 when a feature of the next milestone changes the same location (design document or issue path). Write where to put it as one of current milestone (지금 마일스톤) / next milestone (다음 마일스톤) / backlog (백로그). When to do it is the PM's work, so do not assert a milestone. Write it as a candidate
+- Wait for condition (조건 대기): when the trigger to fix it is tied to a specific issue or event (example: when an issue that changes that file starts). Write the condition as an issue number or as an event that can be checked
+- Accept (받아들임): rank 4, and nothing is blocked even if it is not fixed. Leave a one-line reason
+- Write the decide-by date by the rules in ledger-format.md. If an existing "open" debt has an empty recommendation or decide-by date, fill it in this audit
 
-**산출물**: 부채 표, `_state/td-debt.md` 의 부채(TD-B) 갱신. 상태(열림 / 조건 대기 / 갚는 중 / 갚음 / 받아들임)는 사용자가 결정을 말했을 때만 바꾼다. 대화 실행이면 "결정이 필요한 것"에 결정 시점이 오늘이거나 지난 부채를 권고와 함께 올린다. 갚기로 정한 부채는 이슈 초안을 프로필 `pm.next_task_entry` 의 스킬에 넘기자고 제안한다. 비어 있으면 사용자가 직접 만든다. 게시는 사용자 확인 뒤다.
+**Output**: the debt table, and the update of the debts (TD-B) in `_state/td-debt.md`. Change the status (open / waiting for condition / paying off / paid off / accepted) only when the user stated a decision. In a conversation run, put the debts whose decide-by date is today or has passed into "Decisions needed", with the recommendation. For a debt that was decided to be paid off, propose to pass an issue draft to the skill in profile `pm.next_task_entry`. If that field is empty, the user makes the issue directly. Posting happens only after user confirmation.
 
-## 4. 코딩 규칙
+## 4. Coding rules
 
-**영역 정하기**: 한 번에 영역 하나다. 예: 어빌리티 작성, 특정 플러그인의 태스크, 복제 프로퍼티, UI 바인딩. 요청에 없으면 대화 실행에서 묻는다. 무인 실행에서 영역이 없으면 이 범위를 하지 않고 "대상 없음"으로 끝낸다.
+**Set the area**: one area at a time. Examples: writing abilities, the tasks of a specific plugin, replicated properties, UI binding. If the request does not have one, ask in a conversation run. In an unattended run, if there is no area, do not do this scope, and end with "no target".
 
-**모을 것**
-- 팀 문서에 이미 있는 규칙(`td.rule_docs`)과 그 위치
-- 그 영역의 코드에서 되풀이되는 패턴과 개수(analyst). 같은 일을 두 가지 이상 방식으로 하는 곳이 있으면 방식마다 개수와 예를 받는다
-- 사고 기록(티켓, 설계 기록)에서 그 영역의 실수와 원인
-- 엔진 쪽 제약(로컬 엔진 소스의 경로:줄). 예: 어떤 함수는 서버에서만 불러야 한다
+**What to collect**
+- The rules that are already in team documents (`td.rule_docs`) and their locations
+- The patterns that repeat in the code of that area and their counts (analyst). If some places do the same work in two or more ways, get the count and examples for each way
+- The mistakes in that area and their causes, from incident records (tickets, design records)
+- Constraints on the engine side (path:line in the local engine source). Example: a certain function must be called only on the server
 
-**규칙 후보 표의 칸**: 규칙 / 이유(사고 기록이나 엔진 동작의 근거 위치) / 따른 예와 어긴 예(파일:줄과 개수) / 자동 검사 가능 여부(검색식이나 "사람이 봐야 함") / 이미 팀 문서에 있는지 / 상태(늘 "초안")
+**Columns of the rule candidate table**: rule (규칙) / reason (이유; the location of the evidence in incident records or engine behavior) / examples that follow it and examples that break it (따른 예와 어긴 예; file:line and count) / whether it can be checked automatically (자동 검사 가능 여부; a search pattern, or "a person must check" (사람이 봐야 함)) / whether it is already in team documents (이미 팀 문서에 있는지) / status (상태; always "draft" (초안))
 
-- 제출 전 형식 검사 도구가 따로 있으면(인코딩, 괄호, include 순서 등) 형식은 다루지 않고 설계 규칙만 다룬다.
-- 고문은 팀 문서에 규칙을 넣지 않는다. 넣을지와 넣는 일은 사람이 정한다.
-- 어긴 예가 많은 규칙은 "지금 코드와 맞지 않음 — 정하기 전에 기존 코드를 어떻게 할지 결정 필요"를 붙인다.
+- If there is a separate format check tool that runs before submit (encoding, brackets, include order, and so on), do not handle format. Handle only design rules.
+- The advisor does not put rules in team documents. A person decides whether to put them in, and a person does that work.
+- For a rule with many breaking examples, attach "does not match the current code — before deciding, a decision is needed on what to do with the existing code" (지금 코드와 맞지 않음 — 정하기 전에 기존 코드를 어떻게 할지 결정 필요).
 
-## 5. 에이전트 검증 가능성
+## 5. Agent verifiability
 
-AI 에이전트가 사람 없이 "바꾸고, 같은 상태를 다시 만들고, 결과를 글로 읽는" 확인을 할 수 있는 경로가 코드에 있는지 본다. 이 범위는 경로가 있는지만 판정한다. 에이전트가 그 경로를 실제로 돌릴지는 팀 규칙과 사람이 정한다. 성능 측정 결과의 형식과 측정 실행은 perf 몫이다.
+Check whether the code has a path through which an AI agent can do, without a person, the check "change it, recreate the same state, and read the result as text". This scope judges only whether the path exists. Team rules and people decide whether an agent actually runs that path. The format of performance measurement results and running measurements are perf's work.
 
-**대상 정하기**: 기본은 `source_roots` 에서 TD 기록 판정 기준 표의 "점검 제외 경로"를 뺀 곳이다. 사용자가 시스템 이름을 말했으면 그 폴더만 본다. 테스트 폴더(예: `Private/Tests`)는 축 6 에서만 센다.
+**Set the target**: by default, `source_roots` minus the "Excluded paths" in the criteria table of the TD ledger. If the user named a system, look only at that folder. Count test folders (for example `Private/Tests`) only in axis 6.
 
-**수집** — 축 여섯을 모은다. 축마다 검색식, 결과 개수, 실패 여부를 검색 기록에 남긴다. 아래 검색식은 언리얼 C++ 기준이다. Godot 이면 `<플러그인 폴더>/shared/engine-godot.md` §4 의 검색식을 쓴다(대화·무인 모두). 그 밖의 엔진이면 대화 실행에서 같은 뜻의 검색식을 확인받고, 무인 실행에서는 이 범위를 하지 않고 "확인 못 한 것"에 적는다.
+**Collection** — Collect six axes. For each axis, leave the search pattern, the result count, and whether the search failed in the search log. The search patterns below are for Unreal C++. For Godot, use the search patterns in `<플러그인 폴더>/shared/engine-godot.md` §4 (in both conversation and unattended runs). For other engines, in a conversation run, get confirmation of search patterns with the same meaning. In an unattended run, do not do this scope, and write it under "Not checked".
 
-1. 난수 경로 — 난수가 시드를 정할 수 있는 한 경로를 지나는가.
-   - TD 기록 판정 기준 표의 "시드 고정 난수 경로"(팀이 정한 난수 함수나 서브시스템 이름)를 읽는다. 비어 있으면 대화 실행에서 한 번 묻고 답을 표에 적는다. 무인 실행에서 비어 있으면 "정한 경로 없음"으로 본다.
-   - 전역 난수 호출을 폴더별로 센다: `FMath::(Rand|Rand32|FRand|RandRange|FRandRange|RandBool|VRand|VRandCone|RandPointInBox|RandHelper)\b`, `\bstd::(rand|random_device)\b`, `(^|[^:\w])rand\(\)`. 정한 경로의 구현 파일 안에 있는 호출은 따로 센다.
-   - 시드를 가진 스트림(`FRandomStream`)을 센다. analyst 가 스트림마다 시드가 어디서 오는지 받는다: 고정 값·설정 값 / 정한 경로 / 전역 난수 / 시간 / 모름.
-   - 프로젝트 Config 의 `bUseFixedFrameRate`, `FixedFrameRate`, `bSubstepping` 을 읽는다. 프레임 간격이 고정이 아니면 같은 입력도 결과가 달라질 수 있다. 이 값은 참고 사실로만 적고 분류에는 쓰지 않는다.
-   - 블루프린트의 난수 노드는 텍스트로 셀 수 없다. "확인 못 한 것"에 적는다.
-2. 상태 재현 — 같은 게임 상태로 돌아가는 코드가 있는가.
-   - 저장·불러오기: `USaveGame`, `SaveGameToSlot`, `LoadGameFromSlot`, `FObjectAndNameAsStringProxyArchive`.
-   - 기록·재생: 입력이나 명령을 기록해 다시 넣는 코드, 엔진 리플레이(`UDemoNetDriver`, `UReplaySubsystem`). analyst 가 무엇을 기록하고 무엇을 빼는지 받는다.
-   - 특정 상태로 옮기는 치트·콘솔 명령(스폰, 위치 이동, 시각 지정, 능력치 지정). 축 4 의 목록에서 상태를 정하는 것만 고른다.
-3. 텍스트 출력 — 상태를 에이전트가 읽을 글로 꺼낼 수 있는가.
-   - 콘솔 명령과 치트(`FAutoConsoleCommand`, `FAutoConsoleCommandWithWorld`, `FAutoConsoleCommandWithWorldAndArgs`, `UFUNCTION\(\s*Exec`, `UCheatManagerExtension`), 상태 기록 버퍼, 로그 카테고리(`DECLARE_LOG_CATEGORY_EXTERN`)를 모은다.
-   - analyst 가 명령과 버퍼마다 출력이 어디로 가는지 받는다: 로그·콘솔 텍스트(`UE_LOG`, `Ar.Logf`, `FOutputDevice`) / 화면만(`AddOnScreenDebugMessage`, `DrawDebug`, GameplayDebugger 카테고리) / 출력 없음.
-   - 모듈마다 텍스트 출력 경로가 하나라도 있는지로 묶는다.
-4. 재컴파일 없는 조작 — 빌드를 다시 하지 않고 상태나 값을 바꿀 수 있는가.
-   - 3 의 명령 목록을 같이 쓰고, 상태를 바꾸는 것과 읽기만 하는 것을 나눈다. 콘솔 변수(`TAutoConsoleVariable`, `FAutoConsoleVariableRef`)를 더한다.
-   - 에이전트가 에디터를 원격으로 다루는 설정을 찾는다: 프로젝트 루트의 `.mcp.json`, 프로젝트 파일에서 켜진 원격 조작·스크립트 플러그인. 켜진 플러그인 목록은 기술 목록(`_state/radar-inventory.md`)이 있으면 그것을 쓴다.
-5. 수치의 데이터 분리 — 밸런스 수치가 코드 밖에 있는가.
-   - 코드 상수를 폴더별로 센다: `(constexpr|static\s+const)\s+(float|double|int32|int|uint8)\s+\w+\s*=\s*-?[0-9.]`, `#define\s+\w+\s+-?[0-9.]`.
-   - 상수가 많은 파일 10개까지 analyst 가 상수마다 밸런스 수치(속도, 피해량, 시간, 확률, 거리)인지 기술 상수(버퍼 크기, 허용 오차, 비트 수)인지 나눈다. 밸런스 수치만 빈 곳으로 센다. 나머지 파일은 수만 적는다.
-   - 수치를 이미 데이터로 뺀 방식(편집 가능한 `UPROPERTY`, DataAsset, DataTable, `UDeveloperSettings`, `Config=`)은 선례로 위치만 적는다.
-   - 함수 안에 바로 쓴 숫자(매직 넘버)는 검색으로 가리지 못한다. "사람이 볼 항목"으로 둔다.
-6. 자동 시험 — 사람이 플레이하지 않고 로직을 확인할 수 있는가.
-   - 모듈별 자동화 테스트 수를 센다: `IMPLEMENT_SIMPLE_AUTOMATION_TEST`, `IMPLEMENT_COMPLEX_AUTOMATION_TEST`, `IMPLEMENT_CUSTOM_SIMPLE_AUTOMATION_TEST`, `BEGIN_DEFINE_SPEC`, `AFunctionalTest` 파생 클래스.
-   - 화면 없이 돌리는 실행 명령이 적힌 곳을 찾는다: 프로젝트 스크립트와 CI 설정의 `-nullrhi`, `-unattended`, `-ExecCmds=`, `Automation RunTests`, 커맨드릿(`UCommandlet` 파생 클래스). 명령은 실행하지 않는다.
+1. Random number path — Do random numbers go through one path whose seed can be set?
+   - Read the "Seeded random number path" (the random function or subsystem name that the team set) in the criteria table of the TD ledger. If it is empty, ask once in a conversation run and write the answer in the table. In an unattended run, if it is empty, treat it as "no set path" (정한 경로 없음).
+   - Count global random calls per folder: `FMath::(Rand|Rand32|FRand|RandRange|FRandRange|RandBool|VRand|VRandCone|RandPointInBox|RandHelper)\b`, `\bstd::(rand|random_device)\b`, `(^|[^:\w])rand\(\)`. Count the calls inside the implementation files of the set path separately.
+   - Count the streams that have a seed (`FRandomStream`). Get from analyst where the seed of each stream comes from: fixed value or setting value / the set path / global random / time / unknown.
+   - Read `bUseFixedFrameRate`, `FixedFrameRate`, and `bSubstepping` in the project Config. If the frame interval is not fixed, the same input can give different results. Write these values only as reference facts. Do not use them for the classification.
+   - Random nodes in Blueprints cannot be counted from text. Write them under "Not checked".
+2. State reproduction — Is there code that returns to the same game state?
+   - Save and load: `USaveGame`, `SaveGameToSlot`, `LoadGameFromSlot`, `FObjectAndNameAsStringProxyArchive`.
+   - Record and replay: code that records input or commands and feeds them in again, engine replay (`UDemoNetDriver`, `UReplaySubsystem`). Get from analyst what it records and what it leaves out.
+   - Cheats and console commands that move the game to a specific state (spawn, move position, set the time, set stats). From the list of axis 4, choose only the ones that set state.
+3. Text output — Can the state be taken out as text that the agent reads?
+   - Collect console commands and cheats (`FAutoConsoleCommand`, `FAutoConsoleCommandWithWorld`, `FAutoConsoleCommandWithWorldAndArgs`, `UFUNCTION\(\s*Exec`, `UCheatManagerExtension`), state log buffers, and log categories (`DECLARE_LOG_CATEGORY_EXTERN`).
+   - Get from analyst where the output of each command and buffer goes: log or console text (`UE_LOG`, `Ar.Logf`, `FOutputDevice`) / screen only (`AddOnScreenDebugMessage`, `DrawDebug`, GameplayDebugger categories) / no output.
+   - Group the results by whether each module has at least one text output path.
+4. Control without recompiling — Can state or values change without building again?
+   - Use the command list of axis 3 too, and split the commands that change state from the commands that only read. Add console variables (`TAutoConsoleVariable`, `FAutoConsoleVariableRef`).
+   - Find settings through which an agent operates the editor remotely: `.mcp.json` in the project root, and remote control and scripting plugins that are enabled in the project file. For the list of enabled plugins, use the technology inventory (`_state/radar-inventory.md`) if it exists.
+5. Separation of numeric values into data — Are balance values outside the code?
+   - Count code constants per folder: `(constexpr|static\s+const)\s+(float|double|int32|int|uint8)\s+\w+\s*=\s*-?[0-9.]`, `#define\s+\w+\s+-?[0-9.]`.
+   - For up to 10 files with the most constants, analyst splits each constant into a balance value (speed, damage, time, probability, distance) or a technical constant (buffer size, tolerance, bit count). Count only balance values as gaps. Write only the count for the remaining files.
+   - For the ways that already moved values into data (editable `UPROPERTY`, DataAsset, DataTable, `UDeveloperSettings`, `Config=`), write only the location, as precedents.
+   - Numbers written directly inside functions (magic numbers) cannot be told apart by search. Keep them as "items for a person to check".
+6. Automated tests — Can logic be checked without a person playing?
+   - Count the automation tests per module: `IMPLEMENT_SIMPLE_AUTOMATION_TEST`, `IMPLEMENT_COMPLEX_AUTOMATION_TEST`, `IMPLEMENT_CUSTOM_SIMPLE_AUTOMATION_TEST`, `BEGIN_DEFINE_SPEC`, classes derived from `AFunctionalTest`.
+   - Find where commands that run without a screen are written: `-nullrhi`, `-unattended`, `-ExecCmds=`, `Automation RunTests` in project scripts and CI settings, and commandlets (classes derived from `UCommandlet`). Do not run the commands.
 
-`td.rule_docs` 에서 에이전트의 빌드·테스트·에디터 실행을 제한하는 조항도 찾는다. 있으면 조항과 위치를 리포트 기준에 적는다.
+Also look in `td.rule_docs` for clauses that restrict an agent's build, test, or editor runs. If there are any, write the clause and its location in the "Basis" section of the report.
 
-**판정** — 축마다 하나로 분류한다.
+**Verdict** — Classify each axis as one value.
 
-| 축 | 갖춤 | 일부 | 없음 |
+| Axis (축) | Complete (갖춤) | Partial (일부) | None (없음) |
 |---|---|---|---|
-| 1. 난수 경로 | 정한 경로 밖의 전역 난수 호출이 0 이고, 모든 스트림의 시드가 고정 값·설정 값·정한 경로에서 온다 | 정한 경로가 있지만 그 경로를 거치지 않는 전역 난수 호출이 있거나, 전역 난수나 시간으로 시드를 정하는 스트림이 있다 | 정한 경로가 없고 전역 난수 호출이 있다 |
-| 2. 상태 재현 | 저장·불러오기나 기록·재생으로 같은 상태로 돌아간다는 [코드] 근거가 있다 | 치트로 비슷한 상태만 만든다 | 셋 다 없다 |
-| 3. 텍스트 출력 | 대상 모듈 모두에 텍스트 출력 경로가 있다 | 일부 모듈에만 있다 | 화면 출력만 있거나 출력이 없다 |
-| 4. 재컴파일 없는 조작 | 상태를 바꾸는 명령·변수가 있고 원격 조작 설정도 있다 | 둘 가운데 하나만 있다 | 둘 다 없다 |
-| 5. 수치의 데이터 분리 | 표본의 밸런스 수치 코드 상수가 0 이다 | 표본에 밸런스 수치 코드 상수가 있고, 데이터로 뺀 선례도 있다 | 데이터로 뺀 선례가 없다 |
-| 6. 자동 시험 | 대상 모듈 모두에 테스트가 있고 화면 없이 돌리는 명령이 적혀 있다 | 일부 모듈에만 테스트가 있거나, 화면 없이 돌리는 명령이 없다 | 테스트가 없다 |
+| 1. Random number path (난수 경로) | Global random calls outside the set path are 0, and the seeds of all streams come from fixed values, setting values, or the set path | There is a set path, but there are global random calls that do not go through it, or there are streams whose seed is set by global random or by time | There is no set path, and there are global random calls |
+| 2. State reproduction (상태 재현) | There is [code] evidence that save and load, or record and replay, returns to the same state | Cheats make only a similar state | None of the three exists |
+| 3. Text output (텍스트 출력) | All target modules have a text output path | Only some modules have one | There is only screen output, or there is no output |
+| 4. Control without recompiling (재컴파일 없는 조작) | There are commands or variables that change state, and there are also remote control settings | Only one of the two exists | Neither exists |
+| 5. Separation of numeric values into data (수치의 데이터 분리) | The balance-value code constants in the sample are 0 | There are balance-value code constants in the sample, and there are also precedents of moving values into data | There is no precedent of moving values into data |
+| 6. Automated tests (자동 시험) | All target modules have tests, and commands that run without a screen are written | Only some modules have tests, or there are no commands that run without a screen | There are no tests |
 
-- 가를 근거가 없으면 "모름"이다. 검색이 실패한 축은 "없음"이 아니라 "모름"으로 쓴다.
-- 블루프린트처럼 셀 수 없는 자료가 남은 축은 갖춤이어도 "블루프린트 확인 못 함"을 붙인다.
+- If there is no evidence to decide, the value is "unknown". Write an axis whose search failed as "unknown", not "none".
+- For an axis where material that cannot be counted remains, such as Blueprints, attach "Blueprints not checked" (블루프린트 확인 못 함) even if the axis is complete.
 
-**순위 규칙**: 일부·없음인 축을 축 번호 순서로 놓는다. 앞 축이 비어 있으면 뒤 축으로 확인한 결과를 같은 조건에서 다시 만들 수 없기 때문이다. 같은 축 안에서는 걸린 파일 수가 큰 순서다.
+**Ranking rule**: Put the partial and none axes in axis number order. The reason: if an earlier axis has a gap, the results checked with a later axis cannot be recreated under the same conditions. Within the same axis, order by the number of files caught, largest first.
 
-**권고** — 빈 곳마다 "조건 X 면 안 A" 꼴로 쓴다.
-- 조건은 에이전트에게 맡길 일로 적는다. 예: "에이전트에게 AI 분기 수정과 재확인을 맡길 계획이면". 그런 계획이 없거나, 사람이 직접 확인하는 비용이 작은 규모면 "받아들임"도 함께 적는다.
-- 안은 같은 프로젝트에서 그 축을 이미 갖춘 모듈의 방식을 먼저 쓴다. 예: 정한 난수 경로가 있으면, 그 경로를 거치지 않는 호출을 경로 안으로 옮긴다.
-- 모든 대상을 한 타입으로 모으기, 시뮬레이션을 엔진 밖 라이브러리로 떼기처럼 지금 구조를 크게 바꾸는 안은 이 범위에서 권하지 않는다. 필요하면 설계 검토 질문으로 따로 연다.
-- 팀 규칙이 에이전트 실행을 막는 축은 경로를 만드는 안까지만 쓴다. 에이전트에게 실행을 맡기자는 안은 쓰지 않고, 그 조항을 인용한다.
-- 바뀌는 범위는 파일·호출 지점 수로 적는다.
+**Recommendation** — For each gap, write it in the form "if condition X, option A".
+- Write the condition as work to give to an agent. Example: "if you plan to give an agent changes to AI branches and their rechecks". If there is no such plan, or if the scale is small enough that a person checking directly costs little, also write "accept".
+- For the option, first use the way of a module in the same project that already has that axis. Example: if there is a set random path, move the calls that do not go through it into the path.
+- In this scope, do not recommend options that change the current structure a lot, such as gathering all targets into one type or separating the simulation into a library outside the engine. If needed, open them separately as a design review question.
+- For an axis where team rules block agent runs, write options only up to making the path. Do not write options that give the runs to an agent. Quote that clause.
+- Write the changed scope as the number of files and call sites.
 
-**산출물**: 축 표, 빈 곳 순위 표, 사람이 볼 항목. `_state` 는 판정 기준 표의 "시드 고정 난수 경로" 말고는 바꾸지 않는다. 순위가 높은 빈 곳은 "결정이 필요한 것"에 올리고, 고치기로 하면 프로필 `code_change_entry` 로 넘기자고 제안한다.
+**Output**: the axis table, the gap rank table, and the items for a person to check. Do not change `_state`, except the "Seeded random number path" in the criteria table. Put high-ranked gaps in "Decisions needed". If it is decided to fix them, propose to pass them to profile `code_change_entry`.
