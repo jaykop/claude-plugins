@@ -1,0 +1,11 @@
+{
+  "name": "ko-gamedev",
+  "description": "한국 게임 업계의 용어와 문체로 한국어 코드 주석·기술 문서를 쓰고 교정한다. 분야별 용어집(동사, 표기, 언리얼, 전투, 애니메이션, AI·시스템)과 주석·문서 문체 지침, 주석만 읽는 검사 스크립트. 프로젝트 용어는 각 프로젝트의 .claude/ko-gamedev/terms.md 에서 읽는다.",
+  "author": {
+    "name": "jaykop"
+  },
+  "homepage": "https://github.com/jaykop/claude-plugins",
+  "repository": "https://github.com/jaykop/claude-plugins",
+  "license": "MIT",
+  "keywords": ["korean", "game-development", "glossary", "code-comments", "documentation", "unreal-engine", "style-guide"]
+}
