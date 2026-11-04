@@ -1,13 +1,13 @@
 <!-- ko-lint: ignore-file -->
 # ko-gamedev — 한국 게임 업계 용어·문체 교정
 
-게임 프로젝트의 한국어 코드 주석과 기술 문서를 한국 게임 개발자가 실제로 쓰는 용어와 문체로 쓰고 교정하는 플러그인이다. Claude Code 와 Codex 양쪽에서 같은 스킬을 쓴다.
+게임 프로젝트의 한국어 코드 주석과 기술 문서를 한국 게임 개발자가 실제로 쓰는 용어와 문체로 쓰고 교정하는 플러그인이다.
 
 ```
 /plugin install ko-gamedev --marketplace jaykop/claude-plugins
 ```
 
-마켓플레이스를 이미 추가했으면 `/plugin install ko-gamedev@jaykop` 로도 설치된다. Codex 는 [리포 README](../../README.md#codex)의 방법을 따른다.
+마켓플레이스를 이미 추가했으면 `/plugin install ko-gamedev@jaykop` 로도 설치된다.
 
 | 스킬 | 명령 | 하는 일 |
 |---|---|---|
