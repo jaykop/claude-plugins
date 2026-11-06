@@ -8,7 +8,7 @@ Based on corpus D: Korean design documents a game team wrote about its animation
 - Write plain declarative sentences: ~이다, ~한다. D has no ~니다 lines.
 - Explanatory docs may talk to the reader the way D does: `~라고 생각하면 된다`, `~를 염두에 두자`, `~를 살펴보자`. Specs and reference pages state facts without them.
 - The benefactive ~해 준다 is normal in Korean dev docs (D 22 for 해주). Do not remove it for style.
-- Use glossary words. D writes 스테이트, 트랜지션, 블렌드 스페이스, 애디티브, 포즈 캐시, 커브 in running text, not 상태 기계 or 전이.
+- Use glossary words. Write engine type names in English, as in comments: State Machine, Transition, Blend Space, Cached Pose, Montage, Actor. D writes them as loanwords (스테이트, 트랜지션, 블렌드 스페이스); this skill does not. Keep the concept words that D uses: 애디티브, 커브, 블렌드, 포즈. Do not write 상태 기계 or 전이.
 
 ## Structure
 

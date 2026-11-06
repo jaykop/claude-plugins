@@ -59,7 +59,7 @@ Combat words are shared by code, design documents and conversation. Keep the tea
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| 스킬 | 기술 | term | 스킬 A 17 / K 0 | The player-facing name of an ability. The code class stays an ability (GA). |
+| 스킬 | 기술 | term | 스킬 A 17 / K 0 | The player-facing name of an ability. The code class stays an Ability (GA). |
 | 패시브, 액티브 | — | term | A | |
 | 스탯, 어트리뷰트 | 능력치 | term | 스탯 A 2.9 | |
 | 체력, HP | 생명력 | term | 체력 A 1.1; HP A 1.2 | |

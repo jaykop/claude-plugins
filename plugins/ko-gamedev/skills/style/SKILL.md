@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Edit, Bash(python *ko_lint.py*), Bash(python3 *
 
 # Korean game-dev style
 
-Korean game developers write comments with Sino-Korean and loanword verbs (사용, 반환, 세팅, 체크, 스폰), English engine names, and short noun-ending notes. AI-written Korean leans the other way: purified native verbs (쓴다, 돌려준다, 고른다), translated engine words (편집기, 저작), full ~다 sentences everywhere, middle-dot lists and ~므로 chains. This skill moves Korean text toward the industry register while keeping grammar and spelling clean.
+Korean game developers write comments with Sino-Korean and loanword verbs (사용, 반환, 세팅, 체크, 스폰), English engine names, and short noun-ending notes. AI-written Korean leans the other way: purified native verbs (쓴다, 돌려준다, 고른다), translated engine words (편집기, 저작), full ~다 sentences everywhere, middle-dot lists and ~므로 chains. This skill moves Korean text toward the industry register while keeping grammar and spelling clean. One rule is the skill's own choice and not a corpus result: engine type names (Actor, Component, Mesh, Tick) stay in English, also in prose.
 
 The rules come from measured corpora: a commercial UE5 project written by people (A), public game projects by Korean developers from before 2022 (O), an AI-written UE5 project (K), and a team's design pages (D). See [glossary/README.md](glossary/README.md#evidence).
 
