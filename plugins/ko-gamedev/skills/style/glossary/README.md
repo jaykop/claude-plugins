@@ -35,6 +35,7 @@ Counts are the number of comments (or document lines) that contain the form, per
 | raw | Total occurrences instead of a per-1,000 rate. |
 | common | Common in Korean game teams but not measured in A or D. Check the team's usage before you enforce it. |
 | UE | Matches the spelling of the Korean Unreal Engine documentation, from memory. Not cross-checked in this snapshot. |
+| style | A style decision of this skill, not a corpus count: engine type names stay in English in Korean text (2026-11-06). The counts next to it show what people write. |
 | KR | Listed in the retired ko-review checker (claude-plugins, removed 2026-11-03), which recorded forms it had seen in AI-written docs. K counts for these are low because that checker already removed most of them from the comparison project; A shows whether people use the form. |
 
 Example: `A 0.3 / K 78` means 0.3 of every 1,000 human comments and 78 of every 1,000 AI comments contain the form.
@@ -66,7 +67,7 @@ Where O disagrees with A, the rows were relaxed: 갱신 (O 16) is no longer flag
 1. A term the team uses every day wins over the standard Korean spelling when they differ. Example: 타겟, not 타깃 (A 43 / 0.8).
 2. Where the team is split, use the standard spelling. Example: 대미지 over 데미지, 메시지 over 메세지.
 3. Where A and the UE documentation differ and neither dominates, pick one per project and record it in the project terms file. Example: 에셋 or 애셋.
-4. Class, function, property, tag and asset names stay in English exactly as in code. The Korean word is for prose.
+4. Class, function, property, tag and asset names stay in English exactly as in code. Engine type names (Actor, Component, Mesh, Tick) stay in English in prose too; see [../style/comments.md](../style/comments.md#words). A Korean loanword is for concepts and actions (콜리전, 스폰).
 
 ## Project terms file
 

@@ -5,10 +5,10 @@
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| 비헤이비어 트리, BT, 블랙보드, 블랙보드 키 | — | term | A | |
-| 태스크, 데코레이터, 서비스 | — | term | 태스크 A 12 | BT nodes. |
-| 스테이트 트리 | — | term | UE | |
-| 퍼셉션, 센싱, 인지, 감지 | — | term | 인지 A 16; 감지 A 5.4; 센싱 A 4.7 | 인지 for an AI noticing a target; 센싱 for sensor sweeps; 퍼셉션 for the UE system. |
+| Behavior Tree, BT, Blackboard, Blackboard Key | 비헤이비어 트리, 블랙보드 | replace | style; A | Engine type names. |
+| Task, Decorator, Service | 데코레이터 | replace | style; 태스크 A 12 | BT and StateTree node types. 태스크 and 서비스 are also ordinary words; write Task and Service when you mean the node type. |
+| StateTree | 스테이트 트리 | replace | style; UE | Engine type name. |
+| Perception, 센싱, 인지, 감지 | 퍼셉션 | replace | style; 인지 A 16; 감지 A 5.4; 센싱 A 4.7 | 인지 for an AI noticing a target; 센싱 for sensor sweeps; Perception for the UE system (AIPerception). |
 | 패트롤, 로밍 | 순찰, 배회 | term | 패트롤 A 0.9; 로밍 A 0.5 | |
 | 추적 | 추격 | term | A 5.4 | 추적 거리, 추적 범위. |
 | EQS | — | term | A | |
@@ -20,8 +20,8 @@
 | 스폰, 리스폰, 디스폰 | — | term | 스폰 A 12 | |
 | 스포너 | — | term | A 0.8 / K 19 | |
 | 레벨, 맵, 필드, 던전 | — | term | 레벨 A 10; 맵 A 5.7 | |
-| 체크포인트, 플레이어 스타트 | — | term | A | |
-| 볼륨, 트리거 볼륨 | — | term | 볼륨 A raw 41 | |
+| 체크포인트, Player Start | 플레이어 스타트 | replace | style; A | Player Start is an engine type name. 체크포인트 is a game word. |
+| 볼륨, Trigger Volume | 트리거 볼륨 | replace | style; 볼륨 A raw 41 | Trigger Volume is an engine type name. |
 | 레벨 이벤트, 연출 | — | term | 연출 A 3.5 | |
 
 ## Items and progression
@@ -42,7 +42,7 @@
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| 위젯, 팝업, HUD | — | term | 위젯 A 15; 팝업 A 4.5 | |
+| Widget, 팝업, HUD | — | term | 위젯 A 15; 팝업 A 4.5 | The Widget row in unreal.md matches 위젯. |
 | 인디케이터, 미니맵, 툴팁 | — | term | 인디케이터 A 2.9 | |
 | 포커스, 셀렉션, 노드 | — | term | A | Skill tree and menu navigation. |
 | 표기, 표시 | — | term | 표기 A raw 44 | 쿨타임 표기, 대미지 표시. |

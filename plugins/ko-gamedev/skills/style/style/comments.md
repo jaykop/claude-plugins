@@ -31,12 +31,14 @@ Rules:
 - When correcting, a property, field or enum comment you rewrite for words becomes a noun phrase. Count that kind in the file: if you rewrite at least half of them anyway, convert the rest too; otherwise leave the clear ones alone. The user can ask for a full register pass.
 - Function and class headers are not converted for register. Keep ~한다 sentences there, or the noun style if the file already uses it, and only fix words.
 - Put units in parentheses: (초), (cm), (도), (0~1). Add a unit only if you checked it in code.
-- Say what 0, None and an empty value do when they behave differently: `0이면 무제한`, `None이면 루트 컴포넌트 사용`.
+- Say what 0, None and an empty value do when they behave differently: `0이면 무제한`, `None이면 Root Component 사용`.
 
 ## Words
 
 - Use the glossary words. Run `scripts/ko_lint.py` on what you wrote when it is more than a few lines.
 - Write class, function, property, tag and asset names in English exactly as in code. Attach the Korean particle the way the name is read aloud: `Tick은`, `Owner가`, `Actor를`, `Socket을`, `GE를`, `BeginPlay에서`.
+- Write engine type names in English in prose too. An engine type name is a word that names an engine class, asset type, graph node type or engine function: Actor, Component, Pawn, Mesh, Static Mesh, Tick, Game Mode, Subsystem, Blueprint, Widget, Data Table, Ability, Gameplay Effect, Montage, Blend Space, State Machine, Material, Niagara, Behavior Tree, Blackboard. Use the English editor label without the class prefix, or a short form that the team uses (BP, GA, GE, ABP). Do not write 액터, 컴포넌트, 메시 or 틱. The rows are in [../glossary/unreal.md](../glossary/unreal.md), animation.md and systems.md.
+- Keep the Korean loanword for concepts, actions and processes: 콜리전, 트레이스, 오버랩, 스폰, 바인딩, 블렌드, 커브, 이펙트, 애니메이션, 로딩. A word that is also an ordinary game word keeps the Korean when it means the game concept: 캐릭터 (a game character), 컨트롤러 (a gamepad), 월드, 레벨, 맵, 태그, 슬롯.
 - An English engine verb with a Korean ending is normal when it names the exact API: `Tick하지 않음`, `EndPlay되면`, `Override할` (A 9.2 / K 6.0). For general actions use the Korean verb: `Set되는` → `세팅되는`, `Valid하지 않은` → `유효하지 않은`.
 - List with commas or slashes (`전투/비전투`), not the middle dot `·`.
 - `->` is fine for a flow inside a comment: `Idle -> Run -> Stop`.
@@ -62,8 +64,8 @@ Examples written in the style of corpus K. They show the patterns, not real comm
 | `/** 마지막으로 공격한 월드 시각(초). */` | `/** 마지막 공격 시점의 월드 시간(초) */` | 시각 |
 | `// 레벨 언로드 순서에 따라 매니저가 먼저 내려갈 수 있으므로 살아 있을 때만 해제한다.` | `// 레벨 언로드 순서에 따라 매니저가 먼저 파괴될 수 있기 때문에 유효한 경우에만 해제` | 내려가다 and 살아 있다 are metaphors; ~므로 |
 | `// 화살 하나는 대상 하나만 맞히고 사라진다. 걸러진 대상은 지나쳐 계속 날아간다.` | `// 화살 하나는 타겟 하나만 히트하고 소멸. 필터링된 타겟은 통과해서 계속 비행` | 대상, 맞히다, 걸러지다 |
-| `/** 무한 흔들림을 루프로 지정하면 경고한다. */` | `/** 무한 카메라 셰이크를 루프로 지정하면 경고 */` | 흔들림 for a Camera Shake asset |
-| `/** 무기의 스태틱 메시를 찾고, 없으면 루트 컴포넌트를 반환한다. */` | (no change) | Already clear. Not every sentence needs a rewrite. |
+| `/** 무한 흔들림을 루프로 지정하면 경고한다. */` | `/** 무한 Camera Shake를 루프로 지정하면 경고 */` | 흔들림 for a Camera Shake asset; engine type names stay English |
+| `/** 무기의 Static Mesh를 찾고, 없으면 Root Component를 반환한다. */` | (no change) | Already clear. Not every sentence needs a rewrite. |
 
 A header with several facts:
 

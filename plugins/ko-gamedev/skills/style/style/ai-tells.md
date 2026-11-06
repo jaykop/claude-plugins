@@ -15,7 +15,7 @@ What separates corpus K (AI) from corpus A (people) and D (design docs). AI Kore
 | 켜면, 끄면 for bool values | 0 | 10 | true면, false면, 활성화하면 |
 | 비우면, 비워 두면 for unset values | 0 | 11 | 설정하지 않으면, None이면 |
 | 판정 for any evaluation | 1.4 | 54 | 판단, 체크. Keep 판정 for hit detection. |
-| Industry words absent: 세팅, 체크, 업데이트, 스폰, 어빌리티, 스킬, 하드락, 기획 | 4 to 58 | 0 to 5 | Use them where they fit |
+| Industry words absent: 세팅, 체크, 업데이트, 스폰, 어빌리티, 스킬, 하드락, 기획 | 4 to 58 | 0 to 5 | Use them where they fit. For an ability, write Ability or GA, because engine type names stay English (style/comments.md). |
 | Personification and metaphor: 입력이 노린다, 몫, 기댄다, 흉내 낸다, 내려간다 (for unload) | rare | frequent | Say the technical action |
 | English idioms translated word by word: 조용히 실패한다, 냄새가 난다, 계약, 죽은 코드, 열려 있는 질문, 스테일 | about 0 | 0 to 8 | glossary/core.md, Calques and metaphors |
 | 자리 for a position, list slot, field, byte offset or capacity | 0 | 5.4 | 위치, 지점, 인덱스, 필드, 오프셋, 공간 (glossary/core.md) |

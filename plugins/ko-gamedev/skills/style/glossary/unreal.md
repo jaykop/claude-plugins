@@ -1,7 +1,7 @@
 <!-- ko-lint: ignore-file -->
 # Unreal Engine
 
-Engine and editor words. When you mean the exact class, function or property, write the English name as in code (`UCharacterMovementComponent`, `BeginPlay`). Use the Korean word for the concept in prose.
+Engine and editor words. When you mean the exact class, function or property, write the English name as in code (`UCharacterMovementComponent`, `BeginPlay`). Engine type names stay in English in prose too: Actor, Component, Mesh, Tick, Ability, Widget. The rule is in [../style/comments.md](../style/comments.md#words). Concept and action words keep their Korean loanwords: 콜리전, 트레이스, 스폰, 바인딩.
 
 ## Editor and assets
 
@@ -9,8 +9,11 @@ Engine and editor words. When you mean the exact class, function or property, wr
 |---|---|---|---|---|
 | 에디터 | 편집기 | replace | 에디터 A 7.4 / K 20; 편집기 A 0 / K 18 | 에디터 모듈, 에디터 전용, 에디터 프리뷰. |
 | 디테일 패널, 뷰포트, 아웃라이너, 콘텐츠 브라우저 | — | term | UE | If the team runs the English editor, write the English label: Details 패널. |
-| 블루프린트, BP | — | term | A 3.3 | |
-| 데이터 테이블, 데이터 에셋 | — | term | UE | |
+| Blueprint, BP | 블루프린트 | replace | style; 블루프린트 A 3.3 | Engine type name. 블프 is in spelling.md. |
+| Data Table, Data Asset | 데이터 테이블, 데이터 에셋 | replace | style | Engine type names. A balance sheet in design talk stays 테이블 (systems.md). |
+| Mesh, Static Mesh, Skeletal Mesh | `re:(?<![가-힣])(스태틱 \|스켈레탈 )?메(시\|쉬)(?!지)` | replace | style; 메시 A 9.8, 메쉬 A 2.1 | Engine type names. 메시지 is not matched. |
+| Material, Material Instance | 머티리얼, 메테리얼, 매터리얼, 머터리얼 | replace | style; UE | Engine type names. |
+| Texture | 텍스처, 텍스쳐 | replace | style; UE | Engine type name. |
 | Row, 로우 | `re:(?<![가-힣])행(?=[을의이은에 ])` | review | Row A 3.5, 로우 A 0.5; 행 K raw 165 / A 0 | For DataTable rows. 표의 행 in a document table stays. |
 | 프로퍼티, 변수 | 속성 | review | 프로퍼티 A 0.6 / K 9.4; 속성 A 1.7 / K 4.0; 변수 A raw 55 | UPROPERTY members: 프로퍼티. 속성 also means element type (ElementalType), so avoid it for properties. |
 | PIE, 에디터 프리뷰 | — | term | A | |
@@ -20,12 +23,13 @@ Engine and editor words. When you mean the exact class, function or property, wr
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| 액터, 컴포넌트, 폰, 캐릭터, 컨트롤러 | — | term | 액터 A raw 197 | |
-| 게임 모드, 게임 스테이트, 플레이어 스테이트, 게임 인스턴스, 서브시스템 | — | term | UE | |
+| Actor, Component, Pawn | 액터, 컴포넌트, 콤포넌트, `re:(?<![가-힣])폰(?!트)` | replace | style; 액터 A raw 197, 컴포넌트 A 12 | Engine type names. People write 액터 and 컴포넌트 (A); this skill writes the English name. Attach the particle by the English sound: Actor를, Component가. 폰트 is not matched. |
+| Character, Player Controller, AI Controller | 캐릭터, 컨트롤러 | term | style | Write the English name when you mean the engine class or its instance (ACharacter, APlayerController, AAIController). A game character in design talk stays 캐릭터, and a gamepad stays 컨트롤러. The lint does not check this; read for it. |
+| Game Mode, Game State, Player State, Game Instance, Subsystem | 게임 모드, 게임 스테이트, 플레이어 스테이트, 게임 인스턴스, 서브시스템 | replace | style; UE | Engine type names. |
 | 스폰한다 | — | term | 스폰 A 12 / K 3.8; 생성 A 21 / K 52 | Actors are 스폰. UObjects, widgets and data may be 생성. The lint does not check this; read for it. |
-| Owner, 오너 | 소유 액터, 소유 폰, 소유 캐릭터, 소유 컨트롤러, 소유자 | review | Owner A 5.3, 오너 A 0.6; 소유 액터 A 0 / K 11; 소유자 A 0.2 / K 8.9 | Owner 액터, Owner 폰. Memory ownership (TUniquePtr owns a buffer) may keep 소유한다. |
-| 틱, Tick | — | term | 틱 A 6.8 | 틱마다 and 매 프레임 are both fine. |
-| 월드, 레벨, 맵 | — | term | 레벨 A 10, 맵 A 5.7 | |
+| Owner, 오너 | 소유 액터, 소유 폰, 소유 캐릭터, 소유 컨트롤러, 소유자 | review | Owner A 5.3, 오너 A 0.6; 소유 액터 A 0 / K 11; 소유자 A 0.2 / K 8.9 | Owner Actor, Owner Pawn. Memory ownership (TUniquePtr owns a buffer) may keep 소유한다. |
+| Tick | 틱 | replace | style; 틱 A 6.8 | Engine function name. Tick마다 and 매 프레임 are both fine. |
+| 월드, 레벨, 맵 | — | term | 레벨 A 10, 맵 A 5.7 | Ordinary game words, so they stay Korean. Write World or Level only when you name the UWorld or ULevel object. |
 | 로컬 플레이어, 로컬 컨트롤 | — | term | 로컬 A 11 | |
 
 ## Networking
@@ -54,20 +58,22 @@ Engine and editor words. When you mean the exact class, function or property, wr
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| 어빌리티, GA | — | term | GA A 14 / K 0.8; 어빌리티 A 7.5 / K 0 | AI text keeps the English word Ability in Korean prose; people write 어빌리티 or GA. |
-| GE, 게임플레이 이펙트 | 효과 클래스, 효과를 적용, 효과를 제거 | review | GE A 5.1 / K 11; 효과 A 1.4 / K 16 | 이펙트 alone usually means VFX in comments, so say GE for gameplay effects. |
-| 어트리뷰트, 어트리뷰트 세트 | — | term | Attribute A 3.0 | |
-| 게임플레이 큐, GameplayCue | — | term | UE | GC also means garbage collection; spell out 게임플레이 큐 when it could be read either way. |
-| 게임플레이 태그, 태그 | — | term | A | |
-| ASC, 어빌리티 태스크 | — | term | A | |
+| Ability, GA | 어빌리티 | replace | style; GA A 14 / K 0.8; 어빌리티 A 7.5 / K 0 | Engine type name, also in Ability Task. People write 어빌리티 or GA (A); this skill writes Ability or GA. |
+| Gameplay Effect, GE | 게임플레이 이펙트 | replace | style | Engine type name. |
+| GE, Gameplay Effect | 효과 클래스, 효과를 적용, 효과를 제거 | review | GE A 5.1 / K 11; 효과 A 1.4 / K 16 | 이펙트 alone usually means VFX in comments, so say GE for gameplay effects. |
+| Attribute, Attribute Set | 어트리뷰트 | replace | style; Attribute A 3.0 | Engine type names. |
+| Gameplay Cue, GameplayCue | 게임플레이 큐 | replace | style; UE | Engine type name. GC also means garbage collection; spell out Gameplay Cue when it could be read either way. |
+| Gameplay Tag, 태그 | 게임플레이 태그 | replace | style; A | Engine type name. 태그 alone is an ordinary word and stays. |
+| ASC, Ability Task | — | term | A | The Ability row matches 어빌리티 태스크. |
 
 ## VFX and UI
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| 이펙트, VFX, 나이아가라 | — | term | 이펙트 A 8.3; 나이아가라 A raw 16 | 이펙트를 출력, 이펙트 재생. |
-| 위젯, UMG, HUD, 뷰모델 | — | term | 위젯 A 15 | |
-| 카메라 셰이크 | 흔들림 (카메라) | term | common | Camera Shake assets and tasks. |
+| 이펙트, VFX | — | term | 이펙트 A 8.3 | A concept word, so it stays Korean. 이펙트를 출력, 이펙트 재생. |
+| Niagara, Niagara System | 나이아가라, `re:(?<![가-힣])니아가라` | replace | style; 나이아가라 A raw 16 | Engine type names. |
+| Widget, UMG, HUD, ViewModel | 위젯, 뷰모델 | replace | style; 위젯 A 15 | Engine type names. |
+| Camera Shake | 카메라 셰이크, 카메라 쉐이크 | replace | style; common | Engine type name, for Camera Shake assets and tasks. Not 흔들림 either. |
 
 ## Engine internals
 
@@ -76,11 +82,11 @@ Engine and editor words. When you mean the exact class, function or property, wr
 | 가비지 컬렉션, GC, CDO, 리플렉션, UHT | — | term | UE | |
 | 로드, 로딩, 비동기 로드 | — | term | 로딩 A 3.3 / K 0.1; 로드 A 4.1 / K 17 | |
 | 소프트 레퍼런스, 하드 레퍼런스 | — | term | 레퍼런스 A raw 12 | |
-| 델리게이트, 바인딩, 콜백 | — | term | 바인딩 A 5.9 | |
-| 풀링, 액터 풀 | — | term | A | |
+| Delegate, 바인딩, 콜백 | 델리게이트 | replace | style; 바인딩 A 5.9 | Delegate is an engine type name. 바인딩 and 콜백 are concepts and stay. |
+| 풀링, Actor 풀 | — | term | A | |
 | 트랜스폼, 위치, 회전, 스케일, 오프셋 | — | term | 위치 A 32; 회전 A 15; 트랜스폼 A 2.1 | Prose may use 위치 and 회전 or 로케이션 and 로테이션; keep one pair per file. |
-| 월드 좌표, 로컬 좌표, 컴포넌트 스페이스 | — | term | A | |
+| 월드 좌표, 로컬 좌표, Component Space | — | term | A | |
 | 노멀, 포워드 벡터, 전방 | — | term | 노멀 A 4.1 | |
-| 네비메시, NavMesh | — | term | A | |
+| NavMesh | 네비메시, 내비메시 | replace | style; A | Engine type name. |
 | CVar, 콘솔 명령, 치트 | — | term | A | |
 | 오버라이드 | — | term | A raw 16 | Override할 (the English verb) is also common in A. |
