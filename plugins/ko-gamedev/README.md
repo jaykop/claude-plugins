@@ -44,7 +44,7 @@ skills/style/
   SKILL.md            절차: 읽을 파일, 작성·검토·수정 순서, 보고 형식
   glossary/           분야별 용어집. 표가 곧 검사 규칙이다
     README.md         표 형식, 근거 표기, 표기 원칙, 프로젝트 용어 파일
-    core.md           모든 분야의 동사, 조건, 명사, 직역투, 구어
+    core.md           모든 분야의 동사, 조건, 명사, 직역투, 번역체, 구어
     spelling.md       외래어 표기 통일
     unreal.md         엔진, 에디터, 네트워크, 콜리전, GAS
     combat.md         타겟, 락온, 대미지, 피격, 방어, 스킬
@@ -57,7 +57,7 @@ skills/style/
   scripts/ko_lint.py  용어집 표를 읽어 주석과 문서에서만 후보를 찾는다
 ```
 
-용어집의 각 행에는 근거 수치가 붙어 있다. 사람이 쓴 상용 UE5 게임의 주석(A, 비공개), 2022년 이전에 공개된 한국 개발자의 게임 프로젝트 주석(O), AI가 주로 쓴 UE5 프로젝트의 주석(K), 애니메이션 설계 문서(D)에서 1,000건당 등장 수를 쟀다. 자세한 내용은 [glossary/README.md](skills/style/glossary/README.md#evidence)에 있다.
+용어집의 각 행에는 근거 수치가 붙어 있다. 사람이 쓴 상용 UE5 게임의 주석(A, 비공개), 2022년 이전에 공개된 한국 개발자의 게임 프로젝트 주석(O), AI가 주로 쓴 UE5 프로젝트의 주석(K), 애니메이션 설계 문서(D)에서 1,000건당 등장 수를 쟀다. 번역체 행은 한국어 기술 글쓰기 가이드(W)를 근거로 한다. 말뭉치 수치가 아니라서 `review`와 `density`로만 둔다. 자세한 내용은 [glossary/README.md](skills/style/glossary/README.md#evidence)에 있다.
 
 ## 검사 스크립트
 

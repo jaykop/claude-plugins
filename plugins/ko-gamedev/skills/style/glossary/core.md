@@ -148,6 +148,21 @@ English idioms translated word by word, and metaphors that make the reader guess
 | (say what splits) | `re:손이\s*갈(리\|린\|립\|려\|렸)` | replace | KR; A 0 | A made-up idiom. |
 | (Korean) | `re:[぀-ゟ゠-ヿ]` | replace | KR | Japanese kana mixed into Korean text. |
 
+## Translationese
+
+Patterns of translated Korean that a Korean technical writing guide lists (evidence `W`). They are grammatical, so people write them too; A and O are not counted yet. That is why the rows are `review` or `density`, not `replace`.
+
+| Use | Avoid | Kind | Evidence | Note |
+|---|---|---|---|---|
+| ~로, ~에서, 사용해, 호출해 | 통해, 통한 | review | W §36, §37 | Name the means: `Interface로 읽는다`, `콘솔에서 설정한다`, `API를 호출해 전송한다`. Keep 통해 only when no verb names the means. |
+| 있다, 포함한다 | `re:[을를] 가지고 있`, `re:[을를] 가진다` | review | W §36 | A thing that has a value or tag: `ASC에 태그가 있고`. A class that holds a member may keep 가진다, or write 포함한다. |
+| ~할 수 있다 | 가능하다 | review | W §36 | `빌드 후 가능하다` → `빌드한 뒤에 생성할 수 있다`. Name the action. 불가능하다 is not matched. |
+| ~을, ~를 | `re:에 대해` | density | W §36 | `성능에 대해 알아본다` → `성능을 알아본다`. 에 대한 is normal Korean and is not matched. |
+| (rewrite with a verb) | `re:(으로\|로)의 ` | density | W §40 | `노드 중심 흐름으로의 변경` → `노드 중심 흐름으로 변경`. |
+| (rewrite with a verb) | `re:에서의` | density | W §40 | `PIE에서의 동작` → `PIE에서 동작할 때`. |
+| ~하면 | `re:(?<!밖)의 경우` | review | W §36 | `호출의 경우` → `호출하면`. 그 밖의 경우 is not matched. |
+| 보이는, 나타나는, ~되는 | 보여지, `re:되어지` | review | W §35 | Double passive: `보여지는` → `보이는`, `변경되어진` → `변경된`. |
+
 ## Casual words
 
 People write these, but they carry no information. Remove them from comments and docs you write or correct. Inside a TODO they are fine.

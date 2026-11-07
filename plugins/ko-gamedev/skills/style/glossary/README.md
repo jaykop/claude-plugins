@@ -36,6 +36,7 @@ Counts are the number of comments (or document lines) that contain the form, per
 | common | Common in Korean game teams but not measured in A or D. Check the team's usage before you enforce it. |
 | UE | Matches the spelling of the Korean Unreal Engine documentation, from memory. Not cross-checked in this snapshot. |
 | style | A style decision of this skill, not a corpus count: engine type names stay in English in Korean text (2026-11-06). The counts next to it show what people write. |
+| W | 유영경, 『개발자를 위한 글쓰기 가이드』(로드북, 2021), a Korean technical writing guide; `§nn` is its principle number. A style source, not a corpus count. |
 | KR | Listed in the retired ko-review checker (claude-plugins, removed 2026-11-03), which recorded forms it had seen in AI-written docs. K counts for these are low because that checker already removed most of them from the comparison project; A shows whether people use the form. |
 
 Example: `A 0.3 / K 78` means 0.3 of every 1,000 human comments and 78 of every 1,000 AI comments contain the form.
