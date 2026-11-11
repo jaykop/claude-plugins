@@ -5,12 +5,12 @@ The glossary is split by area. Each file is a set of Markdown tables. `scripts/k
 
 | File | Area |
 |---|---|
-| [core.md](core.md) | Verbs, conditions, nouns, connectives and casual words used in every area |
+| [core.md](core.md) | Verbs, conditions, nouns, programming terms, connectives and casual words used in every area |
 | [spelling.md](spelling.md) | One spelling per loanword |
-| [unreal.md](unreal.md) | Engine, editor, gameplay framework, networking, collision, GAS, engine internals |
-| [combat.md](combat.md) | Targets, lock-on, damage, hit and hurt, reactions, defense, skills |
+| [unreal.md](unreal.md) | Engine, editor, gameplay framework, networking, collision, input, GAS, rendering and performance, engine internals |
+| [combat.md](combat.md) | Targets, lock-on, damage, hit and hurt, reactions, downed and death, defense, skills |
 | [animation.md](animation.md) | Anim assets, blending, state machines, locomotion, root motion, IK |
-| [systems.md](systems.md) | AI, spawn and world, items and progression, UI, production words |
+| [systems.md](systems.md) | AI and perception, spawn and world, vehicles, items and progression, camera, UI, production words |
 
 ## Columns
 
@@ -29,39 +29,56 @@ Counts are the number of comments (or document lines) that contain the form, per
 | Code | Corpus |
 |---|---|
 | A | Korean comments in the C++ source of a commercial Unreal Engine 5 game, written by people. About 6,600 comments. Not public; do not quote its comments in shared files. |
-| K | Korean comments in an Unreal Engine 5 project written mostly by AI agents. About 7,400 comments. This is the comparison group: it shows what AI-written Korean looks like. `K docs` means that project's Markdown documents (about 78,000 Korean lines). |
+| K | Korean comments in an Unreal Engine 5 project written mostly by AI agents. About 7,400 comments. This is the comparison group: it shows what AI-written Korean looks like. `K docs` means that project's Markdown documents (about 78,000 Korean lines; 79,000 on 2026-11-11). |
+| B | Korean posts on a public game developer blog (jaykop.github.io), counted 2026-11-11: 252 posts, 6,894 Korean lines outside code, links and front matter. 70 posts (1,912 lines) are about Unreal, mostly from 2025; the rest are C++, C#, Unity, OS and graphics notes from 2012 to 2022. Written by one person, who also maintains this plugin, so B shows one developer's habits, not team usage. It is document prose, not comments: rates are per 1,000 Korean lines, and `B raw` is a line count. Public, so its sentences may be quoted as examples. |
 | D | Korean design documents about an animation system, written by a game team. About 500 Korean lines. |
 | O | Korean comments in public game projects by Korean developers, at their last commit before 2022-01-01 (written before AI coding tools were common): planetarium/NineChronicles (377), G0DCH/Unity-HexaTile-CasualStrategy (619), ncsoft/Unreal.js and Unreal.js-core (5). 1,001 comments, mostly Unity C#. gorisanson/pikachu-volleyball, pikachu-volleyball-p2p-online and utilForever/RosettaStone have English comments and gave only README lines. |
 | raw | Total occurrences instead of a per-1,000 rate. |
 | common | Common in Korean game teams but not measured in A or D. Check the team's usage before you enforce it. |
 | UE | Matches the spelling of the Korean Unreal Engine documentation, from memory. Not cross-checked in this snapshot. |
-| style | A style decision of this skill, not a corpus count: engine type names stay in English in Korean text (2026-11-06). The counts next to it show what people write. |
+| style | A style decision of this skill, not a corpus count: engine type names stay in English in Korean text (2026-11-06). The counts next to it show what people write. A writes the Korean loanwords; B leans English (see [Engine type names in B](#engine-type-names-in-b)). |
 | W | 유영경, 『개발자를 위한 글쓰기 가이드』(로드북, 2021), a Korean technical writing guide; `§nn` is its principle number. A style source, not a corpus count. |
 | KR | Listed in the retired ko-review checker (claude-plugins, removed 2026-11-03), which recorded forms it had seen in AI-written docs. K counts for these are low because that checker already removed most of them from the comparison project; A shows whether people use the form. |
 
 Example: `A 0.3 / K 78` means 0.3 of every 1,000 human comments and 78 of every 1,000 AI comments contain the form.
 
-### Cross-check with O
+### Cross-check with O and B
 
-O is a second, independent set of human comments (different teams, Unity instead of Unreal). It confirms the main rows:
+O is a second, independent set of human comments (different teams, Unity instead of Unreal). It confirms the main rows. B and K docs are document prose, so their columns count per 1,000 Korean lines instead of per 1,000 comments; compare B with K docs, not with A.
 
-| Form | A | O | K |
-|---|---|---|---|
-| 쓴다 and its forms | 0.9 | 2 | 121 |
-| 돌려주다 | 0.3 | 0 | 25 |
-| 고르다 | 0.3 | 3 | 35 |
-| 바꾸다 | 2.7 | 7 | 63 |
-| 남긴다 | 0 | 0 | 30 |
-| 켜다, 끄다 | 2.3 | 0 | 32 |
-| 시각 | 0 | 0 | 37 |
-| ~한 뒤 | 2.1 | 1 | 62 |
-| 대상 | 12 | 6 | 106 |
-| · | 0 | 0 | 103 |
-| ~므로 | 18 | 1 | 200 |
-| 반환, 리턴 | 15 | 15 | 46 |
-| 변경 | 35 | 34 | 21 |
+| Form | A | O | K | B | K docs |
+|---|---|---|---|---|---|
+| 쓴다 and its forms | 0.9 | 2 | 121 | 2.6 | 46 |
+| 돌려주다 | 0.3 | 0 | 25 | 0 | 2.7 |
+| 고르다 | 0.3 | 3 | 35 | 0.6 | 18 |
+| 바꾸다 | 2.7 | 7 | 63 | 1.9 | 31 |
+| 남긴다 | 0 | 0 | 30 | 0.1 | 9.3 |
+| 켜다, 끄다 | 2.3 | 0 | 32 | 1.0 | 11 |
+| 시각 | 0 | 0 | 37 | 0.6 | 15 |
+| ~한 뒤 | 2.1 | 1 | 62 | 4.6 | 45 |
+| 대상 | 12 | 6 | 106 | 7.0 | 55 |
+| · | 0 | 0 | 103 | 0.1 | 246 |
+| ~므로 | 18 | 1 | 200 | 7.5 | 30 |
+| 반환, 리턴 | 15 | 15 | 46 | 14 | 5.9 |
+| 변경 | 35 | 34 | 21 | 16 | 65 |
 
 Where O disagrees with A, the rows were relaxed: 갱신 (O 16) is no longer flagged, 구독 (O 4, Rx and MVVM) became `review`, and 세팅 and 체크 stay `term` because O uses them less (8 and 3) than A (38 and 58).
+
+B also changed how the translationese rows in core.md are read. B writes 통해, 에 대해 and ~을 가진다 5 to 21 times per 1,000 lines, more than K docs (under 1), so they are plain style advice, not AI signs. 통해 became `density`.
+
+### Engine type names in B
+
+In B's Unreal posts, the English name is more common than the Korean loanword. Lines per form:
+
+| English | Korean |
+|---|---|
+| Actor 76 | 액터 51 |
+| Component 84 | 컴포넌트 16 |
+| Blueprint, BP 33 | 블루프린트 15 |
+| Widget 13 | 위젯 2 |
+| Montage 3 | 몽타주 1 |
+
+This matches the `style` rule, but B is one developer, who also wrote the rule. Treat it as proof that a human Korean developer can write this way, not as industry usage. A, the team corpus, writes the loanwords.
 
 ## Spelling policy
 

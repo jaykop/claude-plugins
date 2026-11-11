@@ -41,6 +41,9 @@ Combat words are shared by code, design documents and conversation. Keep the tea
 | 포이즈 | — | term | Poise A 1.5 / K 3.4 | The stagger gauge behind 경직 and 그로기. |
 | 버프, 디버프 | — | term | A 0.8 | |
 | 부활 | — | term | A 3.5 | Revive on the spot. Respawn at a point is 리스폰 (systems.md). |
+| 빈사, 빈사 상태 | — | term | B raw 12 | Downed but alive; a teammate can revive. 넉다운 (knocked to the ground) is a hit reaction, not this state. |
+| 사망, 즉사 | — | term | B raw 10, 1 | 사망 처리, 사망 상태. 즉사 skips 빈사. |
+| 아군, 적 | — | term | B 아군 raw 8 | Team relation. Code may call it Team or Affiliation; keep the project's word. |
 
 ## Defense and timing
 

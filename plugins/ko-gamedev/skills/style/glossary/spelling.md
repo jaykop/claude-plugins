@@ -12,19 +12,30 @@ One spelling per word. The policy for choosing is in [README.md](README.md#spell
 | 세팅 | 셋팅 | replace | A 37 / 0.5 | |
 | 이펙트 | 이팩트 | replace | A 8.3 / 0.2 | |
 | 애니메이션 | 애니매이션, 에니메이션 | replace | A 13 / 3.2 | A frequent typo in human comments. |
-| 메시지 | 메세지 | replace | A 5.0 / 3.5 | |
+| 메시지 | 메세지 | replace | A 5.0 / 3.5; B raw 10 / 5 | |
 | 액세서리 | 악세서리, 악세사리 | replace | A 0 / 2.8 | Standard spelling; people often miss it. |
 | 태스크 | 테스크 | replace | A 12 / 2.4 | |
 | 파라미터 | 파라메터 | replace | A 3.0 / 0.8 | |
 | 노멀 | 노말 | replace | A 4.1 / 0.3 | Normal vector. 노멀 공격 (a basic attack) is 일반 공격 or 기본 공격. |
 | 셰이더 | 쉐이더 | replace | A 0 / 0.2 | UE |
-| 콘텐츠 | 컨텐츠 | replace | common | UE: 콘텐츠 브라우저. |
+| 콘텐츠 | 컨텐츠 | replace | common; B raw 8 / 7 | UE: 콘텐츠 브라우저. |
 | 스태미나 | 스테미나 | replace | A 0.6 / 0 | |
 | 스탯 | 스텟 | replace | A 2.9 / 0 | |
 | 리플리케이션, 리플리케이트 | 레플리케이션, 레플리케이트 | replace | A 0.3 / 0 | UE |
 | 커스터마이징 | 커스터마이즈 | review | A 1.7 / 0 | As a noun. The verb 커스터마이즈한다 is fine. |
 | 셰이프 | 쉐이프 | replace | KR; Shape A 4.4 | |
 | Blueprint, BP | 블프 | review | KR; A 0 | Casual short form; fine in chat, not in comments or docs. |
+| 리플렉션 | 리플랙션 | replace | B raw 22 / 7; K docs raw 65 / 0 | UE 리플렉션 시스템. A typo in human text. |
+| 템플릿 | 탬플릿, 탬프릿 | replace | B raw 27 / 11; K docs raw 430 / 0 | A typo in human text. |
+| 렌더링, 렌더 | 랜더 | replace | B raw 36 / 1 | Also 렌더 타겟, 렌더 스레드. |
+| 액세스 | 엑세스 | replace | B raw 1 / 14; K docs raw 1 / 0 | Standard spelling; people often miss it, as with 액세서리. |
+| 메서드 | 메소드 | replace | B raw 130 / 7 | |
+| 스레드 | 쓰레드 | replace | B raw 55 / 3; K docs raw 346 / 0 | Also 게임 스레드, 렌더 스레드. |
+| 애플리케이션 | 어플리케이션 | replace | B raw 2 / 23; K docs raw 1 / 0 | Standard spelling; people often miss it. 앱 is fine. |
+| 캡처 | 캡쳐 | replace | B raw 2 / 6; K docs raw 133 / 0 | Also 씬 캡처, 모션 캡처. |
+| 피처 | 피쳐 | replace | B raw 0 / 4; K docs raw 4 / 0 | Standard spelling. The Game Features plugin is written in English. |
+| 트리거링 | 트리깅 | replace | B raw 0 / 4 | Input Trigger types (Hold, Release) and combo triggers. |
+| 싱글턴 | 싱글톤 | review | B raw 5 / 1; K docs raw 3 / 0 | Standard spelling. 싱글톤 is also common; keep the file's word if it uses one throughout. |
 
 ## Pick one per project
 

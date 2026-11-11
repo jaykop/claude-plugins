@@ -44,12 +44,12 @@ skills/style/
   SKILL.md            절차: 읽을 파일, 작성·검토·수정 순서, 보고 형식
   glossary/           분야별 용어집. 표가 곧 검사 규칙이다
     README.md         표 형식, 근거 표기, 표기 원칙, 프로젝트 용어 파일
-    core.md           모든 분야의 동사, 조건, 명사, 직역투, 번역체, 구어
+    core.md           모든 분야의 동사, 조건, 명사, 프로그래밍 용어, 직역투, 번역체, 구어
     spelling.md       외래어 표기 통일
-    unreal.md         엔진, 에디터, 네트워크, 콜리전, GAS
-    combat.md         타겟, 락온, 대미지, 피격, 방어, 스킬
+    unreal.md         엔진, 에디터, 네트워크, 콜리전, 입력, GAS, 렌더링과 성능
+    combat.md         타겟, 락온, 대미지, 피격, 빈사와 사망, 방어, 스킬
     animation.md      애님 에셋, 블렌드, 스테이트, 로코모션
-    systems.md        AI, 스폰, 아이템, UI, 제작 용어
+    systems.md        AI와 Perception, 스폰, 탈것, 아이템, 카메라, UI, 제작 용어
   style/
     comments.md       코드 주석 문체
     documents.md      설계·기술 문서 문체
@@ -57,7 +57,9 @@ skills/style/
   scripts/ko_lint.py  용어집 표를 읽어 주석과 문서에서만 후보를 찾는다
 ```
 
-용어집의 각 행에는 근거 수치가 붙어 있다. 사람이 쓴 상용 UE5 게임의 주석(A, 비공개), 2022년 이전에 공개된 한국 개발자의 게임 프로젝트 주석(O), AI가 주로 쓴 UE5 프로젝트의 주석(K), 애니메이션 설계 문서(D)에서 1,000건당 등장 수를 쟀다. 번역체 행은 한국어 기술 글쓰기 가이드(W)를 근거로 한다. 말뭉치 수치가 아니라서 `review`와 `density`로만 둔다. 자세한 내용은 [glossary/README.md](skills/style/glossary/README.md#evidence)에 있다.
+용어집의 각 행에는 근거 수치가 붙어 있다. 사람이 쓴 상용 UE5 게임의 주석(A, 비공개), 2022년 이전에 공개된 한국 개발자의 게임 프로젝트 주석(O), AI가 주로 쓴 UE5 프로젝트의 주석(K), 애니메이션 설계 문서(D)에서 1,000건당 등장 수를 쟀다. 번역체 행은 한국어 기술 글쓰기 가이드(W)를 근거로 한다. 사람이 쓴 블로그(B)에서 AI 문서보다 더 자주 나오기 때문에 AI 말투의 표시가 아니라 문체 조언이고, `review`와 `density`로만 둔다.
+
+게임 개발자 한 명이 쓴 공개 기술 블로그(B)는 문서 1,000줄당 수로 따로 쟀다. 철자 오타, 검사 오탐, 카메라와 입력처럼 빠졌던 분야의 용어를 찾는 데 썼다. 글쓴이가 이 플러그인의 관리자 본인이라서 업계 빈도의 근거로는 쓰지 않는다. 자세한 내용은 [glossary/README.md](skills/style/glossary/README.md#evidence)에 있다.
 
 ## 검사 스크립트
 
@@ -68,7 +70,7 @@ python skills/style/scripts/ko_lint.py --summary <폴더>
 python skills/style/scripts/ko_lint.py --kind replace,review,density <파일>
 ```
 
-C++, C#, Python, GDScript 의 주석, ini 의 `DevComment`, Markdown 의 코드 밖 본문만 읽는다. 결과는 후보일 뿐이다. `replace`는 거의 항상 고칠 것, `review`는 문맥을 보고 정할 것, `density`는 한 파일에 몰리면 문제인 표현이다. 검사 결과 예시(한국어 주석 1,000줄당 후보): 사람이 쓴 코드 64~91건, AI가 쓴 코드 1,091건.
+C++, C#, Python, GDScript 의 주석, ini 의 `DevComment`, Markdown 의 코드 밖 본문만 읽는다. 결과는 후보일 뿐이다. `replace`는 거의 항상 고칠 것, `review`는 문맥을 보고 정할 것, `density`는 한 파일에 몰리면 문제인 표현이다. 검사 결과 예시(한국어 주석 1,000줄당 후보): 사람이 쓴 코드 64~91건, AI가 쓴 코드 1,091건. 문서는 1,000줄당 사람이 쓴 블로그(B) 150~234건, AI가 쓴 문서 842건이다. 블로그 수치에는 엔진 타입 이름을 영어로 쓰는 규칙에 걸린 후보도 들어 있다.
 
 ## 프로젝트 용어
 

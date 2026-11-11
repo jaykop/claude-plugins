@@ -63,8 +63,10 @@ def split_row(line):
 def parse_forms(cell):
     forms = []
     for item in re.findall(r'`[^`]*`|[^,`]+', cell):
-        item = item.strip().strip('`').strip()
-        if not item or item in ('-', '—'):
+        item = item.strip()
+        if len(item) >= 2 and item[0] == item[-1] == '`':
+            item = item[1:-1]  # keep spaces inside backticks: a regex may end in one
+        if not item.strip() or item.strip() in ('-', '—'):
             continue
         if item.startswith('re:'):
             forms.append(Form(item, None, re.compile(item[3:])))

@@ -9,7 +9,7 @@ Avoid forms are stems where possible: 돌려주 matches 돌려주고, 돌려주�
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| 사용한다 | 쓴다, 쓰는, 쓰고, 쓰면, 쓰지, 쓰므로, 쓰며, 쓰도록, 쓰려, 써서, 써야, 썼, `re:(?<![가-힣])쓸 ` | replace | 사용 A 64 / K 45; 쓴다 A 0.3 / K 78 | If 쓰다 means write, use 기록한다, 작성한다 or 저장한다. 덮어쓴다 is not matched. |
+| 사용한다 | 쓴다, 쓰는, 쓰고, 쓰면, 쓰지, 쓰므로, 쓰며, 쓰도록, 쓰려, 써서, 써야, 썼, `re:(?<![가-힣])쓸(?=\s)` | replace | 사용 A 64 / K 45; 쓴다 A 0.3 / K 78 | If 쓰다 means write, use 기록한다, 작성한다 or 저장한다. 덮어쓴다, 쓸모 and 쓸데없이 are not matched. |
 | 반환한다, 리턴한다 | 돌려주, 돌려준, 돌려줄, 돌려줘 | replace | 반환 A 9.5, 리턴 A 5.4; 돌려준 A 0 / K 19 | 되돌려준다 is not matched; see 복구한다. |
 | 호출한다 | 부른다, 부르고, 부르면, 부르지, 부르므로, 부르는, 부를 | replace | 호출 A 14 / K 55; 부른다 A 0 / K 6.3 | 불러온다 (load) is a different verb. |
 | 선택한다 | 고른, 고르, 고를, 골라, 골랐 | replace | 선택 A 19; 고른다 A 0 / K 13 | 고르게 (evenly) also matches; skip it. |
@@ -48,7 +48,7 @@ Avoid forms are stems where possible: 돌려주 matches 돌려주고, 돌려주�
 | 무시한다, 바로 리턴한다 | 아무것도 하지 않, 아무것도 안 | review | A 0 / O 0 / K 13; 무시, 리턴 A 16 / O 28 | does nothing |
 | 필터링한다 | 거른, 거르, 걸러 | review | A 0.5 / O 1 / K 9.8; 필터 A 1.7 / O 7 | |
 | 제외한다 | 뺀다, 빼고, 빼면, 뺀, 빼지 | review | A 0.5 / O 3 / K 12; 제외 A 6.2 | Arithmetic subtraction (값을 뺀다) stays. |
-| 기록한다 | 적는다, 적고, 적은, 적어 | review | A 0.9 / O 0 / K 3.5 | 적은 (few) also matches; skip it. |
+| 기록한다 | 적는다, 적고, 적은, `re:(?<![가-힣])적어(?!도)` | review | A 0.9 / O 0 / K 3.5 | 적은 (few) also matches; skip it. 적어도 (at least) is not matched. |
 | 계산한다, 측정한다 | 잰다, 재고, 재서 | review | A 0 / O 0 / K 3.4; 계산 A 15 / O 21 | |
 | 조준한다, 에임 | 겨누, 겨눈, 겨눌 | review | A 0 / O 0 / K 2.3; 조준, 에임 A 2.7 | |
 | 접근한다 | 다가가, 다가간, 다가갈 | review | A 0 / O 0 / K 1.5 | |
@@ -60,13 +60,13 @@ Avoid forms are stems where possible: 돌려주 matches 돌려주고, 돌려주�
 | true면, false면, 활성화, 비활성화 | 켜면, 끄면, 켜져, 꺼져, 켜지, 꺼지, 켜졌, 꺼졌, 켠다, 끈다, 켜고, 끄고, 켜 두, 꺼 두 | review | 활성화 A 27; 켜면 A 0 / K 9.8 | For bool properties write true면 and false면. Features and Tick: 활성화, 비활성화. A light or a physical switch keeps 켜다. |
 | 설정하지 않으면, 지정하지 않으면, None이면 | 비우면, 비워 두면, 비워두면 | replace | 비우면 A 0 / K 11 | 배열이 비어 있으면 (an empty container) is correct and is not matched. |
 | 설정하지 않으면, None이면 | `re:비어\s*있으면` | review | A 0.9 / O 0 / K 21 | For an unset tag, query or reference property. A container (배열이 비어 있으면) stays. |
-| 시점, 타이밍, 시간 | `re:(?<![가-힣])시각(?![적화])` | replace | 시점 A 12, 타이밍 A 4.8; 시각 A 0 / K 37 | A world time value is 시간(초). 시각적 and 시각화 are not matched. In camera and line-of-sight code 시점 also means viewpoint; use 타이밍 or 월드 시간 there. |
+| 시점, 타이밍, 시간 | `re:(?<![가-힣])시각(?![적화])(?! ?(자극\|정보\|효과\|감각))` | replace | 시점 A 12, 타이밍 A 4.8; 시각 A 0 / K 37 | A world time value is 시간(초). 시각적, 시각화 and sight words (시각 자극, 시각 정보, 시각 효과, 시각 감각; B, AI Perception) are not matched. In camera and line-of-sight code 시점 also means viewpoint; use 타이밍 or 월드 시간 there. |
 | 현재 | `re:(?<![가-힣])이번(?! ?프레임)` | review | 현재 A 30; 이번 A 0.3 / K 19 | 이번 프레임 is fine and is not matched. |
 | 바로, 즉시, ~한 뒤 바로 | 직후 | review | 바로 A 5.6; 직후 A 0 / K 8.2 | |
 | 중 | 가운데 | review | 가운데 A 0 / K 6.3 | ~ 가운데 하나 → ~ 중 하나. 화면 가운데 (the center) stays. |
 | 임계값 | 문턱 | replace | 임계값 A 0.3; 문턱 A 0 / K 1.5 | |
 | ~ 후, ~ 이후, ~한 다음 | `re:(?<=[가-힣]) 뒤(?=에\|[\s,.]\|$)` | review | ~ 뒤 A 2.1 / O 1 / K 62; ~ 후 A 34 / O 18 / K 25 | One of the strongest AI signs. 캐릭터 뒤에 (behind) is a direction and stays. |
-| 시점, 타이밍, 때 | 순간 | review | A 0.3 / O 0 / K 15 | |
+| 시점, 타이밍, 때 | `re:(?<![가-힣])순간(?!적\|이동)` | review | A 0.3 / O 0 / K 15 | 순간적으로 (B) and 순간이동 (teleport, K docs) are not matched. |
 | ~ 여부 | — | term | 여부 A raw 259 | Name of a bool: 락온 가능 여부. |
 
 ## Nouns
@@ -76,7 +76,7 @@ Avoid forms are stems where possible: 돌려주 matches 돌려주고, 돌려주�
 | 세팅, 설정 | — | term | 세팅 A 37 / K 0; 설정 A 24 / K 64 | Both are normal. 세팅 for filling in values and preparing state (카메라 세팅, 초기 세팅). 설정 for options and property names. AI text never writes 세팅; it is not slang. |
 | 체크 | — | term | 체크 A 58 / K 4.8 | ~인지 체크 and ~ 체크 are the most common verb nouns in human comments. |
 | 타겟, or name the thing | `re:(?<![가-힣])대상` | density | 대상 A 12 / K 106 | AI text calls every receiver 대상. A file with many is worth a read; combat.md lists the forms that should be 타겟. |
-| 오브젝트 | 객체 | review | 오브젝트 A 8.9 / K 5.0; 객체 A 1.5 / K 26 | UObjects and things in the world: 오브젝트. General C++ object talk may keep 객체. |
+| 오브젝트 | `re:(?<![가-힣])객체(?!지향)` | review | 오브젝트 A 8.9 / K 5.0; 객체 A 1.5 / K 26; B 객체 38 per 1,000 lines | UObjects and things in the world: 오브젝트. General C++ and C# object talk may keep 객체; B writes it in language posts (객체를 생성, 객체의 수명). 객체지향 is not matched. |
 | 복사본 | 사본 | replace | 복사 A 3.0; 사본 A 0 / K 20 | |
 | 상속, 자식 클래스 | 파생 | review | 상속 A 2.1; 파생 A 0 / K 8.7 | 파생 클래스 is textbook Korean but rare in game code comments. |
 | 부모 구현, Super 구현 (override); 기본 구현 (base class) | 기반 구현 | review | A 0 / K 1.5 | In the base class's own header the default behavior is 기본 구현. In an override, the inherited behavior is 부모 구현. |
@@ -85,7 +85,7 @@ Avoid forms are stems where possible: 돌려주 matches 돌려주고, 돌려주�
 | 필드, 항목, 슬롯 | `re:(?<![가-힣])칸(?![가-힣]{2})` | replace | 칸 A 0 / K 9.1 | 대상 칸 → Target 필드. |
 | 셰이프, Shape | 도형 | replace | Shape A 4.4; 도형 A 0 / K 8.2 | |
 | 샘플 | 표본 | replace | 샘플 A 0.2 / K 9.8; 표본 A 0 / K 3.0 | Audio: 512샘플. |
-| 에디터용, 편집용 | 저작 | replace | 저작 A 0 / K 7.5 | 저작 그래프 → 에디터 그래프 or 편집용 그래프. |
+| 에디터용, 편집용 | `re:(?<![가-힣])저작(?![권자물])` | replace | 저작 A 0 / K 7.5 | 저작 그래프 → 에디터 그래프 or 편집용 그래프. 저작권, 저작자 and 저작물 (copyright, B) are not matched. |
 | 이유, 원인 | 사유 | review | A 0 / O 0 / K 9.1 | |
 | 핸들러 | 처리기 | replace | A 0 / O 0 / K 7.4 | |
 | 리스트, 배열 | 목록 | review | 목록 A 4.4 / O 1 / K 39; 리스트, 배열 A 15 / O 5 | People write 목록 for a named data list (PathPoint 목록, A 3.9); fix it when it repeats. 목록 in document prose is fine. |
@@ -93,6 +93,18 @@ Avoid forms are stems where possible: 돌려주 matches 돌려주고, 돌려주�
 | 변경된 값, 델타 | 변경분 | review | A 0 / O 0 / K 5.6 | |
 | 리포트 | 보고서 | review | A 0 / O 0 / K 6.7 | HID and crash reports. |
 | 로그, 이력 | — | term | 로그 A 3.0 | 실행 기록 is fine. 기록을 남긴다 → 로그를 출력한다. |
+
+## Programming terms
+
+Language words for C++ and C#. They stay Korean; type and macro names stay English (USTRUCT, UENUM, `FMyStruct`).
+
+| Use | Avoid | Kind | Evidence | Note |
+|---|---|---|---|---|
+| 인자, 인수 (argument); 매개변수, 파라미터 (parameter) | — | term | B 인자 raw 58 / 인수 11; 매개변수 21 / 파라미터 9 | 인자 is the value passed in a call; 매개변수 is the name in the declaration. Keep one word for each per file. |
+| 함수, 멤버 함수; 메서드 (C#) | — | term | B 함수 raw 361 / 메서드 130 (97 of them in C# and Unity posts) | C++ and UE: 함수 or 멤버 함수; a UFUNCTION is a 함수. C#: 메서드. |
+| 구조체, 열거형, 생성자, 소멸자, 멤버 변수 | — | term | B raw 25, 5, 42, 9 | |
+| 매크로, 전처리 | — | term | B 매크로 raw 38 | UPROPERTY, UFUNCTION and check() are 매크로. |
+| 마킹한다 | — | term | B raw 14 | `UPROPERTY로 마킹된 변수`; GC가 오브젝트를 마킹한다. |
 
 ## Connectives and marks
 
@@ -150,18 +162,18 @@ English idioms translated word by word, and metaphors that make the reader guess
 
 ## Translationese
 
-Patterns of translated Korean that a Korean technical writing guide lists (evidence `W`). They are grammatical, so people write them too; A and O are not counted yet. That is why the rows are `review` or `density`, not `replace`.
+Patterns of translated Korean that a Korean technical writing guide lists (evidence `W`). They are grammatical, so people write them too. They are not signs of AI text: a human dev blog (B) writes them 2 to 21 times per 1,000 lines, while the AI-written K docs write them less than once. Fix them as plain style, not as AI tells. That is why the rows are `review` or `density`, not `replace`. Rates below are per 1,000 Korean document lines.
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| ~로, ~에서, 사용해, 호출해 | 통해, 통한 | review | W §36, §37 | Name the means: `Interface로 읽는다`, `콘솔에서 설정한다`, `API를 호출해 전송한다`. Keep 통해 only when no verb names the means. |
-| 있다, 포함한다 | `re:[을를] 가지고 있`, `re:[을를] 가진다` | review | W §36 | A thing that has a value or tag: `ASC에 태그가 있고`. A class that holds a member may keep 가진다, or write 포함한다. |
-| ~할 수 있다 | 가능하다 | review | W §36 | `빌드 후 가능하다` → `빌드한 뒤에 생성할 수 있다`. Name the action. 불가능하다 is not matched. |
-| ~을, ~를 | `re:에 대해` | density | W §36 | `성능에 대해 알아본다` → `성능을 알아본다`. 에 대한 is normal Korean and is not matched. |
-| (rewrite with a verb) | `re:(으로\|로)의 ` | density | W §40 | `노드 중심 흐름으로의 변경` → `노드 중심 흐름으로 변경`. |
-| (rewrite with a verb) | `re:에서의` | density | W §40 | `PIE에서의 동작` → `PIE에서 동작할 때`. |
-| ~하면 | `re:(?<!밖)의 경우` | review | W §36 | `호출의 경우` → `호출하면`. 그 밖의 경우 is not matched. |
-| 보이는, 나타나는, ~되는 | 보여지, `re:되어지` | review | W §35 | Double passive: `보여지는` → `보이는`, `변경되어진` → `변경된`. |
+| ~로, ~에서, 사용해, 호출해 | 통해, 통한 | density | W §36, §37; B 21 / K docs 0.7 | Name the means: `Interface로 읽는다`, `콘솔에서 설정한다`, `API를 호출해 전송한다`. Keep 통해 only when no verb names the means. People write it often, so the lint counts it per file; read a file where it repeats. |
+| 있다, 포함한다 | `re:[을를] 가지고 있`, `re:[을를] 가진다` | review | W §36; B 7.3 / K docs 0.4 | A thing that has a value or tag: `ASC에 태그가 있고`. A class that holds a member may keep 가진다, or write 포함한다. |
+| ~할 수 있다 | 가능하다 | review | W §36; B 5.7 / K docs 0.2 | `빌드 후 가능하다` → `빌드한 뒤에 생성할 수 있다`. Name the action. 불가능하다 is not matched. |
+| ~을, ~를 | `re:에 대해` | density | W §36; B 10 / K docs 0.6 | `성능에 대해 알아본다` → `성능을 알아본다`. 에 대한 is normal Korean and is not matched. |
+| (rewrite with a verb) | `re:((?<!앞)으로\|(?<![경서세사키일대도회통진항활크으])로)의 ` | density | W §40; B 1.7 / K docs 0.4 | `노드 중심 흐름으로의 변경` → `노드 중심 흐름으로 변경`. Nouns that end in 로 (경로의, 매크로의, 서로의, 그대로의) and 앞으로의 are not matched. |
+| (rewrite with a verb) | `re:에서의` | density | W §40; B 6.4 / K docs 0.9 | `PIE에서의 동작` → `PIE에서 동작할 때`. |
+| ~하면 | `re:(?<!밖)의 경우` | review | W §36; B 4.8 / K docs 0.1 | `호출의 경우` → `호출하면`. 그 밖의 경우 is not matched. |
+| 보이는, 나타나는, ~되는 | 보여지, `re:되어지` | review | W §35; B 0 / K docs raw 2 | Double passive: `보여지는` → `보이는`, `변경되어진` → `변경된`. |
 
 ## Casual words
 

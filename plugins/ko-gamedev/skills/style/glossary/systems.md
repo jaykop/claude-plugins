@@ -1,5 +1,5 @@
 <!-- ko-lint: ignore-file -->
-# AI, world, items, UI and production
+# AI, world, items, camera, UI and production
 
 ## AI
 
@@ -12,6 +12,9 @@
 | 패트롤, 로밍 | 순찰, 배회 | term | 패트롤 A 0.9; 로밍 A 0.5 | |
 | 추적 | 추격 | term | A 5.4 | 추적 거리, 추적 범위. |
 | EQS | — | term | A | |
+| 자극, Stimulus | — | term | B raw 10 | What AI Perception senses: 시각 자극, 청각 자극. The component is AI Perception Stimuli Source; write its name in English. |
+| 감각, Sense | — | term | B raw 2 | Sight, Hearing and Damage senses of AI Perception. Config classes stay English (AISense_Sight). |
+| 길찾기, 경로 탐색 | — | term | B raw 3 | NavMesh is in unreal.md. |
 
 ## Spawn and world
 
@@ -20,7 +23,8 @@
 | 스폰, 리스폰, 디스폰 | — | term | 스폰 A 12 | |
 | 스포너 | — | term | A 0.8 / K 19 | |
 | 레벨, 맵, 필드, 던전 | — | term | 레벨 A 10; 맵 A 5.7 | |
-| 체크포인트, Player Start | 플레이어 스타트 | replace | style; A | Player Start is an engine type name. 체크포인트 is a game word. |
+| 체크포인트, Player Start | 플레이어 스타트 | replace | style; A | Player Start is an engine type name. 체크포인트 is a game word. Projects often give checkpoints their own name (B: 캠프); record it in the project terms file. |
+| 탈것, 탑승, Vehicle | `re:(?<![가-힣])탈 것(?!이)` | review | B raw 6 / 17 (탈것 / 탈 것); K docs 탈것 raw 4 | 탈것 is one word. Write Vehicle when you mean the engine class (Chaos Vehicle). 탈 것이다 (will ride) is not matched, and neither is 탈 것이 as a subject; read for those. |
 | 볼륨, Trigger Volume | 트리거 볼륨 | replace | style; 볼륨 A raw 41 | Trigger Volume is an engine type name. |
 | 레벨 이벤트, 연출 | — | term | 연출 A 3.5 | |
 
@@ -37,6 +41,15 @@
 | 퀘스트, 스텝, 목표, 저널 | — | term | 퀘스트 A 8.6 | |
 | 세이브, 로드, 세이브 슬롯 | — | term | 세이브 A raw 33 | |
 | 커스터마이징 | — | term | A 1.7 | |
+
+## Camera
+
+| Use | Avoid | Kind | Evidence | Note |
+|---|---|---|---|---|
+| 구도 | — | term | B raw 14 | Camera framing for a state: 전투 구도, 비전투 구도. A base 구도 plus offsets per state. |
+| Spring Arm, Camera Component | 스프링 암, 스프링암 | replace | style; UE | Engine type names. The Component row in unreal.md matches 카메라 컴포넌트. Camera Shake is in unreal.md. |
+| 장애물 투명화 | — | term | B raw 4 | Fading the object between the camera and the character. Occlusion culling is a rendering term (unreal.md). |
+| 하이라이트, 아웃라인 | — | term | B raw 12 | Drawing a character hidden behind an obstacle, usually with Custom Depth and Stencil. |
 
 ## UI
 

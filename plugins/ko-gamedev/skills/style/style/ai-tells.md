@@ -26,3 +26,4 @@ What separates corpus K (AI) from corpus A (people) and D (design docs). AI Kore
 - Human comments in A also have flaws: typos (애니매이션, 악세서리, 이팩트), casual words (일단, 그냥, ...), mixed ~다 and ~니다. Do not copy them. The target is the industry's vocabulary and register with clean grammar.
 - Do not rewrite a clear, correct sentence only because it ends in ~다.
 - Do not force loanwords where plain Korean is the industry habit too: 위치, 회전, 이동, 입력, 상태 are normal in A.
+- Translationese (통해, 에 대해, ~을 가진다, 가능하다) is not an AI sign. A human dev blog (B) writes it 5 to 21 times per 1,000 lines, and the AI-written K docs less than once. Fix it as style, and do not use it to judge who wrote a text.

@@ -9,10 +9,10 @@ Engine and editor words. When you mean the exact class, function or property, wr
 |---|---|---|---|---|
 | 에디터 | 편집기 | replace | 에디터 A 7.4 / K 20; 편집기 A 0 / K 18 | 에디터 모듈, 에디터 전용, 에디터 프리뷰. |
 | 디테일 패널, 뷰포트, 아웃라이너, 콘텐츠 브라우저 | — | term | UE | If the team runs the English editor, write the English label: Details 패널. |
-| Blueprint, BP | 블루프린트 | replace | style; 블루프린트 A 3.3 | Engine type name. 블프 is in spelling.md. |
+| Blueprint, BP | 블루프린트 | replace | style; 블루프린트 A 3.3; B raw 33 / 15 | Engine type name. 블프 is in spelling.md. |
 | Data Table, Data Asset | 데이터 테이블, 데이터 에셋 | replace | style | Engine type names. A balance sheet in design talk stays 테이블 (systems.md). |
 | Mesh, Static Mesh, Skeletal Mesh | `re:(?<![가-힣])(스태틱 \|스켈레탈 )?메(시\|쉬)(?!지)` | replace | style; 메시 A 9.8, 메쉬 A 2.1 | Engine type names. 메시지 is not matched. |
-| Material, Material Instance | 머티리얼, 메테리얼, 매터리얼, 머터리얼 | replace | style; UE | Engine type names. |
+| Material, Material Instance | 머티리얼, 메테리얼, 매터리얼, 머터리얼, 마테리얼 | replace | style; UE; B | Engine type names. 마테리얼 is a variant that B's own post checker watches for. |
 | Texture | 텍스처, 텍스쳐 | replace | style; UE | Engine type name. |
 | Row, 로우 | `re:(?<![가-힣])행(?=[을의이은에 ])` | review | Row A 3.5, 로우 A 0.5; 행 K raw 165 / A 0 | For DataTable rows. 표의 행 in a document table stays. |
 | 프로퍼티, 변수 | 속성 | review | 프로퍼티 A 0.6 / K 9.4; 속성 A 1.7 / K 4.0; 변수 A raw 55 | UPROPERTY members: 프로퍼티. 속성 also means element type (ElementalType), so avoid it for properties. |
@@ -23,7 +23,7 @@ Engine and editor words. When you mean the exact class, function or property, wr
 
 | Use | Avoid | Kind | Evidence | Note |
 |---|---|---|---|---|
-| Actor, Component, Pawn | 액터, 컴포넌트, 콤포넌트, `re:(?<![가-힣])폰(?!트)` | replace | style; 액터 A raw 197, 컴포넌트 A 12 | Engine type names. People write 액터 and 컴포넌트 (A); this skill writes the English name. Attach the particle by the English sound: Actor를, Component가. 폰트 is not matched. |
+| Actor, Component, Pawn | 액터, 컴포넌트, 콤포넌트, `re:(?<![가-힣])폰(?!트)` | replace | style; 액터 A raw 197, 컴포넌트 A 12; B raw Actor 76 / 액터 51, Component 84 / 컴포넌트 16 | Engine type names. People write 액터 and 컴포넌트 (A); this skill writes the English name. Attach the particle by the English sound: Actor를, Component가. 폰트 is not matched. |
 | Character, Player Controller, AI Controller | 캐릭터, 컨트롤러 | term | style | Write the English name when you mean the engine class or its instance (ACharacter, APlayerController, AAIController). A game character in design talk stays 캐릭터, and a gamepad stays 컨트롤러. The lint does not check this; read for it. |
 | Game Mode, Game State, Player State, Game Instance, Subsystem | 게임 모드, 게임 스테이트, 플레이어 스테이트, 게임 인스턴스, 서브시스템 | replace | style; UE | Engine type names. |
 | 스폰한다 | — | term | 스폰 A 12 / K 3.8; 생성 A 21 / K 52 | Actors are 스폰. UObjects, widgets and data may be 생성. The lint does not check this; read for it. |
@@ -54,6 +54,13 @@ Engine and editor words. When you mean the exact class, function or property, wr
 | 콜리전 프로파일, 트레이스 채널 | — | term | 프로파일 A | |
 | 캡슐 | — | term | A 8.0 | |
 
+## Input
+
+| Use | Avoid | Kind | Evidence | Note |
+|---|---|---|---|---|
+| 입력, 인풋 | — | term | B raw 35 / 18 | Both are normal. 인풋 랙 and 인풋 버퍼 are fixed compounds. Otherwise keep one word per file. |
+| Enhanced Input, Input Action, Input Mapping Context, IMC, Input Trigger, Input Modifier | 인풋 액션, 입력 액션, 인풋 매핑 컨텍스트, 입력 매핑 컨텍스트, 인풋 트리거, 입력 트리거 | replace | style; B IMC raw 6 | Engine type names. B writes InputAction, IMC and Input Trigger in English. Trigger types (Hold, Release, Tap) stay English too; the act is 트리거링 (spelling.md). |
+
 ## Gameplay Ability System and tags
 
 | Use | Avoid | Kind | Evidence | Note |
@@ -72,8 +79,22 @@ Engine and editor words. When you mean the exact class, function or property, wr
 |---|---|---|---|---|
 | 이펙트, VFX | — | term | 이펙트 A 8.3 | A concept word, so it stays Korean. 이펙트를 출력, 이펙트 재생. |
 | Niagara, Niagara System | 나이아가라, `re:(?<![가-힣])니아가라` | replace | style; 나이아가라 A raw 16 | Engine type names. |
-| Widget, UMG, HUD, ViewModel | 위젯, 뷰모델 | replace | style; 위젯 A 15 | Engine type names. |
+| Widget, UMG, HUD, ViewModel | 위젯, 뷰모델 | replace | style; 위젯 A 15; B raw 13 / 2 | Engine type names. |
 | Camera Shake | 카메라 셰이크, 카메라 쉐이크 | replace | style; common | Engine type name, for Camera Shake assets and tasks. Not 흔들림 either. |
+
+## Rendering and performance
+
+| Use | Avoid | Kind | Evidence | Note |
+|---|---|---|---|---|
+| Nanite, Lumen | 나나이트, 루멘 | replace | style; B 나나이트 raw 4 | Engine feature names, written in English like Niagara. Nanite Mesh. |
+| 드로우콜, Draw Call | — | term | B raw 12 | B writes both. Keep one per file. |
+| PSO, PSO 캐시 | — | term | B | Pipeline State Object. PSO 캐시 수집, 미리 컴파일. |
+| LOD | — | term | B raw 7 | LOD 세팅, LOD 교체. |
+| 성능, 퍼포먼스 | — | term | B raw 33 / 23 | Both are normal. Keep one per file. |
+| 최적화, 오버헤드, 프로파일링 | — | term | B raw 23, 19, 2 | |
+| 라이팅 | — | term | B raw 18 / 조명 0 | Rendering light. A light Actor placed in a level is a Light. |
+| 트라이앵글, 폴리곤 | — | term | B raw 3, 4 | Mesh density. |
+| 컬링, 오클루전 컬링 | — | term | common | Rendering. Fading an object in front of the camera is a camera job (systems.md, Camera). |
 
 ## Engine internals
 
