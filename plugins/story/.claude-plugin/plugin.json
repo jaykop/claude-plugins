@@ -1,0 +1,11 @@
+{
+  "name": "story",
+  "description": "비주얼 노벨과 이야기 중심 게임의 한국어 대본을 기획부터 대사까지 쓰고 검토한다. 기획 시트 → 장면 목록 → 장면 카드 → 대본 → 패스 5개 자체 리뷰, 장르 참조(미스터리, 로맨스, 팩션), 비선형 구조 패턴, 각색 시트, 클리셰 점검, 문장 검사 스크립트. 대본 형식은 각 프로젝트의 .claude/story/format.md 에서 읽는다.",
+  "author": {
+    "name": "jaykop"
+  },
+  "homepage": "https://github.com/jaykop/claude-plugins",
+  "repository": "https://github.com/jaykop/claude-plugins",
+  "license": "MIT",
+  "keywords": ["korean", "game-development", "visual-novel", "story", "screenwriting", "dialogue", "review"]
+}
