@@ -37,7 +37,7 @@ If there is no material and you cannot attach a grade, do not make the claim, an
 ## 3. Sentences about fun
 
 - If a conclusion about fun or emotion ("boring", "frustrating", "thrilling", "tense", and so on) has no [observed-behavior] evidence, start it with `Hypothesis:` (`가설:` when `report_language` is `ko`), and on the same line write the ID of the proposal that has the verification method to check that hypothesis.
-- Do not judge hand feel, hit impact, or control feel. Write only whether the data contains the mechanisms that produce such feel (hit stop — an effect that briefly freezes the screen at the moment of a hit, hit sounds, screen shake, and so on), and how skills use those mechanisms differently.
+- Do not judge hand feel, hit impact, or control feel. Write only whether the data contains the mechanisms that produce such feel (hit stop — an effect that briefly freezes the screen at the moment of a hit, hit sounds, screen shake, and so on), and how skills use those mechanisms differently. `mechanics-catalog.md` lists these mechanisms by area, and frameworks §10 says how to check them.
 - You cannot play videos directly. Use as evidence only what is in the captures or visual notes that the user gave, and do not guess the content of a video.
 
 ## 4. Verdict kinds

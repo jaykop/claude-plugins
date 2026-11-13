@@ -58,8 +58,8 @@ Mark: written before principle revision (원칙 개정 이전 작성), date unkn
 Difference kinds (차이 종류): only in the documents (문서에만 있음) / only in the implementation (구현에만 있음) / different values (값이 다름)
 
 ### 5. Per-system diagnosis (시스템별 진단)
-| System (시스템) | Linked principle (연결 원칙) | Attached loop (붙은 고리) | Checklist (체크리스트) | Choice (선택) | Risk-reward (위험-보상) | Role overlap (역할 중복) | Implementation stage (구현 단계) | Evidence grade (근거 등급) | Verdict (판정) |
-|---|---|---|---|---|---|---|---|---|---|
+| System (시스템) | Linked principle (연결 원칙) | Attached loop (붙은 고리) | Checklist (체크리스트) | Choice (선택) | Risk-reward (위험-보상) | Role overlap (역할 중복) | Mechanisms (메카닉) | Implementation stage (구현 단계) | Evidence grade (근거 등급) | Verdict (판정) |
+|---|---|---|---|---|---|---|---|---|---|---|
 (Leave the columns of checks that were not run out of the table)
 
 ### 6. Removal, merge, on hold, and modify proposals (제거·통합·보류·수정 제안)
@@ -127,6 +127,9 @@ rule → expected play pattern → target emotion → linked pillar (규칙 → 
 - (Co-op, versus) team with a large skill gap / one player solves everything / one player is missing ((협동·대전) 실력 차이가 큰 팀 / 한 명이 다 해결 / 한 명이 빠짐):
 
 ### 6. Calculation or judgment that looks only at rules (계산 또는 규칙만 보는 판단)
+(When frameworks §10 applies, add the mechanism rows the target touches)
+| Catalog ID (카탈로그 ID) | State now (지금 상태) | Location or search log (위치 또는 검색 기록) | Change by this target (이 대상이 바꾸는 것) | Linked pillar (연결 필러) |
+|---|---|---|---|---|
 
 ### 7. Proposal card (제안 카드)
 (One card in the format below)

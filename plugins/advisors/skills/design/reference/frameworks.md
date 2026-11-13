@@ -20,6 +20,7 @@ Write the English names when profile `report_language` is `en`, and the Korean n
 | 7 | Tension curve (긴장 곡선) | A3-4 (when there is placement data) | Not used | Content placement data |
 | 8 | Learning order (학습 순서) | A3-4 (when there is placement or tutorial material) | When a new rule is added | Content order, tutorial documents |
 | 9 | Interpreting play that differs from the intent (의도와 다른 플레이의 해석) | A3-5 | B3-1 | Playtest observations |
+| 10 | Mechanism check (메카닉 점검) | A3-4 (when the area fits) | B3-3 (when the target fits) | `mechanics-catalog.md` rows, data, code |
 
 ---
 
@@ -87,6 +88,8 @@ rule → expected play pattern → target emotion → linked pillar
 - In between → whether players actually exceed that success rate in a playtest becomes an observation item.
 - If the units cannot be matched (for example, damage dealt and health lost), do not calculate, and write "not calculated: units differ" (단위가 달라 계산 안 함). If the design documents have a rule that converts one to the other, quote that rule and use it.
 
+**Risk the player chooses** — Some actions let the player raise their own risk: moving faster before a jump, dodging later, extending a combo. Check that each risk level has a matching gain. If every level gives the same gain, players stay at the safest level. A risk that the player cannot choose gives tension but no decision.
+
 ## 5. Role overlap
 
 **What it is** — A framework that checks whether two systems do the same job.
@@ -112,10 +115,11 @@ rule → expected play pattern → target emotion → linked pillar
 
 **Input** — Content placement data (encounter composition, enemy appearances, mission sections). If there is none, do not use it.
 
-**How to do it** — For each section, take pressure indicators from the data (number of enemies faced at the same time, enemy attack frequency, whether recovery means exist, and so on), and line up the intensity. Mark three kinds of sections.
-1. Sections where tension continues without a break
+**How to do it** — For each section, take pressure indicators from the data (number of enemies faced at the same time, the cap on enemies that may attack at once, enemy attack frequency, the wave condition, whether recovery means exist, distance back to the last checkpoint, and so on), and line up the intensity. Mark four kinds of sections.
+1. Sections where tension continues without a break, or a peak with no rest after it
 2. Sections where a new rule appears directly in real play without first being introduced in a safe situation
 3. Sections where the difficulty jumps suddenly
+4. Sections where the failure cost (death, distance back to the last checkpoint, lost resources) jumps suddenly
 
 **Caution** — This curve is an estimate ([estimated] or [calculated]). Check the actual feel with a playtest.
 
@@ -126,6 +130,8 @@ rule → expected play pattern → target emotion → linked pillar
 **Input** — Content order, tutorial and onboarding documents. If there are none, do not use it.
 
 **How to do it** — For each rule, find where it first appears and the first scene where that rule must be used. Mark the rules that appear as a test without an introduction, and the places where two or more new rules first appear in the same scene.
+- Check how each rule is taught: by a difference in the terrain (a gap a normal jump cannot cross), by an enemy that uses it first, or by text. Mark the rules that are taught only by text.
+- Check that a rule also gets a place where the player can use it freely or combine it with others, not only tests. A rule that appears only in tests is learned but not enjoyed.
 
 ## 9. Interpreting play that differs from the intent
 
@@ -135,3 +141,36 @@ If a playtest shows play that differs from the design intent, check it in the fo
 2. Review both "teaching (tutorials, on-screen guidance)" and "changing the rules or rewards", and write the cost of each. Do not give adding a tutorial as the first answer.
 3. Separate observation from interpretation. "Who did what in which situation" is observation. "Why they did it" is interpretation ([estimated]).
 4. Treat one person's opinion only as one person's opinion. Write the number of people who said the same thing and the sample kind.
+5. If players fail and cannot say why, check readability before the numbers: telegraphs, the cause of death, and what the camera shows (`mechanics-catalog.md` enemy-02, atk-13, cam-01).
+
+## 10. Mechanism check
+
+**What it is** — A check of whether the project has the mechanisms that produce the feel its pillars ask for. The rows are in `mechanics-catalog.md`. It does not judge the feel itself.
+
+**Input** — Design documents, data, and code of the target. Choose the catalog sections by the area of the target.
+
+| Area of the target | Catalog sections |
+|---|---|
+| Player character, controls, movement | §1, §6 |
+| Combat, weapons, skills | §1, §2, §5 |
+| Enemies, bosses, AI | §2, §3, §5 |
+| Levels, missions, encounters, exploration | §3 (enemy-03, 06, 07, 14, 15), §4, §5 (coll-04, 06), §6 (cam-01, 05, 08) |
+| Camera | §5 (coll-05), §6 |
+
+If the area fits none of these, do not run this check, and do not write the column.
+
+**How to do it**
+1. Give the analyst the chosen sections and their search terms with the A-impl and A-data calls (B-related in single review). The analyst returns one of the four states for each row (catalog §0), with a location or a search log. Design documents that say a mechanism was left out come from A-docs.
+2. For rows whose check question has a "Consistency" part, list the project's own values side by side, sort them, and mark the places where the order breaks. This is [calculated]. Do not compare with numbers from outside the project.
+3. Link each row to the principles.
+   - A pillar needs the feel, and the mechanism is "not found": add candidate. If the search was partial or the row is "cannot check", make it a question for the user first.
+   - The mechanism is present but works against a pillar or a prohibition principle, or a consistency check breaks: modify (structure or numbers) candidate.
+   - "Deliberately left out": check that the written reason still holds. Do not propose adding it only because other games have it.
+   - Present and consistent: no proposal. One line in the per-system table.
+4. If the question is which structure to build it with (for example, central attack slots or a cooldown per enemy), pass it to td. If the mechanism adds work every frame (sweeps, physics substeps, more active AI), mark "performance not checked" and pass it to perf.
+
+**Output** — The "Mechanisms" (메카닉) column of the per-system table: `present <IDs> / not found <IDs> / left out <IDs> / cannot check <IDs>`, and proposal cards for the findings.
+
+**Common mistakes**
+- Treating the catalog as a checklist that every game must fill.
+- Writing what a mechanism feels like ("floaty", "weak hit impact"). Write only which mechanism exists, with which values, and which pillar needs it. A feel sentence is a hypothesis with a verification method.
