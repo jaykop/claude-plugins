@@ -17,7 +17,7 @@
 <!-- The order of work that the next session must continue at once -->
 
 ## Implementation plan
-<!-- Full text of the plan that the feature-impl Full Lane confirmed. Delete this section if there is none -->
+<!-- Full text of the plan that the feature-impl Full Lane confirmed. "Design decisions" keeps each recommendation with its reasons and source tags, and every change of a recommendation. Delete this section if there is none -->
 
 ## Risks and checks
 <!-- "What can break" from the feature-impl decision card. In the state column, write only what was actually checked. Delete this section if there is none -->

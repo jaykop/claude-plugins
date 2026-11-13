@@ -244,6 +244,7 @@ Give the exploration agent:
 - Search targets: related classes, components, and subsystems, dependent systems, and existing patterns to reuse
 - Search scope: profile `source_roots` (if empty, the whole repository without generated and vendor folders)
 - Boundary check: which module or area this change belongs to, and whether it breaks the dependency direction of the project instructions
+- Design questions: the open items of L1 and the choices you already see (for example, which framework draws a UI, which system owns a state). For each, the base that the project already has (base classes, frameworks, managers, conventions) and the files that show how it is used
 - Thoroughness: the most thorough
 
 Result format:
@@ -253,6 +254,7 @@ Result format:
 
 ### Related files
 ### Existing structures to reuse
+### Existing bases for each design question
 ### Dependencies to watch (including module boundaries)
 ```
 
@@ -262,7 +264,7 @@ Go to L3 automatically.
 
 > **Done by: the orchestrator (directly)**
 
-Write the plan from the L1 requirement summary, the L2 exploration result, the coding rules, and the "Design checklist" of the profile body. If an exploration result looks wrong, read the file yourself and check.
+Write the plan from the L1 requirement summary, the L2 exploration result, the coding rules, and the "Design checklist" of the profile body. If an exploration result looks wrong, read the file yourself and check. Before you recommend an option for a decision, read yourself the files and documents behind its reasons ("Evidence for a recommendation" below).
 
 The plan has two layers. **Show the user only the decision card.** Keep the detailed plan, such as the file tables and the implementation order, in the handoff note. The user must judge decisions and risks. A file list is not material for that judgment.
 
@@ -280,7 +282,9 @@ Large · <work_type> · risk <level> (<files and reason>)
 ### Decisions
 **D1. <question for the user>**
 - Recommended: <option>: <result>
+  - Why: <the deciding reason> [<source>]
 - Alternative: <option>: <result>
+  - Better if: <the condition under which this option wins>
 
 ### What can break, and how to check
 | # | What can break | How to check |
@@ -298,10 +302,35 @@ Large · <work_type> · risk <level> (<files and reason>)
 ```
 
 - Fit the card on one screen. If it does not fit, there are too many decisions, or the slices are too large.
-- **Decisions**: write only items that have real alternatives with different results. Items that the instructions or the existing code already set are not decisions. Write each question with behavior and results, in words that the user can answer, not with file or function names. If there are no decisions, write "No decisions".
+- **Decisions**: write only items that have real alternatives with different results. Items that the instructions or the existing code already set are not decisions. Write each question with behavior and results, in words that the user can answer, not with file or function names. If there are no decisions, write "No decisions". Each recommendation needs a `Why` line with a source, and each alternative a `Better if` line. Follow "Evidence for a recommendation" below.
 - **What can break**: items found while you check "What the plan must check" below, and places where this change can break existing behavior. In "How to check", write a means that actually finds the problem, such as the build or an item of the test guide. If there is no such means, write "Person checks: <what>". Use the same R numbers in the test guide and in the handoff note.
 - **Test candidates**: if profile `test_candidates` is empty, leave out this section. If it has values, list only code that is new or changes behavior in this work and that matches those criteria. Write the matching criterion in the `Criterion` column. If nothing matches, write "No test candidates". `What to assert` is what the test checks, such as the input and the expected result, or a resource that must not remain after repetition. `Recommendation` is one of `this work`, `follow-up issue`, or `none`. Do only what the user chooses. `this work` goes into the implementation order of the detailed plan. `follow-up issue` goes to the follow-up issue draft of Step Final 3). Do not write a candidate that the user did not answer.
 - **Slices**: follow "Slicing" below. If there is only one slice, write "One implementation" in place of the table.
+
+### Evidence for a recommendation
+
+A recommendation is only as good as the reasons behind it. If the reasons are not written down, a later question cannot be checked against them, and the recommendation changes with the mood of the conversation.
+
+Tag each reason with its source:
+
+| Tag | Meaning |
+|---|---|
+| `[code <file:line>]` | Code that you read yourself in this session. An exploration summary is not a source; the file it points to is |
+| `[doc <path or URL>]` | A project document, engine documentation, or another document that you read |
+| `[profile]`, `[instructions]` | The workflow profile or the project instructions |
+| `[user <date>]` | A decision that the user confirmed |
+| `[assumption]` | Not checked |
+| `[agent convenience]` | Helps the agent, not the product: no assets needed, can be checked without the editor, fewer files to write |
+
+Before you show the card:
+
+1. Read the code or document behind each reason of each recommendation yourself.
+2. Check whether the project already has a base for the decision area: a base class, a framework, a manager, a convention. An option that ignores an existing base needs a reason for that.
+3. An `[assumption]` cannot silently be the deciding reason. Check it first. If you cannot, make it a question for the user (a decision of its own, or an open item). If a later decision settles it, write in the `Why` line that the recommendation depends on it: `Why: ... [assumption: 결투에서 빙의하지 않음. U2에서 결정]`.
+4. An `[agent convenience]` reason cannot be the only reason. If it is one of the reasons, say what it costs the product.
+5. If the evidence does not separate the options, say so in the `Why` line, and recommend the option that is cheaper to change later.
+
+Save every reason with its source in "Design decisions" of the detailed plan.
 
 ### Slicing
 
@@ -330,6 +359,8 @@ If there are slices, split the file tables and the implementation order by slice
 ### Lifetime and resource cleanup review
 ### Open questions
 ```
+
+In "Design decisions", write for each decision: the options, the recommendation, every reason with its source tag, and the `Better if` condition of each alternative. After L4, add the confirmed option. If a recommendation changes, keep the old one, and write the reason that failed and the evidence that replaced it.
 
 What the plan must check:
 
@@ -374,6 +405,24 @@ If there are no decisions but there are test candidates:
 - Put the feedback in the matching part of the decision card or the detailed plan.
 - Also update the `## Implementation plan` and `## Risks and checks` sections of the handoff note (older notes: `## 구현 계획`, `## 위험과 검증`).
 - If decisions or test candidates are still not answered, ask only about those.
+
+### Questions and pushback on a recommendation
+
+A question about a recommendation is not an answer to the decision, and it is not disagreement.
+
+- **"왜 이걸 추천했어?", "근거가 뭐야?"**: answer with the saved reasons and their sources. Do not change the recommendation in that reply. If you find that a reason was not checked, name it, check it, and then say whether the recommendation stands.
+- **A counterargument**: decide its kind before you answer.
+
+| Kind | Example | Handling |
+|---|---|---|
+| New fact | "그 클래스는 다음 달에 없어져", "결투에서는 빙의 안 해" | Check it if you can (code, document, issue). If it holds, change the recommendation. If you cannot check it, say so, and ask whether to use it as a premise |
+| Different priority | "디자이너가 에디터에서 고칠 수 있어야 해" | The user decides priorities. Confirm the alternative, and record `D1: alternative confirmed: user priority <X>` |
+| Misunderstanding of an option | The user reads the option as something it is not | Correct the description with the evidence. Keep the recommendation, and ask again |
+| No new fact | "그래도 B가 낫지 않아?" | Keep the recommendation. Give the deciding reason in one line, and say what evidence would change it. If the user still chooses B, that is a decision: record `user choice` |
+
+- When you change a recommendation, name the reason that failed and why: `근거 2(결투에서 빙의)는 확인하지 않은 가정이었고, U2에서 정할 일이라 근거로 쓸 수 없다`. Do not write only "근거가 약했다".
+- When you keep a recommendation, say why the counterargument does not change the conclusion.
+- Record each change in "Design decisions" of the handoff note: the old recommendation, the reason that failed, the new recommendation and its evidence.
 
 When all decisions are confirmed and the user says **"구현 시작"** or **"추천대로"** → L5. "추천대로" confirms all decisions and test candidates with the recommended options. If you get "구현 시작" while answers are missing, say in one line that the remaining decisions take the recommended options and the remaining test candidates take `none`, then go to L5.
 
@@ -599,6 +648,7 @@ Suggest this only if there is an issue. For each item, show a draft and post it 
 ## Cautions
 
 - If the size is hard to decide, ask the user. Do not guess.
+- Do not change a recommendation only because the user asked about it. Change it when a reason fails or a new fact holds, and say which.
 - Save the handoff note **at the moment the plan is confirmed**, and update it with each feedback.
 - If the work becomes smaller during the Full Lane, you can move to Fast Lane Step F2.
 - No step of this skill goes around the verification owner rules of the project instructions.
