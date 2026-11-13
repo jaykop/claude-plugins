@@ -11,6 +11,7 @@ A personal Claude Code plugin marketplace. Some plugins also ship a Codex manife
 | `advisors` | 게임 프로젝트 고문 6종 — 기획, 기술 동향, 시장 동향, 최적화, PM, TD(테크니컬 디렉터) | - | [plugins/advisors/README.md](plugins/advisors/README.md) |
 | `workflow` | 이슈 기반 작업 흐름 — 작업 시작 브리핑, 다음 작업 고르기, 규모별 구현, 문서 반영, 커밋 전 문서 검토, 인계 메모 | 스킬 | [plugins/workflow/README.md](plugins/workflow/README.md) |
 | `ko-gamedev` | 한국 게임 업계 용어·문체로 한국어 주석과 기술 문서 작성·교정 — 분야별 용어집, 문체 지침, 주석 검사 스크립트 | - | [plugins/ko-gamedev/README.md](plugins/ko-gamedev/README.md) |
+| `game-ui` | 게임 UI 화면 설계·리뷰 — 화면마다 결정 하나와 초점, 레퍼런스 화면 구조, 금지 패턴·비주얼 체크리스트, 프로젝트 UI 규칙, 엔지니어용 구현 명세 | - | [plugins/game-ui/README.md](plugins/game-ui/README.md) |
 
 ## 설치
 
