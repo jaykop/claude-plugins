@@ -1,0 +1,11 @@
+{
+  "name": "agent-playtest",
+  "description": "Unreal 프로젝트에서 이슈 완료 조건이나 테스트 가이드를 에이전트가 PIE로 직접 확인한다. AgentPlaytest 엔진 플러그인의 MCP 도구로 시나리오를 실행하고, 항목마다 근거를 붙여 통과·실패·판단 불가로 판정한 뒤 이슈 댓글 초안을 쓴다. 프로젝트 값은 각 프로젝트의 .claude/agent-playtest/profile.md 에서 읽는다.",
+  "author": {
+    "name": "jaykop"
+  },
+  "homepage": "https://github.com/jaykop/claude-plugins",
+  "repository": "https://github.com/jaykop/claude-plugins",
+  "license": "MIT",
+  "keywords": ["unreal", "mcp", "playtest", "feature-test", "qa", "game-development", "korean"]
+}

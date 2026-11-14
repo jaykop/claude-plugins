@@ -35,6 +35,11 @@
       "name": "godot-dev",
       "source": "./plugins/godot-dev",
       "description": "Godot 4 GDScript 게임 프로젝트의 코드·씬 규칙과 명령줄 점검 절차 — 데이터 모양, 책임 경계, 오류 정책, GDScript 함정, 씬 구조, 장르별 패턴 부록, 가져오기·부팅 점검·테스트·자동 촬영·내보내기와 Windows·데스크톱 앱 함정."
+    },
+    {
+      "name": "agent-playtest",
+      "source": "./plugins/agent-playtest",
+      "description": "Unreal 에이전트 기능 확인 — 이슈 완료 조건과 테스트 가이드를 PIE에서 AgentPlaytest MCP 도구로 실행하고, 항목마다 근거를 붙여 통과·실패·판단 불가로 판정한 뒤 리포트와 이슈 댓글 초안을 쓴다."
     }
   ]
 }

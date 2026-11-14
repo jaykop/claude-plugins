@@ -14,6 +14,7 @@ A personal Claude Code plugin marketplace. Some plugins also ship a Codex manife
 | `game-ui` | 게임 UI 화면 설계·리뷰 — 화면마다 결정 하나와 초점, 레퍼런스 화면 구조, 금지 패턴·비주얼 체크리스트, 프로젝트 UI 규칙, 엔지니어용 구현 명세 | - | [plugins/game-ui/README.md](plugins/game-ui/README.md) |
 | `story` | 게임 대본 기획·작성·검토 — 기획 시트부터 대사까지, 패스 5개 자체 리뷰, 장르 참조(미스터리, 로맨스, 팩션), 비선형 구조, 각색, 문장 검사 스크립트 | - | [plugins/story/README.md](plugins/story/README.md) |
 | `godot-dev` | Godot 4 GDScript 코드·씬 규칙과 명령줄 점검 — 데이터 모양, 책임 경계, 오류 정책, GDScript 함정, 씬 구조, 장르별 패턴, 테스트·촬영·내보내기, Windows 함정 | 스킬 | [plugins/godot-dev/README.md](plugins/godot-dev/README.md) |
+| `agent-playtest` | Unreal 에이전트 기능 확인 — 이슈 완료 조건·테스트 가이드를 PIE에서 MCP 시나리오로 실행하고 근거를 붙여 판정, 리포트와 댓글 초안 | - | [plugins/agent-playtest/README.md](plugins/agent-playtest/README.md) |
 
 ## 설치
 
