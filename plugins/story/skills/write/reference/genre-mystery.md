@@ -62,6 +62,7 @@ How to expose clues:
 - An absence clue (something that should be there and is not) goes in one inconspicuous narration line.
 - An object too familiar to suspect is a good hiding place.
 - Write values used in contradictions (time, quantity, position) as concrete values, not vague adverbs.
+- In a game where the player presents evidence, give every clue and every key place an image. A text-only clue presented an hour after its one narration line was not recognized, and the player could not tell what the case was about (tested work).
 
 ## Testimony card
 
@@ -105,15 +106,17 @@ Candidate numbers for a 5-minute scene (estimated from example works, adjusted b
 Resolution round table:
 
 ```markdown
-| 라운드 | 지적 대상(증언 또는 상황) | 필요한 증거 id | 오답 시 반론 | 정답 시 범인 반응 |
-|---|---|---|---|---|
-| 1 | | | | |
+| 라운드 | 지적 대상(증언 또는 상황) | 필요한 증거 id | 직접 모순인 이유(한 문장) | 오답 시 반론 | 정답 시 범인 반응 |
+|---|---|---|---|---|---|
+| 1 | | | | | |
 ```
 
+- Deduction chain: each round's "why it is a direct contradiction" is one sentence that joins the statement and the evidence with zero guessing steps. A presentation that only supports a guessed motive is not a contradiction. A final presentation built on a motive guess, tied to the culprit only by one narration line an hour earlier, left the player unable to solve it (tested work).
 - Split rounds as accusation → rebuttal → correction. Not a detective's solo monologue. Every round has a point where the player judges.
 - The culprit is present in the resolution scene and carries the reaction (denial, dignity, acceptance, silence) and the confession of motive. Confessing the moment evidence appears is a cliché. Give at least one rebuttal.
 - A wrong-answer penalty is not just "wrong"; it is a reaction where a character's expectation breaks and their character shows.
 - The culprit's motive makes the player feel sympathy and judgment at once. Social pressure or an unrecognized situation works well.
+- Do not hold the whole motive and past for the final confession. Plant pieces of them in earlier scenes so the confession confirms them.
 - After the decisive accusation, ask for confirmation once.
 - If there is no screen to review past testimony and positions (a dialogue log, a notebook), always put a recap beat (2–3 boxes, two characters who disagree, rebuttal form) right before the resolution rounds (step 3 "Inside the scene").
 - Keep the aftertaste short (3–6 boxes). Do not pile on explanation after the solution.
@@ -139,6 +142,7 @@ For mysteries mixed with folktales, ghost stories, or the supernatural. Attach a
 8. Do not pack folk settings into the first 5–8 boxes. Reveal them 3 or more times through ritual scenes, conflict lines, and places. Put explanatory lines in a context where a character scolds or argues.
 9. On conflict: the case's who and how follow the single truth first; "why this place became like this" may stay unexplained.
 10. If a supernatural rule decides how lines react (ears ringing at lies), compare every line the rule applies to with the rule. With two false sentences in one statement, the player cannot tell which one triggered it. If a core line that must be true is false, the solution collapses (step 5 pass A).
+11. If a supernatural rule tells the player who lies, "who" is gone after the first inquiry and only matching evidence remains (tested work). Let the rule answer "who" cheaply and make the puzzle "what are they hiding, and why".
 
 ## Fairness checklist (step 5 pass A)
 
@@ -152,3 +156,5 @@ For mysteries mixed with folktales, ghost stories, or the supernatural. Attach a
 8. Is there no solution-intervening supernatural element?
 9. Is there nothing that matches the 7 cheats?
 10. Does one unresolved question remain at the end of the scene?
+11. Does every round of the resolution round table have a one-sentence direct contradiction with zero guessing steps? Checking only "did the clue appear on screen" missed that the player could not reason from it (tested work).
+12. Solve test: give a separate agent only the text the player sees up to the resolution (lines, narration, choices; no clue table, cards, or solution). Ask it to name the culprit and, for each round, the statement and the evidence. If it fails or guesses, fix the chain before production.
