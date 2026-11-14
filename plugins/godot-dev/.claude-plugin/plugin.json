@@ -1,0 +1,11 @@
+{
+  "name": "godot-dev",
+  "description": "Godot 4 GDScript 게임 프로젝트의 코드·씬 규칙과 명령줄 점검 절차. 데이터 모양(typed class, Dictionary는 경계에만), 책임 경계, 오류 정책, 주석, GDScript 함정, 씬 구조 규칙과 장르별 패턴 부록, 그리고 가져오기·부팅 점검·테스트·자동 촬영·내보내기와 Windows·Claude 데스크톱 앱 함정을 다룬다. 프로젝트 값은 각 프로젝트의 .claude/godot-dev/profile.md 에서 읽는다.",
+  "author": {
+    "name": "jaykop"
+  },
+  "homepage": "https://github.com/jaykop/claude-plugins",
+  "repository": "https://github.com/jaykop/claude-plugins",
+  "license": "MIT",
+  "keywords": ["godot", "gdscript", "game-development", "coding-standards", "headless-testing", "windows", "korean"]
+}

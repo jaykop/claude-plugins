@@ -30,6 +30,11 @@
       "name": "story",
       "source": "./plugins/story",
       "description": "비주얼 노벨과 이야기 중심 게임의 한국어 대본을 기획부터 대사까지 쓰고 검토한다. 기획 시트 → 장면 카드 → 대본 → 패스 5개 자체 리뷰, 장르 참조(미스터리, 로맨스, 팩션), 비선형 구조 패턴, 각색 시트, 클리셰 점검, 문장 검사 스크립트. 대본 형식은 프로젝트의 .claude/story/format.md 에서 읽는다."
+    },
+    {
+      "name": "godot-dev",
+      "source": "./plugins/godot-dev",
+      "description": "Godot 4 GDScript 게임 프로젝트의 코드·씬 규칙과 명령줄 점검 절차 — 데이터 모양, 책임 경계, 오류 정책, GDScript 함정, 씬 구조, 장르별 패턴 부록, 가져오기·부팅 점검·테스트·자동 촬영·내보내기와 Windows·데스크톱 앱 함정."
     }
   ]
 }

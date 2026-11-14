@@ -1,0 +1,18 @@
+{
+  "name": "godot-dev",
+  "version": "0.1.0",
+  "description": "Godot 4 GDScript 게임 프로젝트의 코드·씬 규칙과 명령줄 점검 절차. 데이터 모양, 책임 경계, 오류 정책, 주석, GDScript 함정, 씬 구조, 장르별 패턴 부록, 가져오기·부팅 점검·테스트·자동 촬영·내보내기와 Windows 함정. 프로젝트 값은 각 프로젝트의 .claude/godot-dev/profile.md 에서 읽는다.",
+  "author": {
+    "name": "jaykop"
+  },
+  "homepage": "https://github.com/jaykop/claude-plugins",
+  "repository": "https://github.com/jaykop/claude-plugins",
+  "license": "MIT",
+  "keywords": ["godot", "gdscript", "game-development", "coding-standards", "headless-testing", "windows"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "godot-dev",
+    "shortDescription": "Godot 코드·씬 규칙과 명령줄 점검",
+    "longDescription": "Godot 4 프로젝트에서 GDScript와 씬을 작성하거나 리뷰할 때 따르는 규칙과, 에이전트가 Godot를 명령줄로 실행해 가져오기·부팅 점검·테스트·자동 촬영·내보내기를 하는 절차를 프로젝트 프로필에 맞춰 진행한다."
+  }
+}
