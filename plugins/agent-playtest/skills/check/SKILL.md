@@ -49,7 +49,7 @@ Only Play items run here. Editor items go to the report as not run unless an edi
 
 ## Step 3 — Run
 
-1. Write one scenario per item, following the engine skill. Keep each scenario JSON; the report needs it.
+1. Write one scenario per item, following the engine skill. Keep each scenario JSON; the report needs it. For items that differ by start position or facing (in front, at an angle, from the side), start Play In Editor with a start transform for each case instead of walking there with verbs.
 2. Run each with `RunScenario`. The call blocks until the scenario ends, so run them one at a time.
 3. A failed or surprising result runs a second time. If the scenario itself was wrong (wrong expected value, wrong verb), fix the scenario and say so in the report; do not count the first run as a failure of the feature.
 4. Reset between scenarios when a run leaves the player dead, far away, or in a lasting state.
@@ -70,7 +70,7 @@ Then add an issue comment draft as the last section of the report: the item tabl
 
 ## Pitfalls
 
-- The editor window in the background runs the game at a few frames per second, and input timing is rounded to whole frames. A short window or a tight distance after held movement is a scenario problem: widen it as the engine skill says and run again (Step 3.3). Only a check that depends on input timing finer than a few frames is cannot judge at a low frame rate; ask the user to keep the editor window in front and run it again.
+- By default the editor throttles its window in the background to a few frames per second (Editor Preferences, "Use Less CPU when in Background"), and input timing is rounded to whole frames. Check the step times of the first run. A short window or a tight distance after held movement is a scenario problem: widen it as the engine skill says and run again (Step 3.3). For a check that needs timing finer than a few frames, ask the user to turn the preference off, or slow game time with `slomo` as the engine skill says. Only when neither is possible is it cannot judge.
 - The MCP client sends one tool call at a time. A running scenario cannot be stopped from the same client; give it a timeout instead.
 - A cheat with a wrong argument, or a cheat that takes a class name that is not loaded, does nothing and its console step still passes. Expect the effect of each setup step before the feature steps.
 - Actors placed in the editor level reach Play In Editor only when they are placed before the session starts.
