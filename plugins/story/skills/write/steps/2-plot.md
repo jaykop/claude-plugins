@@ -34,12 +34,14 @@ A story with more than one timeline or viewpoint follows the pattern's skeleton 
 ## Scene list
 
 ```markdown
-| # | 장면 id | 장면 한 줄 | 앞 장면과의 연결 | 강도(1~10) | 새 정보 |
-|---|---|---|---|---|---|
-| 1 | start | <동사 2개 이상의 행동 문장> | - | 3 | <무엇이 새로 드러나는가> |
-| 2 | <id> | | 그리하여 / 하지만 | | |
+| # | 장면 id | 사슬 행 | 장면 한 줄 | 앞 장면과의 연결 | 강도(1~10) | 새 정보 |
+|---|---|---|---|---|---|---|
+| 1 | start | 1, 2 | <동사 2개 이상의 행동 문장> | - | 3 | <무엇이 새로 드러나는가> |
+| 2 | <id> | | | 그리하여 / 하지만 | | |
 ```
 
+- Every scene shows one or more rows of the step 1 event chain (column 사슬 행). A scene with no row is cut, or the chain is missing an event: add the row with its cause and run the chain check, not just the scene.
+- A scene the player sees out of time order still points to its chain row; the twist table in step 1 says what the player believes at that point.
 - Write the scene line as action ("찾아가서 추궁한다"), not a state ("깨닫는다", "고민한다").
 - Write the link only as 그리하여 (so) or 하지만 (but). If scenes link only by 그리고 (and), the cause is broken. Redesign or merge the scenes.
 - If "new information" is empty, cut the scene or merge it into another.

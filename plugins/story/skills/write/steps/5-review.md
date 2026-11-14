@@ -6,6 +6,8 @@ In the review-only mode, do not edit the script. Write the report only.
 
 ## Pass A: Structure
 
+- Does every scene still show its event chain rows (step 1)? Did the script add an event, an attack, or a character with no row and no cause? Every action someone takes on screen has a want and a reason it happens now.
+- Do opponents still act like capable people, or did a scene make one wait or blunder so the plot could go on?
 - Do the card's goal, obstacle, result, new information, and start state → end state actually happen in the script?
 - Do the concept sheet's goal, what can be lost, why now, and the weight of the incident appear in boxes of the first scene? If they are only in the concept sheet and not on screen, the player does not know them. In the tested work, "what can be lost" never appeared in a box, and the review missed it.
 - Does every scene link hold as 그리하여 or 하지만?
