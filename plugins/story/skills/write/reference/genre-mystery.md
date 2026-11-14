@@ -40,6 +40,8 @@ First-person narrator rule: hiding from the player a clue the narrator knows is 
 
 ## Case design
 
+Write the world order and the event chain of step 1 first, and have the human approve them. The culprit is one of the chain's actors with a want of their own, and the crime is one of its events with a reason it happens now. Do not design a trick and then invent people and events to make it work.
+
 1. Order of composing the crime: what kind of crime → the victim (why targeted) → relation to the culprit → motive (money, love, jealousy, revenge, social pressure) → the trick or alibi. The trick comes from the motive and the relation. Decide the weight of the incident (does the harm reach life, body, relationships, livelihood?) and record it in the concept sheet. A small theft made weak tension in a 5-minute scene (tested work).
 2. Write a movement timeline for each suspect first. It is the raw data for contradictions in testimony.
 3. Suspect sheet (added to the character sheet): surface motive / real motive / hidden past / lying habit (lines get shorter, answers a question with a question) / 2 clues that reveal the motive.

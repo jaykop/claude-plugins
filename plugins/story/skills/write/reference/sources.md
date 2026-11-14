@@ -105,6 +105,7 @@ Where a technique went is given by file: 1 concept, 2 plot, 3 scenes, 4 script, 
 
 | Source | Where | Technique |
 |---|---|---|
+| A 2–3 hour kinetic VN concept adapted from an earlier game design (2026-11-14): the user rejected the first candidates and could not follow the explanation | 1, M, A, presenting, cold read | Groups that lived off each other fought with no change in what they got; an event was added only to make a twist work; every source character was forced in; the pitch named people and scenes before introducing them and described what scenes planted instead of what happened; one-line loglines could not be compared, and the user did not remember the source they had designed; the writer's own checks marked everything as passed. Led to world order and event chain before the twist, the chain check, the cold read by a fresh agent, and the presenting rules |
 | VNTool #12 「귀가 울리는 밤」: writing and user playtest (2026-11-08, branch `vn/ringing`, `docs/handoff/threads/12-first-story.md`) | 1, 2, 3, 4, 5, M, T, E | Recap beat, weight of the incident, what can be lost on screen, 2 suspects and suspicion beats, number spelling, limits of inner voice and the split of roles, repeated device sentences, wrong answers and path counts, measured box length, checking supernatural rules, narration ending distribution, listing narration |
 
 ## Genres without a file

@@ -86,6 +86,6 @@ Two layers. The first layer is what the player must follow: what the protagonist
 - A silence or a one-line reaction is easy to skip. Plant its reason in the line before, so the silence raises a question, and let the line after answer it or twist it.
 - A character does not explain the meaning of their own symbol. Leave the object's name and the reactions; cut the explanation.
 
-## Human checkpoint 2
+## Human checkpoint
 
-Show all scene cards and stop. In the short mode, show the concept sheet and the scene list with them.
+Write a plain summary of the scene list (one or two sentences per scene: who does what, and why) and run the cold read on it ([../reference/cold-read.md](../reference/cold-read.md)). Then present the summary as [../reference/presenting.md](../reference/presenting.md) says, point to the scene cards in the file, and stop. In the short mode, the presentation starts from the world order, the crack, and the cast, and includes the concept.

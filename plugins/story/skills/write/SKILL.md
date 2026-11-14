@@ -1,6 +1,6 @@
 ---
 name: write
-description: "Draft and review Korean story scripts for visual novels and other story-driven games, from the concept to the script lines. Runs concept sheet → scene list → scene cards → script → self-review in five passes (structure, scenes, dialogue, sentences, format), with genre references (mystery, romance, faction), non-linear structure patterns, an adaptation sheet for folktales and novels, and a cliché check. The project's script format (line kinds, paths, check commands) comes from the project's .claude/story/format.md. A lint script marks sentence candidates. Not for: engine code, image or sound generation, menu and UI text, localization strings, Korean code comments (ko-gamedev)."
+description: "Draft and review Korean story scripts for visual novels and other story-driven games, from the concept to the script lines. Builds the story from the world's order and each character's wants first (world order → what breaks and why now → cast → event chain), checks every event's motive and has a fresh agent cold-read the pitch before a human sees it, and only then adds the twist and logline. Then scene list → scene cards → script → self-review in five passes (structure, scenes, dialogue, sentences, format), with genre references (mystery, romance, faction), non-linear structure patterns, an adaptation sheet for folktales and novels, and a cliché check. The project's script format (line kinds, paths, check commands) comes from the project's .claude/story/format.md. A lint script marks sentence candidates. Not for: engine code, image or sound generation, menu and UI text, localization strings, Korean code comments (ko-gamedev)."
 when_to_use: "When you write or revise a game's story, plot, characters, scenes, or script lines, or review a script. Examples: '5분 장면 대본 작성해 줘', '이 기획으로 대본 초안', '장면 카드 만들어 줘', '대본 리뷰해 줘', '이 장면 대사 다듬어 줘', '이 설화를 VN으로 각색해 줘', '/story:write 리뷰만 game/content/dialogue/main.dialogue'."
 argument-hint: "[전체|축약|리뷰만|수정] [target file or scene]"
 ---
@@ -27,18 +27,18 @@ Follow, in order: the user's current request; the project's instructions (CLAUDE
 
 | Mode | Runs | Human checkpoints |
 |---|---|---|
-| 전체 (full) | Steps 1–5 | After step 1 (concept sheet), after step 3 (scene cards) |
-| 축약 (short) | Steps 1–3 written in one go, then 4–5 | Once, after step 3. For about one 5-minute scene |
+| 전체 (full) | Steps 1–5 | In step 1 after the world and event chain, and after the concept; after step 3 (scene cards) |
+| 축약 (short) | Steps 1–3 written in one go, then 4–5 | Once, after step 3. For about one 5-minute scene. The chain check and the cold read still run first |
 | 리뷰만 (review only) | Step 5 only. Do not edit the script; write the report | Report delivered |
 | 수정 (revise) | Only the named passes, on a script a human edited | Report delivered |
 
-At a checkpoint, show the output and stop. Do not go on without approval.
+At a checkpoint, run the cold read ([reference/cold-read.md](reference/cold-read.md)), present the result as [reference/presenting.md](reference/presenting.md) says, and stop. Do not go on without approval.
 
 ## Steps
 
 | Step | File | Output |
 |---|---|---|
-| 1 Concept | [steps/1-concept.md](steps/1-concept.md) | 3 logline candidates, concept sheet, character sheets |
+| 1 World, cause, concept | [steps/1-concept.md](steps/1-concept.md) | World order, the crack, cast, event chain; then twist, logline candidates with synopses, concept sheet, character sheets |
 | 2 Plot | [steps/2-plot.md](steps/2-plot.md) | Scene list, setting and clue reveal table |
 | 3 Scenes | [steps/3-scene.md](steps/3-scene.md) | Scene cards |
 | 4 Script | [steps/4-write.md](steps/4-write.md) | Script files, data files, image id list |
@@ -48,6 +48,9 @@ Reference files, read when needed:
 
 | File | When |
 |---|---|
+| [reference/presenting.md](reference/presenting.md) | Every time you explain a story, plot, twist, or scene list to the human |
+| [reference/cold-read.md](reference/cold-read.md) | Before every checkpoint that shows a story, and after large changes to the event chain |
+| [examples/story-chain.md](examples/story-chain.md) | Step 1. A worked world order, chain, twist, and a bad and a good pitch |
 | [reference/format-template.md](reference/format-template.md) | No format file yet, or creating one; the default format |
 | [reference/genre-mystery.md](reference/genre-mystery.md) | Mystery, detective, crime, ghost-story mysteries. From step 1 |
 | [reference/genre-romance.md](reference/genre-romance.md) | Romance as the main line or mixed in. From step 1 |
@@ -62,6 +65,10 @@ A genre with no file (horror, fantasy, SF, and others): if a work in that genre 
 
 ## Always
 
+- Causes before twists. Build the world order, what breaks, the cast, and the event chain first. Every event has someone who does it, a want, a reason it happens now, and a reason it is done this way. A twist only re-reads events that already have causes; never add an event to make a twist or a clue work.
+- Take only the characters the chain needs, even when adapting a source with a larger cast.
+- No story reaches the human before the chain check and a cold read by a fresh agent. Show what the cold read still questions; never claim a story passed your own check alone.
+- Explain stories in plain full sentences, in time order, with every name introduced (presenting.md). Terse output styles do not apply to story pitches. If the human does not understand, retell from the world order; do not resend a shorter version.
 - Never copy sentences or lines from books and works. Use the techniques only.
 - Speakers use only the ids in the project's speaker list. Follow the format file's rules for narration (the default format: no `: ` in narration, narration does not start with `-`).
 - One box holds 1–2 sentences, 40 characters or fewer recommended; split above 60. These are provisional numbers; the format file may set others. Evidence is in step 4.
