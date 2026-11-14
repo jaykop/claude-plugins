@@ -30,6 +30,7 @@ Convert the approved scene cards into script lines in the project's format. The 
 - Do not put words that describe the tone in the line ("화난 목소리로"). The speaker label and the pose do that.
 - Do not write moral lines that state the theme, except the key line at the climax.
 - Numbers: write times, minutes, distances, money, floors, and room numbers in Arabic numerals in both lines and narration ("9시 4분", "8분", "3층 302호"). Keep counts of times and people in native Korean (스무 번, 세 분). Times written in Korean words were hard to read in the playtest.
+- Guide text: text that is not a character's action, line, or thought (how to use a screen, a goal reminder) goes to a separate guide speaker id in the speaker list, so the screen can show it in its own color. Do not write it as narration in parentheses like "(안내)". The playtester asked for guide text to look different from narration, lines, and inner voice.
 
 ## Emotion
 
