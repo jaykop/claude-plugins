@@ -27,3 +27,4 @@ A bad and a good pitch for the same story are in [../examples/story-chain.md](..
 - Could someone who never saw the source or the conversation retell this? The cold read ([cold-read.md](cold-read.md)) answers that; do not skip it.
 - Does any sentence name a person, group, or term that was not introduced above it?
 - Does any sentence describe how a scene feels or what it plants instead of what happens?
+- Korean pitches: if the ko-gamedev plugin is installed, correct the pitch's sentences and words with ko-gamedev:prose before the cold read. Its most common finding in AI pitches: a character's reasoning written as a general rule between events (~라야 ~한다, ~면 ~한다). Write each reason as that person's reason.
