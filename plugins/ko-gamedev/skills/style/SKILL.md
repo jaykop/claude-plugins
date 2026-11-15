@@ -1,6 +1,6 @@
 ---
 name: style
-description: "Write and correct Korean code comments and technical documents in game projects with the vocabulary and register Korean game developers use. A glossary split by area (core verbs, spelling, Unreal, combat, animation, AI and systems) maps AI-style Korean (쓴다, 돌려준다, 고른다, 편집기, 시각, 피해, 가운뎃점 나열, ~므로) and common misspellings to industry words (사용한다, 반환한다, 선택한다, 에디터, 시점, 대미지), and style guides set the register for comments and documents. A lint script finds candidates in comments only. Not for: English text, player-facing UI or localization strings, general prose outside game development, code logic changes."
+description: "Write and correct Korean code comments and technical documents in game projects with the vocabulary and register Korean game developers use. A glossary split by area (core verbs, spelling, Unreal, combat, animation, AI and systems) maps AI-style Korean (쓴다, 돌려준다, 고른다, 편집기, 시각, 피해, 가운뎃점 나열, ~므로) and common misspellings to industry words (사용한다, 반환한다, 선택한다, 에디터, 시점, 대미지), and style guides set the register for comments and documents. A lint script finds candidates in comments only. Not for: English text, player-facing UI or localization strings, story documents such as synopses, pitches and character introductions (ko-gamedev:prose), general prose outside game development, code logic changes."
 when_to_use: "When you are about to write Korean comments or documents in a game project, and when the user asks things like '주석 한국어 다듬어 줘', '업계 용어로 고쳐 줘', 'AI 말투 같은 주석 정리해 줘', '이 설계 문서 문체 교정해 줘', '게임 용어 맞게 썼는지 봐 줘', '/ko-gamedev:style Source/ 검토만'."
 argument-hint: "[files or folders] [검토만|수정]"
 allowed-tools: Read, Glob, Grep, Edit, Bash(python *ko_lint.py*), Bash(python3 *ko_lint.py*), Bash(git status *), Bash(git diff *), Bash(p4 opened*)
@@ -74,6 +74,7 @@ State what you read and changed (files, lines), the lint totals before and after
 - Rewrite a clear, correct sentence only to change its ending.
 - Translate class, function, property or tag names.
 - Touch player-facing text; its wording belongs to the design and localization team.
+- Apply the verb rows to story documents (synopses, pitches, character introductions, narration). They need ko-gamedev:prose, which treats 넘긴다 as a word with five story meanings, not as 전달한다.
 - Quote comments from corpus A in files you write.
 
 ## Project words without a terms file
