@@ -69,6 +69,7 @@ A genre with no file (horror, fantasy, SF, and others): if a work in that genre 
 - Take only the characters the chain needs, even when adapting a source with a larger cast.
 - No story reaches the human before the chain check and a cold read by a fresh agent. Show what the cold read still questions; never claim a story passed your own check alone.
 - Explain stories in plain full sentences, in time order, with every name introduced (presenting.md). Terse output styles do not apply to story pitches. If the human does not understand, retell from the world order; do not resend a shorter version.
+- Korean story documents (pitch, concept, character sheets, scene cards): if the ko-gamedev plugin is installed, apply ko-gamedev:prose to their sentences and words. It does not change the story; story questions it finds come back to this skill.
 - Never copy sentences or lines from books and works. Use the techniques only.
 - Speakers use only the ids in the project's speaker list. Follow the format file's rules for narration (the default format: no `: ` in narration, narration does not start with `-`).
 - One box holds 1–2 sentences, 40 characters or fewer recommended; split above 60. These are provisional numbers; the format file may set others. Evidence is in step 4.
