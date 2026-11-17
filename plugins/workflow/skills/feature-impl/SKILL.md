@@ -126,7 +126,7 @@ The level sets the depth of the agent review (L6) and what a person must read.
 |---|---|---|
 | low | Skipped | Evidence such as build and test results |
 | mid | Standard: 1 reviewer | Evidence + code parts that contain judgment |
-| high | Deep: 2 reviewers in parallel + verifier | Evidence + the whole change (with a reading order) |
+| high | Deep: 3 reviewers in parallel + verifier | Evidence + the whole change (with a reading order) |
 
 Report the result in one line.
 
@@ -458,9 +458,9 @@ Step 0-C risk level sets the depth.
 | Depth | Reviewers | Check of findings |
 |---|---|---|
 | Standard (mid) | 1 reviewer with focus `all` | The orchestrator reads the `file:line` of each finding and checks it before handling it |
-| Deep (high) | 2 reviewers with focus `correctness` and `failure types`, in parallel in one message | 1 verifier agent merges the two results and checks each finding (review-brief.md section 8) |
+| Deep (high) | 3 reviewers with focus `correctness`, `plan`, and `failure types`, in parallel in one message | 1 verifier agent merges the three results and checks each finding (review-brief.md section 8) |
 
-Give each reviewer the path of review-brief.md and the input of its section 2. If profile `review_guide` has a value, give that path.
+Give each reviewer the path of review-brief.md and the input of its section 2. If profile `review_guide` has a value, give that path. The `plan` focus compares the code with the decision card, so put its confirmed decisions, the `[assumption]` sources, and the tests chosen as `this work` with their `What to assert` in the Intent input.
 
 If subagents cannot be used, the orchestrator reviews directly with review-brief.md, and writes "not a review without context" in the review packet.
 
@@ -480,7 +480,7 @@ If a finding covers a bug type, fix all its locations at once.
 
 If you fixed at least one `Important`, run the next round. **From round 2, the review reads only the changes** (review-brief.md section 6).
 
-- **Send the next round to the reviewer of the previous round** (SendMessage for Claude). This keeps the reviewer from reading the same code again. For Deep, continue each of the two reviewers and the verifier agent.
+- **Send the next round to the reviewer of the previous round** (SendMessage for Claude). This keeps the reviewer from reading the same code again. For Deep, continue each of the three reviewers and the verifier agent.
 - The input is the base of the fix diff and the handling of each finding (fixed / not fixed, with a reason).
 - If you cannot continue the reviewer (the environment does not support it, or the previous reviewer cannot be called again), start a new reviewer with the same depth and focus, and also give it the full result of the previous round.
 

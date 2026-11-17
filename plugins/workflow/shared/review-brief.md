@@ -14,11 +14,11 @@ The orchestrator passes these items. If an item is missing, write it in "Scope c
 
 | Input | Content |
 |---|---|
-| Intent | Intent and confirmed decisions of the decision card (for the Fast Lane, one or two lines of the request) |
+| Intent | Intent and confirmed decisions of the decision card, the `[assumption]` sources in its `Why` lines, and the test candidates that the user chose as `this work` with their `What to assert` (for the Fast Lane, one or two lines of the request) |
 | Change | Comparison base (the base of `git diff <base>`) and the list of changed files |
 | Risk | Risk level, and the "What can break" table of the decision card |
 | Review guide | File path in the profile `review_guide`. "None" if there is none |
-| Focus | `all` (Standard) / `correctness` / `failure types` (the two reviewers of Deep) |
+| Focus | `all` (Standard) / `correctness` / `plan` / `failure types` (the three reviewers of Deep) |
 | Round | 1, 2, 3 |
 | Previous result | Only for round 2 and later. Base of the fix diff, and how each finding was handled (fixed / not fixed, with a reason). If a different reviewer continues, also the full result of the previous round |
 
@@ -26,8 +26,9 @@ The orchestrator passes these items. If an item is missing, write it in "Scope c
 
 | Focus | What to read |
 |---|---|
-| `all` | Changed lines, whole changed functions, and the places that use or call the changed declarations. Failure types in the review guide that match the changed paths |
-| `correctness` | All of the above, and also logic, boundary values, null, error handling, lifetime and resource cleanup (on completion, cancel, interrupt, and owner destruction), event unsubscription, concurrency, and compatibility with older formats of saved or serialized data |
+| `all` | Changed lines, whole changed functions, and the places that use or call the changed declarations. Failure types in the review guide that match the changed paths. The checks of `plan` |
+| `correctness` | The reading scope of `all`, and also logic, boundary values, null, error handling, lifetime and resource cleanup (on completion, cancel, interrupt, and owner destruction), event unsubscription, concurrency, and compatibility with older formats of saved or serialized data |
+| `plan` | The reading scope of `all`. Compare the code with the Intent input: places where the code behaves differently from the intent or a confirmed decision, and `[assumption]` sources that are not true in the code (for example, the plan assumes a function runs only on the server, but a client also calls it). For each test that the user chose as `this work`, check that it actually asserts its `What to assert` and that it can fail. For the Fast Lane, compare only with the request lines |
 | `failure types` | Compare each line of the failure types in the review guide and of the "What can break" table with this change. Give each line a verdict: "not applicable / no problem / problem". Report only the problems as findings |
 
 Do not read the "Excluded paths" of the review guide.
@@ -90,7 +91,7 @@ If there are no findings, write "No findings" in place of the table, and still w
 
 ## 8. Verifier agent (Deep only)
 
-Take the findings of the two reviewers and check each one in the code. Do not look for new findings.
+Take the findings of the three reviewers and check each one in the code. Do not look for new findings.
 
 ```
 | ID | Verdict | Reason |
@@ -98,5 +99,5 @@ Take the findings of the two reviewers and check each one in the code. Do not lo
 | F1 | confirmed / rejected / category changed (<new category>) | <file:line evidence> |
 ```
 
-- If the two reviewers reported the same problem, merge the two findings into one and write the merged ID.
+- If two or more reviewers reported the same problem, merge their findings into one and write the merged ID.
 - If you cannot follow the path to the failure in the code, reject the finding.
