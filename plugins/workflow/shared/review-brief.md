@@ -1,11 +1,11 @@
 # Agent review brief
 
-The review agents and the verifier agent of the feature-impl agent review (Full Lane L6, and the high-risk review of the Fast Lane) read this file. The orchestrator passes the path of this file and the "Input" below.
+The review agents and the verifier agent of the feature-impl agent review (Full Lane L6, and the high-risk review of the Fast Lane) read this file. The orchestrator passes the path of this file and the "Input" below. In Claude, these agents are `workflow:reviewer`, which has only read tools and no shell.
 
 ## 1. Role
 
 - Find **what can actually go wrong** in this change. Do not fix it.
-- Only read. Do not change files, and do not build, test, or run. Use only read commands such as `git diff`, `git log`, and `git show`, and file reads and searches.
+- Only read. Do not change files, and do not build, test, or run. Read the change from the diff file of the input, and read and search files. If you have a shell, you can also use read commands such as `git diff`, `git log`, and `git show`.
 - Do not trust the description of the author. Check it in the code. An implementation that differs from the intent is also a problem.
 
 ## 2. Input
@@ -15,12 +15,12 @@ The orchestrator passes these items. If an item is missing, write it in "Scope c
 | Input | Content |
 |---|---|
 | Intent | Intent and confirmed decisions of the decision card, the `[assumption]` sources in its `Why` lines, and the test candidates that the user chose as `this work` with their `What to assert` (for the Fast Lane, one or two lines of the request) |
-| Change | Comparison base (the base of `git diff <base>`) and the list of changed files |
+| Change | Absolute path of the diff file (`git diff <base>` that the orchestrator saved), the comparison base, and the list of changed files. New files that git does not track yet are only in this list |
 | Risk | Risk level, and the "What can break" table of the decision card |
 | Review guide | File path in the profile `review_guide`. "None" if there is none |
 | Focus | `all` (Standard) / `correctness` / `plan` / `failure types` (the three reviewers of Deep) |
 | Round | 1, 2, 3 |
-| Previous result | Only for round 2 and later. Base of the fix diff, and how each finding was handled (fixed / not fixed, with a reason). If a different reviewer continues, also the full result of the previous round |
+| Previous result | Only for round 2 and later. Path of the fix diff file and its base, and how each finding was handled (fixed / not fixed, with a reason). If a different reviewer continues, also the full result of the previous round |
 
 ## 3. Scope of round 1
 
