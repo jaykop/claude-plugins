@@ -126,7 +126,7 @@ The level sets the depth of the agent review (L6) and what a person must read.
 |---|---|---|
 | low | Skipped | Evidence such as build and test results |
 | mid | Standard: 1 reviewer | Evidence + code parts that contain judgment |
-| high | Deep: 2 reviewers in parallel + verifier | Evidence + the whole change (with a reading order) |
+| high | Deep: 3 reviewers in parallel + verifier | Evidence + the whole change (with a reading order) |
 
 Report the result in one line.
 
@@ -458,11 +458,11 @@ Step 0-C risk level sets the depth.
 | Depth | Reviewers | Check of findings |
 |---|---|---|
 | Standard (mid) | 1 reviewer with focus `all` | The orchestrator reads the `file:line` of each finding and checks it before handling it |
-| Deep (high) | 2 reviewers with focus `correctness` and `failure types`, in parallel in one message | 1 verifier agent merges the two results and checks each finding (review-brief.md section 8) |
+| Deep (high) | 3 reviewers with focus `correctness`, `plan`, and `failure types`, in parallel in one message | 1 verifier agent merges the three results and checks each finding (review-brief.md section 8) |
 
 Before you call the reviewers, save the change to a diff file with `git diff --no-color --output=<file> <base>`. Put the file in a temporary folder outside the repository (the session scratchpad if the environment has one, otherwise the OS temp folder). New files that git does not track yet are not in this diff, so put them in the list of changed files.
 
-Give each reviewer the path of review-brief.md, the absolute path of the diff file, and the input of its section 2. If profile `review_guide` has a value, give that path. Give the verifier agent the same paths and the results of the two reviewers.
+Give each reviewer the path of review-brief.md, the absolute path of the diff file, and the input of its section 2. If profile `review_guide` has a value, give that path. The `plan` focus compares the code with the decision card, so put its confirmed decisions, the `[assumption]` sources, and the tests chosen as `this work` with their `What to assert` in the Intent input. Give the verifier agent the same paths and the results of the three reviewers.
 
 - Claude: set `subagent_type` of the Agent tool to `workflow:reviewer`, for the reviewers and for the verifier agent. This agent has only Read, Glob, and Grep, so it cannot change files or run commands. If this name is not found, use a general-purpose subagent with the same input.
 - Other environments: a subagent that starts without context, with the same input.
@@ -485,7 +485,7 @@ If a finding covers a bug type, fix all its locations at once.
 
 If you fixed at least one `Important`, run the next round. **From round 2, the review reads only the changes** (review-brief.md section 6).
 
-- **Send the next round to the reviewer of the previous round** (SendMessage for Claude). This keeps the reviewer from reading the same code again. For Deep, continue each of the two reviewers and the verifier agent.
+- **Send the next round to the reviewer of the previous round** (SendMessage for Claude). This keeps the reviewer from reading the same code again. For Deep, continue each of the three reviewers and the verifier agent.
 - The input is the fix diff file (save `git diff` from the fix base the same way as in L6-2), its base, and the handling of each finding (fixed / not fixed, with a reason).
 - If you cannot continue the reviewer (the environment does not support it, or the previous reviewer cannot be called again), start a new reviewer with the same depth and focus, and also give it the full result of the previous round.
 
