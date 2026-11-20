@@ -203,7 +203,7 @@ A subagent starts without context. So by default, use subagents only for explora
 | L3. Implementation plan + save | Orchestrator | Confirmed decisions, instructions, and conversation context set the quality of the plan. A planning agent that receives only a summary loses this context |
 | L4. Confirm decisions and feedback | Orchestrator | Conversation with the user |
 | L5. Implementation | Orchestrator, in implementation order. Parallel implementation agents only under the condition below | Files that depend on each other (declaration and implementation, includes, generated code macros) easily go out of sync when written separately, and the user pays for that with build time |
-| L6. Agent review | Review agents (general-purpose subagents that start without context) × the number for the depth. The orchestrator handles the findings | A reviewer that is not pulled by the implementation context reads the change. Fixing needs the conversation context |
+| L6. Agent review | Review agents (`workflow:reviewer` for Claude, general-purpose subagents elsewhere; both start without context) × the number for the depth. The orchestrator handles the findings | A reviewer that is not pulled by the implementation context reads the change. Fixing needs the conversation context |
 | L7. Error fixes + test guide | Orchestrator | Conversation with the user, run environment |
 
 Condition for parallel implementation agents: the "Parallel implementation groups" of the plan contain several files that do not reference each other, and the plan gives complete implementation instructions for each file (for example, independent data files, or unrelated tool scripts). Even then, give a declaration and implementation pair of the same module to one agent.
@@ -460,7 +460,12 @@ Step 0-C risk level sets the depth.
 | Standard (mid) | 1 reviewer with focus `all` | The orchestrator reads the `file:line` of each finding and checks it before handling it |
 | Deep (high) | 2 reviewers with focus `correctness` and `failure types`, in parallel in one message | 1 verifier agent merges the two results and checks each finding (review-brief.md section 8) |
 
-Give each reviewer the path of review-brief.md and the input of its section 2. If profile `review_guide` has a value, give that path.
+Before you call the reviewers, save the change to a diff file with `git diff --no-color --output=<file> <base>`. Put the file in a temporary folder outside the repository (the session scratchpad if the environment has one, otherwise the OS temp folder). New files that git does not track yet are not in this diff, so put them in the list of changed files.
+
+Give each reviewer the path of review-brief.md, the absolute path of the diff file, and the input of its section 2. If profile `review_guide` has a value, give that path. Give the verifier agent the same paths and the results of the two reviewers.
+
+- Claude: set `subagent_type` of the Agent tool to `workflow:reviewer`, for the reviewers and for the verifier agent. This agent has only Read, Glob, and Grep, so it cannot change files or run commands. If this name is not found, use a general-purpose subagent with the same input.
+- Other environments: a subagent that starts without context, with the same input.
 
 If subagents cannot be used, the orchestrator reviews directly with review-brief.md, and writes "not a review without context" in the review packet.
 
@@ -481,7 +486,7 @@ If a finding covers a bug type, fix all its locations at once.
 If you fixed at least one `Important`, run the next round. **From round 2, the review reads only the changes** (review-brief.md section 6).
 
 - **Send the next round to the reviewer of the previous round** (SendMessage for Claude). This keeps the reviewer from reading the same code again. For Deep, continue each of the two reviewers and the verifier agent.
-- The input is the base of the fix diff and the handling of each finding (fixed / not fixed, with a reason).
+- The input is the fix diff file (save `git diff` from the fix base the same way as in L6-2), its base, and the handling of each finding (fixed / not fixed, with a reason).
 - If you cannot continue the reviewer (the environment does not support it, or the previous reviewer cannot be called again), start a new reviewer with the same depth and focus, and also give it the full result of the previous round.
 
 If one of these is true, read the round 1 scope again even in round 2 or later. Write the reason in the review packet.
