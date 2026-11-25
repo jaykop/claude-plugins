@@ -1,6 +1,6 @@
 ---
 name: commit-doc-review
-description: "Use just before git commit. Check that the documents related to the change (usage, change records, design documents, README, project instructions, issues) are updated, and that the description comments of code whose behavior changed match the current behavior. Record the result as a commit message trailer (default `Docs-Reviewed:`). Use it whether the agent suggested the commit or the user said '커밋해'. Not for: writing new documents (feature-doc-sync), code review."
+description: "Use just before git commit. Check that the documents related to the change (usage, change records, design documents, README, project instructions, issues) are updated, that the description comments of code whose behavior changed match the current behavior, and correct the comments, usage documents, and change records of the commit with the style skill (default `ko-gamedev:style`). Record the result as a commit message trailer (default `Docs-Reviewed:`). Use it whether the agent suggested the commit or the user said '커밋해'. Not for: writing new documents (feature-doc-sync), code review."
 when_to_use: "Just before a commit, or when the commit_gate hook blocked a commit without the trailer."
 argument-hint: "[commit scope]"
 ---
@@ -9,11 +9,11 @@ argument-hint: "[commit scope]"
 
 This skill checks just before a commit that no document became wrong because of the change. `feature-doc-sync` **writes** documents. This skill **checks that no document is missing**, based on the commit scope.
 
-This skill does not replace the project instructions. If they conflict, the instructions win. The document check gives no permission to run builds, tests, or code checks.
+This skill does not replace the project instructions. If they conflict, the instructions win. The document check gives no permission to run builds, tests, or code checks. The style skill's lint in Step 3c reads only comments and documents. It is part of this review, not a code check, and it runs whatever profile `verification` says.
 
 ## Profile and hook
 
-The profile is `<project root>/.claude/workflow/profile.md` (template: `<plugin folder>/shared/profile-template.md`). The plugin folder is `${CLAUDE_PLUGIN_ROOT}`. If the value shows as the variable name, it is the folder two levels above this SKILL.md. Keys used: `commit_trailer` (default `Docs-Reviewed:`), `commit_policy`, `tracker_public`, `docs`, and the "Change → document map" section of the body (older profiles: "변경 → 문서 대응표"). If there is no profile, use the default trailer and the default map below.
+The profile is `<project root>/.claude/workflow/profile.md` (template: `<plugin folder>/shared/profile-template.md`). The plugin folder is `${CLAUDE_PLUGIN_ROOT}`. If the value shows as the variable name, it is the folder two levels above this SKILL.md. Keys used: `commit_trailer` (default `Docs-Reviewed:`), `style_skill` (default `ko-gamedev:style`), `commit_policy`, `tracker_public`, `docs`, and the "Change → document map" section of the body (older profiles: "변경 → 문서 대응표"). If there is no profile, use the default trailer and the default map below.
 
 If profile `commit_gate` is true, a PreToolUse hook blocks `git commit` without the trailer. The hook checks only that the trailer exists. **Do not add the trailer without the review.**
 
@@ -67,6 +67,15 @@ Always do this step when the commit has code changes, separately from the map.
 
 Read only the comments of the declarations in the diff. If a comment in another file or a document describes the same behavior, the map of Step 2 covers it. If you do not know the behavior, do not guess and change the comment. Report it as "Needs update".
 
+## Step 3c — Style correction of comments, usage documents, and change records
+
+Always do this step when the commit adds or changes code comments, or documents in the profile `docs.manual` or `docs.devlog` folders. It applies to code commits and to document-only commits. Other documents (design plans, README, project instructions) are out of scope. If the profile has neither folder, correct only comments.
+
+1. Use the skill in profile `style_skill` (default `ko-gamedev:style`). If the value is `none`, the skill is not installed, or the project instructions set a comment language that the skill does not cover, skip this step and write one row "Style correction: skipped (<reason>)".
+2. Scope: the comments and the usage document and change record text that the commit adds or changes. Follow that skill's steps for correcting existing text: run its lint on the changed files, then correct the changed blocks. Its rules also cover what a comment must not hold (references to documents or issues, history, logic walkthroughs in property and tooltip comments).
+3. Do not rewrite comments or paragraphs that the commit does not touch, also in the same files. Give only their hit count. Correct them only when the user asks.
+4. Put the corrections in the same commit. Add one row "Style correction: <files>" to the table of Step 3 with the lint totals before and after, and the hits left on purpose with the reason. If a correction would change what a comment says about behavior, report it and do not apply it.
+
 ## Step 4 — Report and apply
 
 Report to the user with a table. Write the report in the language of the conversation.
@@ -88,6 +97,7 @@ Add one line to the last trailer block of the commit message (above `Co-Authored
 ```
 Docs-Reviewed: usage and related change records updated, editor guide not affected
 Docs-Reviewed: 2 description comments updated, usage not affected
+Docs-Reviewed: usage not affected, 5 comments corrected with ko-gamedev:style
 Docs-Reviewed: documents only, README links checked
 Docs-Reviewed: editor guide not updated (handled in #12)
 ```

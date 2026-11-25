@@ -37,6 +37,7 @@ vcs: git                      # git / p4. For p4, only the status query of work-
 commit_policy:                # Where the rules for commit scope and targets are. Example: "AGENTS.md Commits and tracking scope"
 commit_gate: false            # If true, the hook blocks git commit without the trailer
 commit_trailer: "Docs-Reviewed:"
+style_skill: ko-gamedev:style # Skill that corrects the comments and the docs.manual and docs.devlog documents of each commit (commit-doc-review Step 3c). none turns it off. If the key is missing, ko-gamedev:style is used
 
 # ── Documents ───────────────────────────────────────
 docs:

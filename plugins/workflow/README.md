@@ -8,7 +8,7 @@
 | next-task | `/workflow:next-task` | 오늘 시간에 맞는 다음 이슈 고르기, 새 이슈 초안·게시, 다시 채점 |
 | feature-impl | `/workflow:feature-impl` | 규모(Small/Large), 종류(feature/improvement/bug), 위험 등급(low/mid/high)을 판별해 구현하고, 에이전트 리뷰와 체크포인트로 마무리 |
 | feature-doc-sync | `/workflow:feature-doc-sync` | 영향받는 manual·devlog·plan 갱신, 이슈 결과 초안 |
-| commit-doc-review | `/workflow:commit-doc-review` | 커밋 직전 빠진 문서와 동작에 맞지 않게 된 설명 주석 확인, `Docs-Reviewed:` 트레일러(feature-impl 작업이면 `Risk:`·`Tested:` 도) |
+| commit-doc-review | `/workflow:commit-doc-review` | 커밋 직전 빠진 문서와 동작에 맞지 않게 된 설명 주석 확인, 커밋의 주석과 manual, devlog 문서를 `style_skill`(기본 `ko-gamedev:style`)로 교정, `Docs-Reviewed:` 트레일러(feature-impl 작업이면 `Risk:`·`Tested:` 도) |
 | context-handoff | `/workflow:context-handoff` | 작업별 인계 메모 저장·갱신 |
 
 명령 이름을 외우지 않아도 된다. "작업 시작", "다음 뭐 해", "이거 고쳐 줘", "문서 정리해", "커밋해", "여기까지 저장해 둬" 같은 말로도 불린다.
@@ -73,6 +73,7 @@
 | `agent_review` | false 면 에이전트 리뷰를 끈다. 칸이 없으면 켜진 것으로 본다 |
 | `review_guide` | 리뷰가 대조할 실패 유형 문서 |
 | `test_candidates` | 결정 카드에 자동화 테스트 후보로 올릴 코드의 기준. 비우면 후보 절을 뺀다 |
+| `style_skill` | 커밋 전에 주석과 `docs.manual`, `docs.devlog` 문서를 교정할 스킬. 칸이 없으면 `ko-gamedev:style`, `none` 이면 끈다 |
 
 ## 훅
 
