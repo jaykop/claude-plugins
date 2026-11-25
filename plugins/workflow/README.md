@@ -1,6 +1,6 @@
 # workflow — 이슈 기반 작업 흐름
 
-작업을 고르는 것부터 구현, 문서 반영, 커밋 전 확인, 세션 인계까지 한 흐름으로 잇는 플러그인이다. 프로젝트마다 다른 값(이슈 저장소, 문서 폴더, 빌드 명령, 검증 담당)은 프로필에서 읽는다. Claude Code 와 Codex 양쪽에서 같은 스킬을 쓴다(훅과 리뷰 에이전트는 Claude Code 전용).
+작업을 고르는 것부터 구현, 문서 반영, 커밋 전 확인, 세션 인계까지 한 흐름으로 잇는 플러그인이다. 프로젝트마다 다른 값(이슈 저장소, 문서 폴더, 빌드 명령, 검증 담당)은 프로필에서 읽는다.
 
 | 스킬 | 명령 | 하는 일 |
 |---|---|---|
@@ -29,7 +29,7 @@
 - **결정 카드**: Large 계획은 의도, 사용자가 답할 결정, 깨질 수 있는 것과 확인 방법, 테스트 후보, 조각만 대화에 낸다. 파일 표는 인계 메모에 둔다. 테스트 후보는 프로필 `test_candidates` 기준에 드는 코드만 올리고, 테스트 코드는 사용자가 고른 것만 쓴다. 결정이 많거나 카드가 한 화면을 넘으면 따로 빌드·테스트·커밋할 수 있는 조각으로 나눈다.
 - **추천 근거**: 결정마다 추천 이유를 출처 표시(`[code file:line]`, `[doc]`, `[user 날짜]`, `[assumption]`, `[agent convenience]`)와 함께 적고, 대안이 나아지는 조건을 한 줄 단다. 카드를 내기 전에 근거가 되는 코드와 문서를 직접 읽고, 프로젝트에 이미 있는 기반부터 확인한다. 확인하지 않은 가정과 에이전트 편의는 결정 근거가 될 수 없다. 근거는 인계 메모의 "Design decisions"에 남긴다.
 - **추천에 대한 질문과 반론**: "왜?"에는 저장한 근거로 답하고 그 답에서 추천을 바꾸지 않는다. 반론은 새 사실, 우선순위 차이, 오해, 새 사실 없음으로 나눠 처리한다. 추천을 바꿀 때는 어느 근거가 무너졌는지, 유지할 때는 반론이 결론을 바꾸지 않는 이유를 말한다.
-- **에이전트 리뷰**: 사람보다 먼저 맥락 없는 서브에이전트가 본다. low 는 생략, mid 는 리뷰어 1명, high 는 정확성·계획 대조·실패 유형을 나눠 맡은 3명 병렬과 검증자 1명이다. 계획 대조는 코드가 결정 카드의 의도·확정한 결정과 다르게 동작하는 곳, 근거의 `[assumption]` 이 코드에서 성립하지 않는 곳, 고른 테스트가 확인할 것을 실제로 단언하는지를 본다. mid 리뷰어도 이 대조를 함께 한다. `verification: user` 면 빌드 요청 전에 리뷰해서 빌드 한 번으로 확인한다. 2차 이후는 앞 차수의 리뷰어가 이어서 변경분만 보고, 3차 뒤에도 문제가 남으면 멈추고 묻는다. Claude Code 에서는 읽기 도구(Read, Glob, Grep)만 가진 `workflow:reviewer` 에이전트가 리뷰어와 검증자를 맡는다. 셸이 없으므로 구현한 에이전트가 `git diff` 를 저장소 밖 임시 파일에 저장해 그 경로를 넘긴다. 절차는 [shared/review-brief.md](shared/review-brief.md).
+- **에이전트 리뷰**: 사람보다 먼저 맥락 없는 서브에이전트가 본다. low 는 생략, mid 는 리뷰어 1명, high 는 정확성·계획 대조·실패 유형을 나눠 맡은 3명 병렬과 검증자 1명이다. 계획 대조는 코드가 결정 카드의 의도·확정한 결정과 다르게 동작하는 곳, 근거의 `[assumption]` 이 코드에서 성립하지 않는 곳, 고른 테스트가 확인할 것을 실제로 단언하는지를 본다. mid 리뷰어도 이 대조를 함께 한다. `verification: user` 면 빌드 요청 전에 리뷰해서 빌드 한 번으로 확인한다. 2차 이후는 앞 차수의 리뷰어가 이어서 변경분만 보고, 3차 뒤에도 문제가 남으면 멈추고 묻는다. 읽기 도구(Read, Glob, Grep)만 가진 `workflow:reviewer` 에이전트가 리뷰어와 검증자를 맡는다. 셸이 없으므로 구현한 에이전트가 `git diff` 를 저장소 밖 임시 파일에 저장해 그 경로를 넘긴다. 절차는 [shared/review-brief.md](shared/review-brief.md).
 - **리뷰 패킷**: 리뷰가 끝나면 볼 곳(파일:줄), 리뷰가 찾은 것과 처리, 검사로 못 잡는 것만 보여 준다.
 - **커밋 증거**: 커밋 메시지에 `Risk:`, `Tested:`(확인하지 않은 것 포함), 필요하면 `Revert:` 를 남긴다.
 
@@ -37,20 +37,12 @@
 
 ## 설치
 
-Claude Code:
-
 ```
 /plugin marketplace add jaykop/claude-plugins
 /plugin install workflow@jaykop
 ```
 
-Codex:
-
-```
-codex plugin marketplace add jaykop/claude-plugins
-```
-
-그다음 Codex 앱의 플러그인 화면에서 `workflow` 를 설치한다. 업데이트 방법은 [리포 README](../../README.md#업데이트) 를 따른다.
+업데이트 방법은 [리포 README](../../README.md#업데이트) 를 따른다.
 
 ## 프로젝트 설정
 
@@ -82,7 +74,7 @@ codex plugin marketplace add jaykop/claude-plugins
 | `review_guide` | 리뷰가 대조할 실패 유형 문서 |
 | `test_candidates` | 결정 카드에 자동화 테스트 후보로 올릴 코드의 기준. 비우면 후보 절을 뺀다 |
 
-## 훅 (Claude Code)
+## 훅
 
 두 훅 모두 **프로필이 있는 프로젝트에서, 프로필로 켰을 때만** 동작한다. 플러그인을 설치했다고 다른 프로젝트의 커밋이 막히지 않는다. 프로필이 없는 프로젝트에서는 `run-py.sh` 가 파이썬을 띄우기 전에 끝내고, 커밋 검사 훅은 `git` 명령에만 실행된다(훅 정의의 `if` 필터). 그래서 셸 명령마다 드는 지연이 거의 없다.
 
@@ -90,8 +82,6 @@ codex plugin marketplace add jaykop/claude-plugins
 |---|---|---|
 | PreToolUse (Bash·PowerShell) | `commit_gate: true` | `git commit` 명령에 `commit_trailer`(기본 `Docs-Reviewed:`)가 없으면 막고 `commit-doc-review` 를 거치게 한다. 에이전트의 커밋에만 적용되고 사용자가 터미널에서 직접 하는 커밋에는 영향이 없다 |
 | Stop | `handoff_reminder_turns: N` (1 이상) | 세션 턴이 N 의 배수가 될 때 `context-handoff` 를 권한다. 턴 수는 `~/.claude/_hook_state/workflow/` 에 둔다 |
-
-Codex 에서 같은 동작이 필요하면 프로젝트의 `.codex/hooks.json` 에서 Claude Code 마켓플레이스 사본의 스크립트(`~/.claude/plugins/marketplaces/jaykop/plugins/workflow/hooks/commit_gate.py`, `handoff_reminder.py`)를 `python` 으로 실행하게 연결한다. Codex 플러그인 사본은 버전마다 경로가 바뀌므로 쓰지 않는다. 훅 정의를 바꾸면 Codex 의 `/hooks` 에서 다시 승인해야 한다.
 
 ## 우선순위 등급
 
@@ -101,9 +91,8 @@ Codex 에서 같은 동작이 필요하면 프로젝트의 `.codex/hooks.json` �
 
 ```
 plugins/workflow/
-├─ .claude-plugin/plugin.json   Claude Code 매니페스트
-├─ .codex-plugin/plugin.json    Codex 매니페스트 (같은 skills/ 를 쓴다)
-├─ agents/        reviewer (Claude Code 전용 읽기 전용 리뷰 에이전트)
+├─ .claude-plugin/plugin.json   매니페스트
+├─ agents/        reviewer (읽기 전용 리뷰 에이전트)
 ├─ skills/        work-start, next-task, feature-impl, feature-doc-sync, commit-doc-review, context-handoff
 ├─ hooks/         hooks.json, run-py.sh, commit_gate.py, handoff_reminder.py
 ├─ scripts/       issue_priority.py, profile_reader.py
@@ -112,7 +101,7 @@ plugins/workflow/
 
 ## 필요한 것
 
-- Claude Code 또는 Codex
+- Claude Code
 - Python 3.8 이상 (표준 라이브러리만 쓴다)
 - git
 - `next-task` 와 이슈 연동: 로그인된 `gh` CLI
@@ -125,6 +114,5 @@ plugins/workflow/
 - **이슈 트래커는 GitHub 만 다룬다.** 예외로 `work-start` 는 Jira 이슈를 읽고 상태를 바꾼다. 다른 스킬은 `tracker` 가 `github` 가 아니면 이슈 단계를 건너뛴다.
 - **Perforce 는 `work-start` 의 상태 조회만 다룬다.** 커밋 검사와 인계 메모의 버전 관리 상태는 git 을 기준으로 쓴다.
 - **훅은 맥락 사용량을 모른다.** 인계 권유는 턴 수를 대신 쓴다.
-- **에이전트 리뷰는 코드를 읽기만 한다.** 실행해야 드러나는 문제는 빌드·테스트 가이드의 몫이다. 서브에이전트를 쓸 수 없는 환경에서는 구현한 에이전트가 직접 리뷰하고, 리뷰 패킷에 그 사실을 적는다. Codex 에서는 리뷰어가 일반 서브에이전트라서 파일을 고치지 않는다는 규칙을 지시로만 지킨다.
+- **에이전트 리뷰는 코드를 읽기만 한다.** 실행해야 드러나는 문제는 빌드·테스트 가이드의 몫이다. 서브에이전트를 쓸 수 없는 환경에서는 구현한 에이전트가 직접 리뷰하고, 리뷰 패킷에 그 사실을 적는다.
 - **리뷰 결과가 나빠져도 위험 기준이 자동으로 엄격해지지 않는다.** 놓친 버그 기록을 보고 `risk_paths` 와 리뷰 지침을 사람이 고친다.
-- **Codex 플러그인 훅은 쓰지 않는다.** Codex 에서는 위 훅 단락처럼 프로젝트의 `.codex/hooks.json` 으로 연결한다. 이 연결은 같은 PC 의 Claude Code 에 이 마켓플레이스가 추가돼 있어야 동작한다.
