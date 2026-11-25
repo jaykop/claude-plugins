@@ -46,10 +46,21 @@ Rules:
 
 ## Content
 
-- Write what a reader of this line needs: the role of the value, the condition, what happens at the edge values. Leave history and reasoning chains to commit messages and docs.
+A comment describes the current code and must make sense with the code alone. These content rules are the user's choice, not a corpus result.
+
+- Write what a reader of this line needs: the role of the value, the condition, what happens at the edge values.
+- Do not point to a document, design spec, issue, PR or decision record: not `기획서 3.2절 참고`, `docs/plan/Combat.md 참조`, `#217`, `2026-11 결정`. Keeping a comment in step with the code is already hard, and every reference adds one more thing that can go stale. If the reason matters to the reader, write the reason itself in one line. Links to issues and documents go in the commit message.
+- Do not write history: what the code did before, when a value changed, which bug a line fixed (`원래는`, `변경됨`, `이전 방식`, `300에서 200으로 낮춤`). Version control keeps it.
+- A property, field or enum comment says what the value is and what it is for, with its unit and what special values do. It does not walk through the logic that uses the value, the call order across classes, or the reasons behind the design. If a reader needs that, it goes in the comment of the function or class that runs the logic.
 - One fact per line. If a sentence holds a condition, an exception and a reason, split it.
 - No personification or metaphor: not 입력이 노리는 단계, but 현재 이동 입력에 해당하는 Gait.
 - Keep facts exact when you rewrite: conditions, negations, numbers, units, defaults, lifetime, failure handling. Do not add a fact you did not check.
+
+### Tooltip comments
+
+Some comments show in the editor without any tooltip metadata. In Unreal, the comment right above a `UPROPERTY`, `UFUNCTION`, `UCLASS`, `USTRUCT` or `UENUM` declaration, or above an enum value, becomes its tooltip. In Godot, the `##` comment above an `@export` variable shows in the Inspector.
+
+The reader is a designer choosing a value in the editor. Give the role of the setting and the result of changing it, in one or two lines, with the unit and the condition that limits it. Put the duties of callers and implementers in the comment of the function or class that has them.
 
 ## Before and after
 
@@ -65,6 +76,8 @@ Examples written in the style of corpus K. They show the patterns, not real comm
 | `// 레벨 언로드 순서에 따라 매니저가 먼저 내려갈 수 있으므로 살아 있을 때만 해제한다.` | `// 레벨 언로드 순서에 따라 매니저가 먼저 파괴될 수 있기 때문에 유효한 경우에만 해제` | 내려가다 and 살아 있다 are metaphors; ~므로 |
 | `// 화살 하나는 대상 하나만 맞히고 사라진다. 걸러진 대상은 지나쳐 계속 날아간다.` | `// 화살 하나는 타겟 하나만 히트하고 소멸. 필터링된 타겟은 통과해서 계속 비행` | 대상, 맞히다, 걸러지다 |
 | `/** 무한 흔들림을 루프로 지정하면 경고한다. */` | `/** 무한 Camera Shake를 루프로 지정하면 경고 */` | 흔들림 for a Camera Shake asset; engine type names stay English |
+| `/** 넉백 거리(cm). 기획서 '피격 반응' 3.2절 기준. #142에서 300에서 200으로 낮춤 */` | `/** 넉백 거리(cm) */` | Document and issue references, history |
+| `/** 회피 무적 시간(초). OnDodgeStart에서 타이머를 시작하고, 만료되면 HitReactionComponent가 무적 태그를 제거한 뒤 다음 입력을 받는다. */` | `/** 회피 시작 후 무적이 유지되는 시간(초) */` | The logic flow belongs to the functions that run it |
 | `/** 무기의 Static Mesh를 찾고, 없으면 Root Component를 반환한다. */` | (no change) | Already clear. Not every sentence needs a rewrite. |
 
 A header with several facts:

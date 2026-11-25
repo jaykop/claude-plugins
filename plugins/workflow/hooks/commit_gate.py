@@ -35,7 +35,8 @@ def main():
 
     reason = (
         "A document review is required before this commit. Use the commit-doc-review skill of the workflow plugin "
-        "to check the documents and description comments related to this commit, report to the user, then add one "
+        "to check the documents and description comments related to this commit, correct its comments, manual, and "
+        "devlog with the style skill, report to the user, then add one "
         "trailer line '{0} <review summary>' to the commit message and commit again. Do not add the trailer "
         "without the review.".format(trailer)
     )
