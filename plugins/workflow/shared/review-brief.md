@@ -1,6 +1,6 @@
 # Agent review brief
 
-The review agents and the verifier agent of the feature-impl agent review (Full Lane L6, and the high-risk review of the Fast Lane) read this file. The orchestrator passes the path of this file and the "Input" below. In Claude, these agents are `workflow:reviewer`, which has only read tools and no shell.
+The review agents and the verifier agent of the feature-impl agent review (Full Lane L6, and the high-risk review of the Fast Lane) read this file. The orchestrator passes the path of this file and the "Input" below. These agents are `workflow:reviewer`, which has only read tools and no shell. A general-purpose subagent takes its place only when that agent is not found.
 
 ## 1. Role
 
